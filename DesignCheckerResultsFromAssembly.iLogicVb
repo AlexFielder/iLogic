@@ -1,0 +1,101 @@
+﻿Imports Inventor.ViewOrientationTypeEnum
+Imports Inventor.DrawingViewStyleEnum
+'Imports Autodesk.InventorDesignChecker.Main
+Imports System.IO
+AddReference "C:\ProgramData\Autodesk\ApplicationPlugins\Autodesk Design Checker.bundle\Contents\Windows\InventorDesignChecker.Main.dll"
+Public Sub Main
+DesignCheckerResultsFromAssembly()
+End Sub
+Public Sub DesignCheckerResultsFromAssembly()
+    ' Set reference to active document.
+    ' This assumes the active document is an assembly
+    Dim oDoc As Inventor.AssemblyDocument
+    oDoc = ThisApplication.ActiveDocument
+    Dim oSubDoc As Inventor.Document
+	
+    ' Get assembly component definition
+    Dim oCompDef As Inventor.ComponentDefinition
+    oCompDef = oDoc.ComponentDefinition
+	If oDoc.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then
+    	' Get all occurrences from component definition for Assembly document
+    	Dim oCompOcc As ComponentOccurrence
+    	For Each oCompOcc In oCompDef.Occurrences
+        	' Check if it's child occurrence (leaf node)
+        	If oCompOcc.SubOccurrences.Count = 0 Then
+				'PART!
+				oSubDoc = CType(oCompOcc.Definition.Document, Document)
+				'oSubDoc.Activate()
+				BeginRunDesignChecker(oSubDoc)
+        	Else
+				'ASSEMBLY!
+            	oSubDoc = CType(oCompOcc.Definition.Document, Document)
+				'oSubDoc.Activate()
+				BeginRunDesignChecker(oSubDoc)
+            	Call processAllSubOcc(oCompOcc) ' subassembly
+        	End If
+    	Next
+    End If
+End Sub
+
+Public Function GetRootFolder(ByVal path As String) As String
+Dim filepath As String = path
+Dim directoryName As String 
+Dim i As Integer = 0
+
+	While i < 2
+		directoryName = System.IO.Path.GetDirectoryName(filepath)
+		filepath = directoryName
+		If i = 1
+			filepath = directoryName + "\"  ' this will preserve the previous path
+		End If
+		i = i + 1
+	End While
+Return filepath
+End Function
+
+' This function is called for processing sub assembly.  It is called recursively
+' to iterate through the entire assembly tree.
+Private Sub processAllSubOcc(ByVal oCompOcc As ComponentOccurrence)
+    
+    Dim oSubCompOcc As ComponentOccurrence
+    For Each oSubCompOcc In oCompOcc.SubOccurrences
+        ' Check if it's child occurrence (leaf node)
+        If oSubCompOcc.SubOccurrences.Count = 0 Then
+            'PART!
+			oSubDoc = CType(oSubCompOcc.Definition.Document, Document)
+			BeginRunDesignChecker(oSubDoc)
+        Else
+            oSubDoc = CType(oSubCompOcc.Definition.Document, Document)
+			BeginRunDesignChecker(oSubDoc)
+            Call processAllSubOcc(oSubCompOcc)
+        End If
+    Next
+End Sub
+
+Private Sub BeginRunDesignChecker(ByVal oDoc as Inventor.Document)
+	Dim projectRootFolder= GetRootFolder(oDoc.FullFileName)
+	If Not projectRootFolder.Contains("Content Center Files") Then
+			RunDesignChecker(oDoc)
+	End If
+
+End Sub
+Private Sub RunDesignChecker(ByVal oDoc as Inventor.Document)
+    Dim iter As ApplicationAddIn
+    
+    For Each iter In ThisApplication.ApplicationAddIns
+        If UCase(iter.DisplayName) Like "*CHECKER*" Then
+            iter.Activate
+			If odoc.DocumentType = Inventor.DocumentTypeEnum.kPartDocumentObject Then
+				Dim partmgr As Autodesk.InventorDesignChecker.Main.dfmPartManager = New Autodesk.InventorDesignChecker.Main.dfmPartManager(oDoc, ThisApplication, True)
+				partmgr.activate()
+				partmgr.ExecuteAllChecks()
+				Exit For
+			Else
+				Dim assyMgr As Autodesk.InventorDesignChecker.Main.dfmAssyManager = New Autodesk.InventorDesignChecker.Main.dfmAssyManager(oDoc, m_inventorApplication, True)
+				assyMgr.activate()
+                assyMgr.ExecuteAllChecks()
+				Exit For
+			End If
+        End If
+    Next
+End Sub

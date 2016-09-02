@@ -1,0 +1,16 @@
+﻿Public Sub Main
+BeginSyncProps()
+End Sub
+
+Public Sub BeginSyncProps()
+	Dim ThisDoc = ThisApplication.ActiveDocument
+	If ThisDoc.DocumentType = Inventor.DocumentTypeEnum.kPartDocumentObject Then
+		SyncProps()
+	End If
+End Sub
+
+Public Sub SyncProps()
+If iProperties.Value("Summary", "Subject") = "" Then
+iProperties.Value("Summary", "Subject") = Parameter("CABLE_ID")
+End If
+End Sub

@@ -1,0 +1,54 @@
+﻿
+Sub Main()
+	Dim sw As New Stopwatch()
+    sw.Start()
+	Dim newPath As String = "C:\Users\alex.fielder\OneDrive\Inventor\Designs\sapphire\Cassette Master\Exported dwgs\"
+    'copied from https://forums.autodesk.com/t5/inventor-customization/ilogic-rule-to-ask-yes-or-no-for-dxf-export-when-saving-idw/td-p/3939068
+
+    ' Get the DXF translator Add-In.
+    'path_and_nameDXF = ThisDoc.PathAndFileName(False)
+    Dim DWGAddIn As TranslatorAddIn
+    DWGAddIn = ThisApplication.ApplicationAddIns.ItemById("{C24E3AC4-122E-11D5-8E91-0010B541CD80}")
+	Dim percent As Double = Nothing
+	Dim i As Integer = 0
+	Dim dwglist As New list(Of Document)
+	For Each doc as document In ThisApplication.documents
+		If TypeOf doc Is DrawingDocument Then
+			dwglist.add(doc)
+		End If
+	Next
+    For Each dwgdoc As Document In dwglist
+		percent = (CDbl(i) / ThisApplication.Documents.Count)
+		i += 1
+		updatestatusbar(percent,"Exporting: " & System.IO.Path.GetFileNameWithoutExtension(dwgdoc.fulldocumentname) & ".dwg")
+		'dwgdoc.activate
+        Dim oContext As TranslationContext
+        oContext = ThisApplication.TransientObjects.CreateTranslationContext
+        oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
+        ' Create a NameValueMap object
+        Dim oOptions As NameValueMap
+        oOptions = ThisApplication.TransientObjects.CreateNameValueMap
+        ' Create a DataMedium object
+        Dim oDataMedium As DataMedium
+        oDataMedium = ThisApplication.TransientObjects.CreateDataMedium
+        If DWGAddIn.HasSaveCopyAsOptions(dwgdoc, oContext, oOptions) Then
+            Dim strIniFile As String
+            strIniFile = "C:\Users\alex.fielder\OneDrive\AutoCAD\Inventor dwg to AutoCAD 2013 configuration.ini"
+            oOptions.Value("Export_Acad_IniFile") = strIniFile
+        End If
+
+        oDataMedium.FileName = newPath & System.IO.Path.GetFileNameWithoutExtension(dwgdoc.fulldocumentname) & ".dwg"
+        Call DWGAddIn.SaveCopyAs(dwgdoc, oContext, oOptions, oDataMedium)
+    Next
+	sw.Stop()
+	MessageBox.Show("Operation took: " & sw.Elapsed.Seconds.ToString() & " seconds to complete.")
+
+End Sub
+
+Sub updatestatusbar(ByVal message As String)
+	ThisApplication.statusbartext = message
+End Sub
+
+Sub updatestatusbar(ByVal percent As Double, ByVal message As String)
+	ThisApplication.statusbartext = message + " (" & percent.tostring("P1") + ")"
+End Sub

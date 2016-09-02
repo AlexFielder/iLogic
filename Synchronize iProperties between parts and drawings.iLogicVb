@@ -1,0 +1,42 @@
+﻿Public Sub Main
+BeginSyncProps()
+End Sub
+
+Public Sub BeginSyncProps()
+booleanParam = InputRadioBox("Synchronize iProperties between Models and Drawings:", _
+"All Drawings", _
+"This Drawing", _
+booleanParam, Title := "Single or Multiple files?")
+If booleanParam Then
+	For Each oDoc in ThisApplication.Documents
+		If oDoc.DocumentType = Inventor.DocumentTypeEnum.kDrawingDocumentObject Then
+			oDoc.Activate
+			SyncProps()
+		End If
+	Next
+Else
+	Dim ThisDoc = ThisApplication.ActiveDocument
+	If ThisDoc.DocumentType = Inventor.DocumentTypeEnum.kDrawingDocumentObject Then
+		SyncProps()
+	End If
+End If
+
+End Sub
+
+Public Sub SyncProps()
+If (ThisDrawing.ModelDocument Is Nothing) Then Return
+
+'get the filename of the doc the drawing points to
+
+modelName = IO.Path.GetFileName(ThisDrawing.ModelDocument.FullFileName)
+
+'read the values from the Custom iProperties in the part file
+
+'and apply them to the Custom iProperties with the same name in the drawing
+
+iProperties.Value("Project", "Description") = iProperties.Value(modelName, "Project", "Description")
+iProperties.Value("Summary", "Subject") = iProperties.Value(modelName, "Summary", "Subject")
+If iProperties.Value("Summary", "Title") = "" And Not iProperties.Value(modelName, "Project", "Description") = "" Then
+	iProperties.Value("Summary", "Title") = iProperties.Value(modelName, "Project", "Description")
+End If
+End Sub

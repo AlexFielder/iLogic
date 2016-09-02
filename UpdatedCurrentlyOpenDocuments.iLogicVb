@@ -1,0 +1,23 @@
+﻿'FOR SAPPHIRE ONLY CURRENTLY!
+'should hopefully perform an update on each open assembly file skeleton base part
+For Each oDoc in ThisApplication.Documents
+	If oDoc.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject And Not odoc.FullFilename.Contains("Panel") Then
+		'MessageBox.Show(odoc.fullfilename,"Parent Assembly file")
+		Dim AssemblyRootFolder As String = System.IO.Path.GetDirectoryName(oDoc.FullFileName)
+		Dim PartFileNameToOpen As String = System.IO.Path.GetFileNameWithoutExtension(oDoc.FullFileName)
+		Dim filepathtoopen As String = AssemblyRootFolder & "\" & PartFileNameToOpen & ".ipt"
+		'MessageBox.Show(filepathtoopen, "Title")
+		Dim partToUpdate As PartDocument = ThisApplication.Documents.Open(filepathtoopen,True)
+		partToUpdate.Activate
+		'this is the one that actually forces the update!
+		partToUpdate.Rebuild2(true)
+		partToUpdate.Update2(True)
+		InventorVb.DocumentUpdate()
+		partToUpdate.Save()
+		partToUpdate.Close
+		
+		odoc.Rebuild2(true)
+		odoc.Update2(True)
+		odoc.Save()
+	End If
+Next

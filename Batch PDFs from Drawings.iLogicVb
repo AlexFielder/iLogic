@@ -1,0 +1,106 @@
+﻿Sub Main
+
+'check that the active document is an assembly file
+If ThisApplication.ActiveDocument.DocumentType <> kAssemblyDocumentObject Then
+MessageBox.Show("Please run this rule from the assembly file.", "iLogic")
+Exit Sub
+End If
+
+'define the active document as an assembly file
+Dim oAsmDoc As AssemblyDocument
+oAsmDoc = ThisApplication.ActiveDocument
+oAsmName = Left(oAsmDoc.DisplayName, Len(oAsmDoc.DisplayName) -4)
+
+'get user input
+RUsure = MessageBox.Show ( _
+"This will create a PDF file for all of the asembly components that have drawings files." _
+& vbLf & "This rule expects that the drawing file shares the same name and location as the component." _
+& vbLf & " " _
+& vbLf & "Are you sure you want to create PDF Drawings for all of the assembly components?" _
+& vbLf & "This could take a while.", "iLogic  - Batch Output PDFs ",MessageBoxButtons.YesNo)
+
+If RUsure = vbNo Then
+Return
+Else
+End If
+
+'- - - - - - - - - - - - -PDF setup - - - - - - - - - - - -
+oPath = ThisDoc.Path
+PDFAddIn = ThisApplication.ApplicationAddIns.ItemById("{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}")
+oContext = ThisApplication.TransientObjects.CreateTranslationContext
+oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
+oOptions = ThisApplication.TransientObjects.CreateNameValueMap
+oDataMedium = ThisApplication.TransientObjects.CreateDataMedium
+
+If PDFAddIn.HasSaveCopyAsOptions(oDataMedium, oContext, oOptions) Then
+'oOptions.Value("All_Color_AS_Black") = 0
+oOptions.Value("Remove_Line_Weights") = 0
+oOptions.Value("Vector_Resolution") = 400
+oOptions.Value("Sheet_Range") = Inventor.PrintRangeEnum.kPrintAllSheets
+'oOptions.Value("Custom_Begin_Sheet") = 2
+'oOptions.Value("Custom_End_Sheet") = 4
+End If
+
+'get PDF target folder path
+oFolder = oPath & "\" ' & oAsmName ' & " PDF Files" <-- no need for a subfolder for ESPS!
+
+'Check for the PDF folder and create it if it does not exist
+If Not System.IO.Directory.Exists(oFolder) Then
+    System.IO.Directory.CreateDirectory(oFolder)
+End If
+'- - - - - - - - - - - - -
+
+'- - - - - - - - - - - - -Component Drawings - - - - - - - - - - - -
+'look at the files referenced by the assembly
+Dim oRefDocs As DocumentsEnumerator
+oRefDocs = oAsmDoc.AllReferencedDocuments
+Dim oRefDoc As Document
+
+'work the the drawing files for the referenced models
+'this expects that the model has a drawing of the same path and name 
+For Each oRefDoc In oRefDocs
+	Dim filename As String
+	filename = oRefDoc.FullDocumentName
+	If filename.Contains("*AS-C*") Or filename.Contains("*DT-C*") Then
+		RUSure = MessageBox.Show(filename, "PDF This file?",MessageBoxButtons.YesNo)
+		If RUsure = vbNo Then
+			Continue For
+		End If
+		dwgPathName = Left(oRefDoc.FullDocumentName, Len(oRefDoc.FullDocumentName) - 3) & "dwg"
+		'check to see that the model has a drawing of the same path and name 
+		If(System.IO.File.Exists(dwgPathName)) Then
+			Dim oDrawDoc As DrawingDocument
+			oDrawDoc = ThisApplication.Documents.Open(dwgPathName, True)
+			oFileName = Left(oRefDoc.DisplayName, Len(oRefDoc.DisplayName) -3)
+			On Error Resume Next ' if PDF exists and is open or read only, resume next
+	 		'Set the PDF target file name
+			oDataMedium.FileName = oFolder & "\" & oFileName & "pdf"
+			'Write out the PDF
+			Call PDFAddIn.SaveCopyAs(oDrawDoc, oContext, oOptions, oDataMedium)
+			'close the file
+			oDrawDoc.Close
+		Else
+			'If the model has no drawing of the same path and name - do nothing
+		End If
+	End If
+Next
+'- - - - - - - - - - - - -
+
+'- - - - - - - - - - - - -Top Level Drawing - - - - - - - - - - - -
+oAsmDrawing = ThisDoc.ChangeExtension(".dwg")
+oAsmDrawingDoc = ThisApplication.Documents.Open(oAsmDrawing, True)
+oAsmDrawingName = Left(oAsmDrawingDoc.DisplayName, Len(oAsmDrawingDoc.DisplayName) -3)
+'write out the PDF for the Top Level Assembly Drawing file
+On Error Resume Next ' if PDF exists and is open or read only, resume next
+ 'Set the PDF target file name
+oDataMedium.FileName = oFolder & "\" & oAsmDrawingName & "pdf"
+'Write out the PDF
+Call PDFAddIn.SaveCopyAs(oAsmDrawingDoc, oContext, oOptions, oDataMedium)
+'Close the top level drawing
+oAsmDrawingDoc.Close
+'- - - - - - - - - - - - -
+
+MessageBox.Show("New Files Created in: " & vbLf & oFolder, "iLogic")
+'open the folder where the new ffiles are saved
+Shell("explorer.exe " & oFolder,vbNormalFocus)
+End Sub

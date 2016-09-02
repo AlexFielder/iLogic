@@ -1,0 +1,47 @@
+﻿Private Sub Main
+  	Dim oAsmCompDef As AssemblyComponentDefinition
+	oAsmCompDef = ThisApplication.ActiveDocument.ComponentDefinition
+	'set Master view rep active
+	Dim oViewRep As DesignViewRepresentation
+	Try
+		oViewRep = oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Item("Default")
+		oViewRep.Activate
+	Catch
+		oViewRep.Add("Default")
+		oViewRep.Activate
+	End Try
+	Dim partColours as New ArrayList
+		partColours.Add("Red")
+		partColours.Add("Green")
+		partColours.Add("Blue - Wall Paint - Glossy")
+		partColours.Add("Cyan")
+		partColours.Add("Yellow")
+		dim d0 as string = InputListBox("What Colour", partColours, "Blue - Wall Paint - Glossy", Title := "Select a Colour", ListName := "Available Colours")
+	UpdateAssyBrowser(ThisDoc.Document,d0)
+	iLogicVb.UpdateWhenDone = True
+End Sub
+
+  Private Sub UpdateAssyBrowser(ByVal oDoc As Inventor.Document,ByVal d0 as string)
+    Dim oAssy As Inventor.AssemblyDocument
+    Dim oComp As Inventor.ComponentOccurrence
+    Dim oSubDoc As Inventor.Document
+
+    Dim NodeName() As String
+    Dim InstNum As String
+
+	If oDoc.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then
+		oAssy = CType(oDoc, AssemblyDocument)
+		Dim oViewRep As DesignViewRepresentation
+		oViewRep = oAssy.ComponentDefinition.RepresentationsManager.DesignViewRepresentations.Item("Default")
+		oViewRep.Activate
+		For Each oComp In oAssy.ComponentDefinition.Occurrences
+			oSubDoc = CType(oComp.Definition.Document, Document)
+			If oSubDoc.DocumentType = Inventor.DocumentTypeEnum.kPartDocumentObject Then
+				Component.Color(oComp.Name) = d0
+			End If
+			If oSubDoc.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then
+				Call UpdateAssyBrowser(oSubDoc, d0)
+			End If
+		Next oComp
+    End If
+  End Sub

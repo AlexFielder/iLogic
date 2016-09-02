@@ -1,0 +1,4 @@
+﻿'Loads the Graitec part creator
+Sub Main()
+	iLogicForm.ShowGlobal("Graitec Creator")
+End Sub

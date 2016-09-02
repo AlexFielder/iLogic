@@ -1,0 +1,47 @@
+AliasFreeformFeatures	Returns	the	AliasFrreeformFeatures	collection	object.	
+Application	Returns	the	top-level	parent	application	object.	When	used	the	context	of	Inventor,	an	Application	object	is	returned.	When	used	in	the	context	of	Apprentice,	an	ApprenticeServer	object	is	returned.	
+BendPartFeatures	Gets	the	collection	object	that	besides	listing	out	the	subset	of	part	features	that	are	BendPartFeatures,	allows	the	creations	of	BendPartFeatures.	
+BossFeatures	Gets	the	collection	object	that	lists	the	subset	of	part	features	that	are	BossFeatures.	
+BoundaryPatchFeatures	Property	that	gets	the	collection	object.	Besides	listing	out	the	subset	of	part	features	that	are	BoundaryPatches,	it	allows	the	creation	of	new	BoundaryPatches.	
+ChamferFeatures	Property	that	returns	the	ChamferFeatures	collection	object.	This	collection	provides	access	to	existing	ChamferFeature	objects	and	provides	functionality	to	create	new	ChamferFeature	objects.	
+CircularPatternFeatures	Property	that	returns	the	CircularPatternFeatures	collection	object.	This	collection	provides	access	to	existing	CircularPatternFeature	objects	and	provides	functionality	to	create	new	CircularPatternFeature	objects.	
+ClientFeatures	Property	returning	the	client	features	collection	object.	
+CoilFeatures	Property	that	returns	the	CoilFeatures	collection	object.	This	collection	provides	access	to	existing	CoilFeature	objects	and	provides	functionality	to	create	new	CoilFeature	objects.	
+CombineFeatures	Property	that	returns	the	CombineFeatures	collection	object.	
+Count	Property	that	returns	the	number	of	items	in	the	collection.	
+DecalFeatures	Property	that	returns	the	DecalFeatures	collection	object.	This	collection	provides	access	to	existing	DecalFeature	objects.	
+DeleteFaceFeatures	Property	that	returns	the	DeleteFaceFeatures	collection	object.	This	collection	provides	access	to	existing	DeleteFaceFeature	objects.	
+DirectEditFeatures	Gets	the	collection	object	that	besides	listing	out	the	subset	of	part	features	that	are	DirectEdit	features.	
+EmbossFeatures	Property	that	returns	the	EmbossFeatures	collection	object.	This	collection	provides	access	to	existing	EmbossFeature	objects.	
+ExtendFeatures	Property	that	returns	the	ExtendFeatures	collection	object.	This	collection	provides	access	to	existing	ExtendFeature	objects	and	provides	functionality	to	create	new	ExtendFeature	objects.	
+ExtrudeFeatures	Property	that	returns	the	collection	object.	This	collection	provides	access	to	existing	ExtrudeFeature	objects	and	provides	functionality	to	create	new	ExtrudeFeature	objects.	
+FaceDraftFeatures	Property	that	returns	the	FaceDraftFeatures	collection	object.	This	collection	provides	access	to	existing	FaceDraftFeature	objects.	
+FilletFeatures	Property	that	returns	the	FilletFeatures	collection	object.	This	collection	provides	access	to	existing	FilletFeature	objects	and	provides	functionality	to	create	new	FilletFeature	objects.	
+FreeformFeatures	Gets	the	collection	object	that	besides	listing	out	the	subset	of	part	features	that	are	Freeform	features,	allows	the	creations	of	new	Freeform	features.	
+GrillFeatures	Gets	the	collection	object	that	lists	the	subset	of	part	features	that	are	GrillFeatures.	
+HoleFeatures	Property	that	returns	the	HoleFeatures	collection	object.	This	collection	provides	access	to	existing	HoleFeature	objects	and	provides	functionality	to	create	new	HoleFeature	objects.	
+iFeatures	Property	that	returns	the	iFeatures	collection	object.	
+Item	Returns	the	specified	PartFeature	object	from	the	collection.	It	accesses	all	of	the	features	regardless	of	their	type.	If	you	increment	through	the	features	in	the	collection	they	are	returned	in	the	same	order	as	they	appear	in	the	feature	browser.	
+KnitFeatures	Property	that	returns	the	KnitFeatures	collection	object.	This	collection	provides	access	to	existing	KnitFeature	objects.	
+LipFeatures	Gets	the	collection	object	that	lists	the	subset	of	part	features	that	are	LipFeatures.	
+LoftFeatures	Property	that	returns	the	LoftFeatures	collection	object.	This	collection	provides	access	to	existing	LoftFeature	objects	and	provides	functionality	to	create	new	LoftFeature	objects.	
+MirrorFeatures	Property	that	returns	the	MirrorFeatures	collection	object.	This	collection	provides	access	to	existing	MirrorFeature	objects	and	provides	functionality	to	create	new	MirrorFeature	objects.	
+MoveFaceFeatures	Property	that	returns	the	MoveFaceFeatures	collection	object.	
+MoveFeatures	Gets	the	collection	object	that	besides	listing	out	the	subset	of	part	features	that	are	Moves,	allows	the	creations	of	new	Moves.	
+NonParametricBaseFeatures	Property	that	returns	the	NonParametericBaseFeatures	collection	object.	This	collection	provides	access	to	existing	NonParametericBaseFeature	objects	and	provides	functionality	to	create	new	NonParametericBaseFeature	objects.	
+RectangularPatternFeatures	Property	that	returns	the	RectangularPatternFeatures	collection	object.	This	collection	provides	access	to	existing	RectangularPatternFeature	objects	and	provides	functionality	to	create	new	RectangularPatternFeature	objects.	
+ReferenceFeatures	Property	that	returns	the	ReferenceFeatures	collection	object.	
+ReplaceFaceFeatures	Property	that	returns	the	ReplaceFaceFeatures	collection	object.	This	collection	provides	access	to	existing	ReplaceFaceFeature	objects.	
+RestFeatures	Gets	the	collection	object	that	lists	the	subset	of	part	features	that	are	RestFeatures.	
+RevolveFeatures	Property	that	returns	the	RevolveFeatures	collection	object.	This	collection	provides	access	to	existing	RevolveFeature	objects	and	provides	functionality	to	create	new	RevolveFeature	objects.	
+RibFeatures	Property	that	returns	the	RibFeatures	collection	object.	This	collection	provides	access	to	existing	RibFeature	objects.	
+RuledSurfaceFeatures	Gets	the	collection	object	that	lists	the	subset	of	part	features	that	are	RuledSurfaceFeatures.	
+RuleFilletFeatures	Gets	the	collection	object	that	lists	the	subset	of	part	features	that	are	RuleFilletFeatures.	
+SculptFeatures	Property	that	returns	the	SculptFeatures	collection	object.	This	collection	provides	access	to	existing	SculptFeature	objects	and	provides	functionality	to	create	new	SculptFeature	objects.	
+ShellFeatures	Property	that	returns	the	ShellFeatures	collection	object.	This	collection	provides	access	to	existing	ShellFeature	objects.	
+SnapFitFeatures	Gets	the	collection	object	that	lists	the	subset	of	part	features	that	are	SnapFitFeatures.	
+SplitFeatures	Property	that	returns	the	SplitFeatures	collection	object.	This	collection	provides	access	to	existing	SplitFeature	objects.	
+SweepFeatures	Property	that	returns	the	SweepFeatures	collection	object.	This	collection	provides	access	to	existing	SweepFeature	objects	and	provides	functionality	to	create	new	SweepFeature	objects.	
+ThickenFeatures	Property	that	returns	the	ThickenFeatures	collection	object.	This	collection	provides	access	to	existing	ThickenFeature	objects.	
+ThreadFeatures	Property	that	returns	the	ThreadFeatures	collection	object.	This	collection	provides	access	to	existing	ThreadFeature	objects	and	provides	functionality	to	create	new	ThreadFeature	objects.	
+TrimFeatures	Property	that	returns	the	TrimFeatures	collection	object.	This	collection	provides	access	to	existing	TrimFeature	objects	and	provides	functionality	to	create	new	TrimFeature	objects.	

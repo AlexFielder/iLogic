@@ -1,0 +1,49 @@
+﻿Option Explicit On
+Sub Main()
+	
+	'current document
+	Dim doc as Inventor.Document = ThisDoc.Document
+	
+	'Verify the current document has been saved.
+	If doc.FullFileName = "" Then
+		MessageBox.Show("This document must be saved first.")
+		Exit Sub
+	End If
+	
+	'default folder
+	Dim FolderName As String  = System.IO.Path.GetDirectoryName(doc.FullFileName)	
+	Dim selectedfile As String = String.Empty
+	Dim oFileDlg As inventor.FileDialog = Nothing
+	InventorVb.Application.CreateFileDialog(oFileDlg)
+	oFileDlg.Filter = "Dwg files (*.dwg)|*.dwg|Excel files (*.xlsx)|*.xlsx|pdf files (*.pdf)|*.pdf|Inventor parts (*.ipt)|*.ipt|Inventor iFeatures (*.ide)|*.ide|XML Parameter files (*.xml)|*.xml|Step files (*.stp;*.step;*.stpz)|*.stp;*.step;*.stpz|Other files (*.*)|*.*"
+	oFileDlg.InitialDirectory = FolderName
+	oFileDlg.CancelError = True
+	oFileDlg.MultiSelectEnabled = True
+	
+	Try
+		oFileDlg.ShowOpen()
+		selectedfile = oFileDlg.FileName
+	Catch
+		Return  'operation was cancelled by the user
+	End Try
+	AddReferences(doc, selectedfile)
+End Sub
+Public Sub AddReferences(ByVal odoc as Inventor.Document, ByVal selectedfile As String)
+	Dim oleReference As ReferencedOLEFileDescriptor
+	If selectedfile.Contains("|") Then ' we have multiple files selected.
+		Dim file As String() = selectedfile.Split("|")
+		For Each s as String in file
+			oleReference = odoc.ReferencedOLEFileDescriptors _
+				.Add(s, OLEDocumentTypeEnum.kOLEDocumentLinkObject)
+			oleReference.BrowserVisible = True
+			oleReference.Visible = False
+			oleReference.DisplayName = Mid$(s, InStrRev(s, "\") + 1)
+		Next
+	Else
+		oleReference = odoc.ReferencedOLEFileDescriptors _
+				.Add(selectedFile,OLEDocumentTypeEnum.kOLEDocumentLinkObject)
+		oleReference.BrowserVisible = True
+		oleReference.Visible = False
+		oleReference.DisplayName = Mid$(selectedFile, InStrRev(selectedFile, "\") + 1)
+	End If
+End Sub

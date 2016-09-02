@@ -1,0 +1,174 @@
+﻿Sub Main()
+ MoveOccurrences()
+End Sub
+ 
+Sub MoveOccurrences()
+Dim AsmCompDef as AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
+Dim XOffset As Double = CDbl(InputBox("X Offset", "X Offset","0"))
+Dim YSpacingInc As Double = CDbl(InputBox("Y Spacing","Y Spacing","30"))
+Dim YSpacing As Double = 0
+'Dim oSelect As New clsSelect
+
+'Dim oSelectedEnts as ObjectsEnumerator = oSelect.PickPartToMove(kAssemblyOccurrenceFilter)
+Dim oSelectedEnts as ObjectsEnumerator = ThisApplication.CommandManager.Pick(kAssemblyOccurrenceFilter,"Pick a set of Occurrences!")
+
+If oselectedEnts.Count = 0 Then
+	MsgBox ("An occurrence must be selected.")
+    Exit Sub
+End If
+
+For i = 1 To oselectedEnts.Count
+	Dim oOccurrence As ComponentOccurrence = oselectedents.item(i)
+    ' Get the current transformation matrix from the occurrence.
+    Dim oTransform As Matrix = oOccurrence.Transformation
+    
+    ' Move the occurrence honoring any existing constraints.
+    oTransform.SetTranslation (ThisApplication.TransientGeometry.CreateVector(XOffset, YSpacing + YSpacingInc, 0))
+    oOccurrence.Transformation = oTransform
+    YSpacing = YSpacing + YSpacingInc
+Next i
+
+
+End Sub
+
+'Public Class clsSelect
+'' Declare the event objects
+'Private WithEvents oInteraction As InteractionEvents
+'Private WithEvents oSelect As SelectEvents
+'
+'' Declare a flag that's used to determine when selection stops.
+'Private bStillSelecting As Boolean
+'
+'Public Function Pick(Filter As SelectionFilterEnum) As Object
+'    ' Initialize flag.
+'    bStillSelecting = True
+'    
+'    ' Create an InteractionEvents object.
+'	Dim oInteraction As InteractionEvents
+'    oInteraction = ThisApplication.CommandManager.CreateInteractionEvents
+'    
+'    ' Define that we want select events rather than mouse events.
+'    oInteraction.SelectionActive = True
+'
+'    ' Set a reference to the select events.
+'    oSelect = oInteraction.SelectEvents
+'    
+'    ' Set the filter using the value passed in.
+'    oSelect.AddSelectionFilter Filter
+'    
+'    ' The InteractionEvents object.
+'    oInteraction.Start
+'    
+'    ' Loop until a selection is made.
+'    Do While bStillSelecting
+'        DoEvents
+'    Loop
+'    
+'    ' Get the selected item.  If more than one thing was selected,
+'    ' just get the first item and ignore the rest.
+'    Dim oSelectedEnts As ObjectsEnumerator = oSelect.SelectedEntities
+'    If oSelectedEnts.Count > 0 Then
+'        Pick = oSelectedEnts.Item(1)
+'    Else
+'        Pick = Nothing
+'    End If
+'    
+'    ' Stop the InteractionEvents object.
+'    oInteraction.Stop
+'    
+'    ' Clean up.
+'    Set oSelect = Nothing
+'    Set oInteraction = Nothing
+'End Function
+'
+'
+'Private Sub oInteraction_OnTerminate()
+'    ' Set the flag to indicate we're done.
+'    bStillSelecting = False
+'End Sub
+'
+'
+'Private Sub oSelect_OnSelect(ByVal JustSelectedEntities As ObjectsEnumerator, _
+'                                ByVal SelectionDevice As SelectionDeviceEnum, _
+'                                ByVal ModelPosition As Point, _
+'                                ByVal ViewPosition As Point2d, _
+'                                ByVal View As View)
+'    ' Set the flag to indicate we're done.
+'    bStillSelecting = False
+'End Sub
+'
+'Public Function PickPartToMove(Filter As SelectionFilterEnum) As ObjectsEnumerator
+'' Initialize flag.
+'    bStillSelecting = True
+'    
+'    ' Create an InteractionEvents object.
+'    oInteraction = ThisApplication.CommandManager.CreateInteractionEvents
+'    
+'    ' Define that we want select events rather than mouse events.
+'    oInteraction.SelectionActive = True
+'
+'    ' Set a reference to the select events.
+'    oSelect = oInteraction.SelectEvents
+'    'oSelect.SingleSelectEnabled = False
+'    oSelect.WindowSelectEnabled = True
+'    ' Set the filter using the value passed in.
+'    oSelect.AddSelectionFilter Filter
+'
+'    ' The InteractionEvents object.
+'    oInteraction.Start
+'    
+'    ' Loop until a selection is made.
+'    Do While bStillSelecting
+'        DoEvents
+'    Loop
+'    
+'    ' Get the selected item.  If more than one thing was selected,
+'    ' just get the first item and ignore the rest.
+'    
+'    Dim oSelectedEnts As ObjectsEnumerator oSelectedEnts = oSelect.SelectedEntities
+'    
+'    If oSelectedEnts.Count > 0 Then
+'        PickPartToMove = oSelectedEnts
+'    Else
+'        PickPartToMove = Nothing
+'    End If
+'    
+'    ' Stop the InteractionEvents object.
+'    oInteraction.Stop
+'    
+'    ' Clean up.
+'    oSelect = Nothing
+'    oInteraction = Nothing
+'End Function
+'
+'End Class
+'' Set a reference to the assembly component definintion.
+'Dim oAsmCompDef As AssemblyComponentDefinition = ThisDoc.Document.ComponentDefinition
+'
+'' Get an occurrence from the select set.
+''On Error Resume Next
+'Dim oOccurrence As ComponentOccurrence
+'Try
+'	oOccurrence = ThisDoc.Document.SelectSet.Item(0)
+'Catch
+'  MsgBox("An occurrence must be selected.")
+'  Exit Sub
+'End Try
+''If Err Then
+''
+''End If
+''On Error Goto 0
+'
+'' Get the current transformation matrix from the occurrence.
+'Dim oTransform As Matrix = oOccurrence.Transformation
+'
+'' Move the occurrence honoring any existing constraints.
+'oTransform.SetTranslation(ThisApplication.TransientGeometry.CreateVector(2, 2, 3))
+'oOccurrence.Transformation = oTransform
+'
+'' Move the occurrence ignoring any constraints.
+'' Anything that causes the assembly to recompute will cause the
+'' occurrence to reposition itself to honor the constraints.
+'oTransform.SetTranslation(ThisApplication.TransientGeometry.CreateVector(3, 4, 5))
+'Call oOccurrence.SetTransformWithoutConstraints(oTransform)
+'

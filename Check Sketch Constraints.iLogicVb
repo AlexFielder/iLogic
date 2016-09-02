@@ -1,0 +1,38 @@
+Public Sub Main()
+CheckSketchConstraints()
+End Sub
+
+Public Sub CheckSketchConstraints()
+    ' Check to make sure a sketch is open.
+    If Not TypeOf ThisApplication.ActiveEditObject Is Sketch Then
+        MsgBox ("A sketch must be active.")
+        Exit Sub
+    End If
+
+    ' Set a reference to the active sketch.
+    Dim oSketch As Sketch
+    oSketch = ThisApplication.ActiveEditObject
+    
+    Dim oSketchObjects As ObjectCollection
+    oSketchObjects = ThisApplication.TransientObjects.CreateObjectCollection
+    
+    ' Get all entities in the sketch
+    Dim oSketchEntity As SketchEntity
+    For Each oSketchEntity In oSketch.SketchEntities
+        If Not oSketchEntity.[_GeometryMoveableStatus] = kFixedGeometryMoveableStatus Then
+            If Not oSketchEntity.ConstraintStatus = kFullyConstrainedConstraintStatus Then
+                oSketchObjects.Add(oSketchEntity)
+            End If
+        End If
+    Next
+    
+    If oSketchObjects.Count > 0 Then
+        ' the sketch has unconstrained objects and is broken?
+        MsgBox ("this sketch needs some constraints!")
+    Else
+        MsgBox ("Nothing to see here, move along!")
+    End If
+	osketchobjects = Nothing
+End Sub
+
+

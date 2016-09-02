@@ -1,0 +1,53 @@
+﻿Sub Main()
+If ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
+ToggleParts()
+ElseIf ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kAssemblyDocumentObject Then
+ToggleAssemblies()
+End If
+End Sub
+
+Sub ToggleAssemblies()
+'define the active assembly
+Dim oAssyDoc As AssemblyDocument
+oAssyDoc = ThisApplication.ActiveDocument 
+
+'get user input as True or False
+wfBoolean = InputRadioBox("Turn all Work Features On/Off", "On", "Off", False, "iLogic")
+
+'Check all referenced docs
+Dim oDoc As Inventor.Document
+For Each oDoc In oAssyDoc.AllReferencedDocuments
+    'set work plane visibility
+    For Each oWorkPlane In oDoc.ComponentDefinition.WorkPlanes
+    oWorkPlane.Visible = wfBoolean
+    Next
+    'set work axis visibility
+    For Each oWorkAxis In oDoc.ComponentDefinition.WorkAxes
+    oWorkAxis.Visible = wfBoolean
+    Next
+    'set work point visibility
+    For Each oWorkPoint In oDoc.ComponentDefinition.WorkPoints
+    oWorkPoint.Visible = wfBoolean
+    Next
+Next
+'update the files
+InventorVb.DocumentUpdate()
+End Sub
+
+Sub ToggleParts()
+Dim PartDoc as PartDocument = ThisApplication.ActiveDocument
+'get user input as True or False
+wfBoolean = InputRadioBox("Turn all Work Features On/Off", "On", "Off", False, "iLogic")
+    For Each oWorkPlane In PartDoc.ComponentDefinition.WorkPlanes
+    oWorkPlane.Visible = wfBoolean
+    Next
+    'set work axis visibility
+    For Each oWorkAxis In PartDoc.ComponentDefinition.WorkAxes
+    oWorkAxis.Visible = wfBoolean
+    Next
+    'set work point visibility
+    For Each oWorkPoint In PartDoc.ComponentDefinition.WorkPoints
+    oWorkPoint.Visible = wfBoolean
+    Next
+InventorVb.DocumentUpdate()
+End Sub

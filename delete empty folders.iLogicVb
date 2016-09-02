@@ -1,0 +1,21 @@
+﻿
+
+oDoc = ThisDoc.Document
+oPane = oDoc.BrowserPanes("Model")
+oTopNode = oPane.TopNode
+
+'Iterate through the browser folders
+For Each oFolder In oTopNode.BrowserFolders
+	i = 0
+	'Iterate through the nodes in the folder
+	oFolderNodes = oFolder.BrowserNode.BrowserNodes
+	For Each oNode As BrowserNode In oFolderNodes
+	'count the nodes
+	i = i+1
+	Next
+	'delete the folder if the count = 0
+	If i = 0 Then
+	oFolder.Delete
+	Else
+	End If
+Next

@@ -1,0 +1,46 @@
+﻿'copied from here: https://inventorlogicblog.wordpress.com/2016/04/20/autodesk-inventor-ilogic-create-a-new-ilogic-rule-automatically/
+' Start of iLogic rule =================================================
+' This iLogic rule automatically creates a new iLogic rule called 'Luke's Amazing iLogic Rule' in the active document.
+
+Dim RuleName As String = "Lukes Amazing iLogic Rule"
+Dim RuleText As String = "' Hello - This is an automatically created iLogic rule" & vbCrLf & _
+                         "' What does it do?" & vbCrLf & _
+                         "' Just changes the title of your Inventor application I'm afraid" & vbCrLf & _
+                         "' You'll have to come up with something more exciting.... " & vbCrLf & vbCrLf & _
+                         "ThisApplication.Caption = ThisApplication.Username"
+                         
+Dim oDoc As Document = ThisApplication.ActiveEditDocument                         
+Dim RuleAlreadyExists As Boolean = False
+' Define the iLogic addin
+Dim iLogicAddIn As ApplicationAddIn = ThisApplication.ApplicationAddIns.ItemById("{3bdd8d79-2179-4b11-8a5a-257b1c0263ac}")
+' Get the iLogic automation object
+Dim iLogic As Object = iLogicAddIn.Automation
+' Get the list of iLogic rules in the current Inventor document
+Dim RuleList As Object = iLogic.Rules(oDoc)
+
+' Loop through all rules in document
+For Each R As Object In RuleList
+    If R.Name = RuleName Then
+        ' A rule with the same name already exists...
+        RuleAlreadyExists = True
+        Exit For
+    End If
+Next
+
+If RuleAlreadyExists Then
+    Dim ReplaceRule As MsgBoxResult = MsgBox("A rule called '" & RuleName & "' already exists - replace it?", 36, "Excitech iLogic")
+    If ReplaceRule = vbYes Then
+        ' Delete the existing rule
+        iLogic.DeleteRule(oDoc, RuleName)
+        ' Add the new rule
+        iLogic.AddRule(oDoc, RuleName, RuleText)
+    Else
+        MsgBox("Operation cancelled...", 64, "Excitech iLogic")
+        Exit Sub
+    End If
+Else
+    ' No existing rule to delete - simply add the new rule
+    iLogic.AddRule(oDoc, RuleName, RuleText)
+End If
+
+' End of iLogic rule =================================================

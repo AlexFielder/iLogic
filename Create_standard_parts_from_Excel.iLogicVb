@@ -1,0 +1,102 @@
+﻿Imports System.IO
+'Imports Microsoft.office.interop.excel
+Private Sub Main()
+Call insertdummyfiles
+End Sub
+
+Private Sub insertdummyfiles
+'define assembly
+Dim asmDoc As AssemblyDocument
+asmDoc = ThisApplication.ActiveDocument
+Dim DummyFilesArray As New ArrayList 
+Dim ParentColumnStartInt As Integer = 0
+Dim ParentColumnName As String
+Dim ChildColumnsStartInt As Integer = 0
+Dim ChildColumnsStartName As String
+Dim ChildColumnsEndName As String
+'create a transaction to encapsulate all our additions in one undo.
+Dim tr As transaction
+tr = ThisApplication.TransactionManager.StartTransaction( _
+    ThisApplication.ActiveDocument, _
+    "Create Standard Parts From Excel")
+
+Dim filename As String
+filename = System.IO.Path.GetFileNameWithoutExtension(ThisApplication.ActiveDocument.Displayname)
+'MessageBox.Show(filename, "Filename")
+'simply opens the spreadsheet to the correct sheet based upon Assembly name.
+DummyFilesArray = GoExcel.CellValues("C:\LEGACY VAULT WORKING FOLDER\Designs\ilogic_test_area\ilogic_parts_list.xlsx", filename, "A2", "A11")
+'get iProperties from the XLS file
+For MyRow = 2 To 1000 'index row 2 through 1000
+	If GoExcel.CellValue("A" & MyRow) = "" Then Exit For
+	If Not GoExcel.CellValue("J" & MyRow) = "PART" Then
+		'continue for now- don't want to create a sub-assembly just yet!
+		Continue For
+'		Dim oPartDoc As PartDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject, _
+'		ThisApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kPartDocumentObject),False)
+	End If
+	Dim iProp1 as String = GoExcel.CellValue("A" & MyRow)	'PARENT ASSEMBLY
+	Dim iProp2 as String = GoExcel.CellValue("B" & MyRow)	'PART NUMBER
+	Dim iProp3 as String = GoExcel.CellValue("C" & MyRow)	'UNIT QUANTITY
+	Dim iProp4 as String = GoExcel.CellValue("D" & MyRow)	'QUANTITY
+	Dim iProp5 as String = GoExcel.CellValue("E" & MyRow)	'DESCRIPTION
+	Dim iProp6 as String = GoExcel.CellValue("F" & MyRow)	'VENDOR
+	Dim iProp7 as String = GoExcel.CellValue("G" & MyRow)	'REV
+	Dim iProp8 as String = GoExcel.CellValue("H" & MyRow)	'COMMENTS
+	Dim iProp9 as String = GoExcel.CellValue("I" & MyRow)	'ITEM NUMBER
+	Dim iProp10 as String = GoExcel.CellValue("K" & MyRow)	'SUBJECT/LEGACY DRAWING NUMBER
+	Dim occs As ComponentOccurrences
+	occs = asmDoc.ComponentDefinition.Occurrences
+	'sets up a Matrix based on the origin of the Assembly - we could translate each insert away from 0,0,0 but there's no real need to do that.
+	Dim PosnMatrix As Matrix
+	PosnMatrix = ThisApplication.TransientGeometry.CreateMatrix
+	Dim basefilename = "C:\LEGACY VAULT WORKING FOLDER\Designs\DT-99999-000.ipt"
+	Dim newfilename As String
+	'this will create .ipt files that may start with AS-######-000.ipt
+	If iProp2.StartsWith("AS-") Then
+		newfilename = System.IO.Path.getdirectoryname(ThisApplication.activedocument.fulldocumentname) & "\" & iprop2 & ".ipt"
+	ElseIf iProp2.StartsWith("DT-") Then
+		newfilename = System.IO.Path.getdirectoryname(ThisApplication.activedocument.fulldocumentname) & "\" & iprop2 & ".ipt"
+	Else
+		newfilename = System.IO.Path.getdirectoryname(ThisApplication.activedocument.fulldocumentname) & "\COTS-" & iprop2 & "-000.ipt"
+	End If
+
+	'MessageBox.Show(newfilename, "Title") 'for debuggering!
+	If Not System.io.file.Exists(newfilename) Then 'we need to create it
+		System.io.file.copy(basefilename,newfilename)
+	End If
+	'creates a componentoccurence object
+	Dim realOcc as ComponentOccurrence
+	'and adds it at the origin of the assembly.
+	realOcc= occs.Add(newfilename,PosnMatrix)
+	Dim realOccStr As String = realOcc.Name
+	'Assign iProperties
+	iProperties.Value(realOccStr , "Project", "Description") = iProp5
+	iProperties.Value(realOccStr , "Project", "Part Number") = "COTS-" & iProp2
+	iProperties.Value(realOccStr , "Project", "Revision Number") = iProp7
+	iProperties.Value(realOccStr , "Project", "Vendor") = iProp6
+	iProperties.Value(realOccStr , "Summary", "Comments") = GoExcel.CellValue("J" & MyRow) & " BASED ON: " & filename & " PARTS LIST ITEM NUMBER: " & iProp9 & " COMMENTS: " & iProp8
+	
+	
+	If iProp10 = "" Then
+		iProperties.Value(realOccStr , "Summary", "Subject") = iProperties.Value("Summary", "Subject") 'sets the Subject iProperty to that of the current Assembly
+		iProperties.Value(realOccStr , "Summary", "Title") = iProperties.Value("Summary", "Title") 'sets the title iProperty to that of the current Assembly
+	Else
+		iProperties.Value(realOccStr , "Summary", "Subject") = iProp10 'sets the Subject iProperty to that of the current row if there is one.
+		iProperties.Value(realOccStr , "Summary", "Title") = iProp5 'sets the title iProperty to that of the current row if there is one.
+	End If
+	'End Assign iProperties
+
+	realOcc.Visible = False 'hide the first instance
+	Dim index As Integer
+	index = 2
+	Do While index <= iProp4
+	Dim tmpOcc as ComponentOccurrence
+	tmpOcc = occs.AddByComponentdefinition(realOcc.Definition,PosnMatrix)
+	tmpOcc.Visible = False ' and all subsequent occurrences.
+	index +=1
+	Loop
+Next
+tr.End
+InventorVb.DocumentUpdate()
+End Sub
+

@@ -1,0 +1,28 @@
+Sub Main()
+Dim oAsmDoc As AssemblyDocument 
+oAsmDoc = ThisApplication.ActiveDocument  
+Call Iterate(oAsmDoc.ComponentDefinition.Occurrences, 1)
+End Sub 
+
+Private Sub Iterate(Occurrences As ComponentOccurrences, Level As Integer) 
+'Iterate through Assembly
+
+Dim oOcc As ComponentOccurrence 
+For Each oOcc In Occurrences 
+
+	'Find Parts in Assembly
+	Dim CadlinePart As String
+	CadlinePart = oOcc.Name
+	Try 
+		'Write iProps to Parts
+		iProperties.Value(CadlinePart, "Summary", "Comments") = "Hello World"
+	Catch
+		'MsgBox("Message!")            
+	End Try
+        
+	'Run through the sub assemblies 
+	If oOcc.DefinitionDocumentType = kAssemblyDocumentObject Then
+		Call Iterate(oOcc.SubOccurrences, Level + 1) 
+	End If 
+Next 
+End Sub

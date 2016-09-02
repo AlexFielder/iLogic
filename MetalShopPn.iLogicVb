@@ -1,0 +1,71 @@
+﻿Sub Main
+	FillOutMetalShopPnColumn(ThisDoc.Document)
+End Sub
+
+	Const MetalShopPnColumnName As String = "METAL SHOP PN"
+
+	Public Sub FillOutMetalShopPnColumn(ByVal doc As Document)
+		If (doc.DocumentType <> DocumentTypeEnum.kDrawingDocumentObject) Then
+			Throw New ArgumentException("PartsListProcessor : the document is not a drawing: " & doc.DisplayName)
+		End If
+		Dim drawingDoc As DrawingDocument = doc
+
+		Dim caseNumber As String = GetCustomPropertyValue(doc, "Case Number")
+
+		For Each sheet As Sheet In drawingDoc.Sheets
+			For Each partsList As PartsList In sheet.PartsLists
+				FillOutMetalShopPnColumn(partsList, caseNumber)
+			Next
+		Next
+	End Sub
+
+	Sub FillOutMetalShopPnColumn(ByVal partsList As PartsList, ByVal caseNumber As String)
+		If (Not HasCustomColumn(partsList, MetalShopPnColumnName)) Then
+			Return ' TODO: do we want to throw an exception, or might there be more than one partslist, some without this property?
+		End If
+
+		For Each row As PartsListRow In partsList.PartsListRows
+			AssignMetalShopPN(row, caseNumber)
+		Next
+	End Sub
+
+	Function HasCustomColumn(ByVal partsList As PartsList, ByVal columnName As String) As Boolean
+		For Each column As PartsListColumn In partsList.PartsListColumns
+			'Trace.WriteLine(" Column Name = " & column.Title)
+			If (column.Title = columnName) Then Return True
+		Next
+		Return False
+	End Function
+
+	Sub AssignMetalShopPN(ByVal row As PartsListRow, ByVal caseNumber As String)
+		Dim partNumber As String = row.Item("Part Number").Value()
+		Dim metalShopPnCell As PartsListCell = row.Item(MetalShopPnColumnName)
+		'Trace.WriteLine(" TotalWeight Static = " & metalShopPnCell.Static)
+		Dim metalShopPn As String = GetMetalShopPn(partNumber, caseNumber)
+		metalShopPnCell.Value = metalShopPn
+	End Sub
+
+	Function GetMetalShopPn(ByVal partNumber As String, ByVal caseNumber As String) As String
+		Dim metalShopPn As String = ""
+		If (partNumber.StartsWith("2618-")) Then
+			metalShopPn = "RRPL-"
+		End If
+		metalShopPn = metalShopPn & caseNumber & "-"
+		Dim lastThreeDigits As String = Right(partNumber, 3)
+		metalShopPn = metalShopPn & lastThreeDigits
+		Return metalShopPn
+	End Function
+
+	Function GetCustomPropertyValue(ByVal doc As Document, ByVal propertyName As String) As String
+		For Each propSet As PropertySet In doc.PropertySets
+			If (propSet.Name = "Inventor User Defined Properties") Then
+				For Each prop As Inventor.Property In propSet
+					If (prop.Name = propertyName) Then
+						Return prop.Value.ToString()
+					End If
+				Next
+			End If
+		Next
+		Return "N/A"
+	End Function
+ 

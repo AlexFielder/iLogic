@@ -1,0 +1,118 @@
+﻿Sub Main()
+
+    'iLogic code starts here; 
+    'Create Contains’ Rule; 
+    'Return view To Home view 
+    ThisApplication.CommandManager.ControlDefinitions.Item("AppViewCubeHomeCmd").Execute
+    'define current document 
+    Dim openDoc As Document = ThisDoc.Document
+    Dim oAsmCompDef As AssemblyComponentDefinition = openDoc.ComponentDefinition
+    Dim oViewRep As DesignViewRepresentation
+    Try
+        'Activate a writeable View Rep (master view rep Is Not writeable) 
+        oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Item("WIP View Rep").activate
+    Catch
+        'Assume Error means this View Rep does Not exist, so create it (will be deleted at End) 
+        oViewRep = oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Add("WIP View Rep")
+    End Try
+    'Delete all existing 'Contains' View reps 
+    For Each oViewRep In oAsmCompDef.RepresentationsManager.DesignViewRepresentations
+        If oViewRep.Name.Contains("Contains") Then
+            oViewRep.Delete
+        End If
+    Next
+Start:
+    iCount = 1
+    'request part names To create view reps For. 
+    Do Until iCount = 1000
+        StrInput1 = InputBox("Enter Part Names to Add to View Rep", "Set View Representations", "Enter all Or part Of PN", MessageBoxDefaultButton.Button1)
+        'Check To see whether that view rep has already been created 
+        ViewRepExists = 0
+        For Each oViewRep In oAsmCompDef.RepresentationsManager.DesignViewRepresentations
+            If oViewRep.Name.Contains("Contains '" & StrInput1 & "'") Then
+                ViewRepExists = 1
+                oCreatedAlready = MessageBox.Show("That View Rep Has Already Been Created!" & vbLf & vbLf & "Do You Still Want To Continue?", "Already Entered", MessageBoxButtons.YesNo)
+                If oCreatedAlready = vbYes Then
+                    Goto Start
+                Else
+                    Return
+                End If
+            End If
+        Next
+        If ViewRepExists = 0 Then
+            'Create New View Rep 
+            oViewRep = oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Add("Contains " & StrInput1)
+            'Activate New View Rep
+            oViewRep.activate
+        End If
+        oOccCounter = 0
+        oSubOccCounter = 0
+        'look at all Of the components in the Assembly 
+        Dim oCompDef As Inventor.ComponentDefinition = openDoc.ComponentDefinition
+        'define the first level components collection 
+        Dim oCompOcc As Inventor.ComponentOccurrence
+        'define the Next level components collection 
+        Dim oSubCompOcc As Inventor.ComponentOccurrence
+        'Turn Off the visibility Of parts in the top level Assembly that don't contain the specified text string (StrInput1) 
+        For Each oCompOcc in oCompDef.Occurrences
+            If oCompOcc.Suppressed = False Then
+				Dim oCompOccCompDef as ComponentDefinition = oCompOcc.Definition
+				Dim invProjProperties As PropertySet = oCompOccCompDef.Document.PropertySets.Item("{32853F0F-3444-11D1-9E93-0060B03C1CA6}")
+				Dim partNo As String = invProjProperties.ItemByPropId(PropertiesForDesignTrackingPropertiesEnum.kPartNumberDesignTrackingProperties).Value
+				
+				If partNo.Contains(StrInput1) Then
+					MessageBox.Show(partNo, "Part Number")
+					oCompOcc.Visible = True
+					'Increment counter For top level components 
+					oOccCounter = oOccCounter + 1
+				Else
+					oCompOcc.Visible = False
+				End If
+				'If oCompOcc.Name.Contains(StrInput1) Then
+					'oCompOcc.Visible = True
+					'Increment counter for top level components 
+					'oOccCounter = oOccCounter + 1
+				'Else
+					'oCompOcc.Visible = False
+				'End If
+                'Turn Off the visibility Of parts in the Next level Assembly that don't contain the specified text String (StrInput1) 
+                For Each oSubCompOcc In oCompOcc.SubOccurrences
+                    If oSubCompOcc.Suppressed = False Then
+                        If oSubCompOcc.Name.Contains(StrInput1) Then
+                            oSubCompOcc.Visible = True
+                            'Increment counter For first level components 
+                            oSubOccCounter = oSubOccCounter + 1
+                        Else
+                            oSubCompOcc.Visible = False
+                        End If
+                    End If
+                Next
+            End If
+        Next
+        'Rename View Rep To include Component counts 
+        oViewRep.Name = ("Contains '" & StrInput1 & "' (Qty: " & oOccCounter & " Top Level, " & oSubOccCounter & " Sub Comps)")
+        'Lock the New view rep 
+        oViewRep.Locked = True
+        'Count no. Of view reps already created 
+        ViewRepCount = -1
+        For Each oViewRep In oAsmCompDef.RepresentationsManager.DesignViewRepresentations
+            If oViewRep.Name.Contains("Contains") Then
+                ViewRepCount = ViewRepCount + 1
+            End If
+        Next
+        'Zoom all 
+        ThisApplication.ActiveView.Fit
+        'See If another View Rep Is required. 
+        oContinue = MessageBox.Show("Add Another View Rep?" & vbLf & ViewRepCount & " View Reps Have Been Created", "Continue Creating?",MessageBoxButtons.YesNo)
+        If oContinue = vbYes Then
+            iCount = iCount + 1
+        Else
+            iCount = 1000
+        End If
+    Loop
+    Try
+        'Delete WIP View Rep 
+        oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Item("WIP View Rep").delete
+    Catch
+    End Try 
+End Sub

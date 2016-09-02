@@ -1,0 +1,17 @@
+'reset the key parameters
+Parameter("spacing") = 40
+Parameter("AngleB") = 35
+Dim AngleBDouble As Double = Parameter("ShortSideDistance") / Parameter("lengthc")
+ThisApplication.StatusBarText = CStr(AngleBDouble * (180/PI))
+'then run the simulation
+Dim spacingDouble As Double
+For spacingDouble = 40 To 30 Step -0.01
+	Parameter("spacing") = spacingDouble
+	If Parameter("IntersectionDistance") <= 12 Then
+		AngleBDouble = Parameter("ShortSideDistance") / Parameter("lengthc")
+		ThisApplication.StatusBarText = CStr(AngleBDouble * (180/PI))
+		Parameter("AngleB") = AngleBDouble * (180/PI)
+		InventorVb.DocumentUpdate()
+	End If
+	InventorVb.DocumentUpdate()
+Next

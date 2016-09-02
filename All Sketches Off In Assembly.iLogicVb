@@ -1,0 +1,44 @@
+﻿Private Sub Main()
+Call AllSketchesOffInAssembly
+End Sub
+Private Sub AllSketchesOffInAssembly()
+Dim oApp As Inventor.Application = ThisApplication
+Dim oAssy As Inventor.AssemblyDocument = oApp.ActiveDocument
+Dim oSubDoc As Inventor.Document
+Dim oPartDoc As PartDocument
+Dim partDef As PartComponentDefinition
+
+    EOPQuery = MsgBox("Would you like to turn visibility of all sketches off?" _ 
+	& vbCrLf & "Click 'Yes' to turn off." _ 
+	& vbCrLf & "Click 'No' to turn on." _ 
+	, vbYesNo, "Sketch Visibility")
+    
+	For Each oSubDoc in oAssy.AllReferencedDocuments
+		If oSubDoc.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
+			oPartDoc = oSubDoc
+			partDef = oPartDoc.ComponentDefinition
+			Dim osketches as PlanarSketches
+			osketches = partDef.Sketches
+			Dim osketch As planarsketch
+			Dim osketches3D As Sketches3D
+			osketches3D = partDef.Sketches3D
+			Dim osketch3D As Sketch3D
+			If EOPQuery = vbYes Then
+				For Each osketch In osketches
+					osketch.Visible = False
+				Next
+				For Each osketch3D In osketches3D
+					osketch3D.Visible = False
+				Next
+			ElseIf EOPQuery = vbNo Then
+				For Each osketch In osketches
+					osketch.Visible = True
+				Next				
+				For Each osketch3D In osketches3D
+					osketch3D.Visible = True
+				Next
+            End If
+		End If
+	Next
+	oAssy.Update
+End Sub

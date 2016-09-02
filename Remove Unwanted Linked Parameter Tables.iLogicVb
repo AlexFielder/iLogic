@@ -1,0 +1,22 @@
+﻿Sub Main()
+	'DeleteLinkedParameterTablesAutodesk()
+	DeleteLinkedParameterTables()
+End Sub
+
+Public Sub DeleteLinkedParameterTables()
+    Dim oDoc As Document
+    oDoc = ThisApplication.ActiveDocument
+    If oDoc.ComponentDefinition.Parameters.ParameterTables.Count = 0 Then
+        MsgBox ("There aren't any linked parameter tables in this document.")
+        Exit Sub
+	Else
+		MsgBox ("Proceeding to selection of parameter tables")
+		Dim pt As ParameterTable
+		For Each pt In oDoc.ComponentDefinition.Parameters.ParameterTables
+		'For i = 1 To oDoc.ComponentDefinition.Parameters.ParameterTables.Count
+			If MsgBox("Delete """ & pt.FileName & """?", vbYesNo) = vbYes Then
+            	pt.Delete
+        	End If
+		Next
+    End If
+End Sub 

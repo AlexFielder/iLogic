@@ -1,0 +1,33 @@
+﻿'copied from here: https://inventorlogicblog.wordpress.com/2016/04/22/autodesk-inventor-ilogic-create-a-hyperlink-in-excel/
+' Start of iLogic rule =======================================================
+' Note this iLogic rule requires a spreadsheet "C:\MASTER SPREADSHEET 123.xlsx" to exist, otherwise you'l get an error.
+' Note you'll get an error if you try running this rule in a new document that hasn't yet been saved, as it won't have a filename yet!
+
+' Define Excel Application object
+oExcel = CreateObject("Excel.Application")
+
+' Make Excel invisible
+oExcel.Visible = False
+
+' Suppress all Excel prompts
+oExcel.DisplayAlerts = False
+
+Dim oSourceBook = oExcel.Workbooks.Open("C:\MASTER SPREADSHEET 123.xlsx")
+
+' Select the worksheet we want
+Dim SourceWorksheet = oSourceBook.Worksheets("Sheet1")
+
+' Add hyperlink to cell C3 - in this case the hyperlink points to this Inventor file. We are also setting a 'tooltip' for the hyperlink to be the name of the active file in Inventor.
+' The visible text for the hyperlink is 'Link to Inventor Model'
+SourceWorksheet.Hyperlinks.Add(SourceWorksheet.Range("C3"), ThisApplication.ActiveEditDocument.FullDocumentName,,ThisApplication.ActiveEditDocument.FullDocumentName, "Link to Inventor Model")
+
+' Save the spreadsheet
+oSourceBook.Save
+oSourceBook.Close
+oExcel.Quit
+oExcel = Nothing
+
+' Open the spreadsheet...
+Process.Start("C:\MASTER SPREADSHEET 123.xlsx")
+
+' End of iLogic rule =======================================================

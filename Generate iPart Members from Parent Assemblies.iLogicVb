@@ -1,0 +1,59 @@
+Public Sub Main()
+	Dim StartTime As DateTime = Now()
+	Dim ElapsedTime As TimeSpan
+	Dim thisAssy As assemblydocument =  ThisApplication.activeDocument
+	MessageBox.Show(thisAssy.ReferencedDocuments.count, "Referenced Document count")
+	For Each subdoc as Inventor.Document In thisAssy.ReferencedDocuments
+		If TypeOf subdoc Is PartDocument Then
+			If subdoc.componentdefinition.isiPartFactory Then
+				updatestatusbar(subdoc.FullFileName)
+				GenerateiPartFactoryMembers(subdoc)
+			End If
+		Else 'Assembly
+			ProcessSubAssemblies(subdoc)
+		End If
+	Next
+	
+	ElapsedTime = Now().Subtract(StartTime)
+	MessageBox.Show("Operation took " & ElapsedTime.TotalMinutes & " Minutes")
+End Sub
+
+'this should work recursively but it may take some time...?
+Public Sub ProcessSubAssemblies(ByVal AssyDoc as AssemblyDocument)
+	For Each subdoc as Inventor.Document In AssyDoc.ReferencedDocuments
+		If TypeOf subdoc Is PartDocument Then
+			If subdoc.componentdefinition.isiPartFactory Then
+				updatestatusbar(subdoc.FullFileName)
+				GenerateiPartFactoryMembers(subdoc)
+			End If
+		Else 'Assembly
+			ProcessSubAssemblies(subdoc)
+		End If
+	Next
+End Sub
+
+Public Sub GenerateiPartFactoryMembers(ByVal partdoc as PartDocument)
+Dim oDoc As PartDocument = partdoc
+Dim oDef As PartComponentDefinition = oDoc.ComponentDefinition
+Dim initRowIndex As Integer
+Dim oFactory As iPartFactory = oDef.iPartFactory
+' Edit row 1 & 2 of table
+'oFactory.TableRows.Item(1).Item(3).Value = 2322
+'oFactory.TableRows.Item(2).Item(3).Value = 4444
+' Iterate All Rows of iPart
+Dim oRow As iPartTableRow
+For Each oRow In oFactory.TableRows
+' Generate the member and file, (overwrites member file or creates new file)
+oFactory.CreateMember(oRow)
+Next
+iLogicVb.UpdateWhenDone = True
+End Sub
+
+
+Sub updatestatusbar(ByVal message As String)
+	ThisApplication.statusbartext = message
+End Sub
+
+Sub updatestatusbar(ByVal percent As Double, ByVal message As String)
+	ThisApplication.statusbartext = message + " (" & percent.tostring("P1") + ")"
+End Sub

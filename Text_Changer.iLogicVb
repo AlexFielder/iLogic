@@ -1,0 +1,71 @@
+AddReference "System.Web"
+Imports System.Web
+
+Sub Main()
+doc = ThisDoc.Document
+Dim strings as New Generic.List(Of String)
+strings.Add(SketchText) 'string parameter holding text I want to push to the sketch
+SetSketchText("Text",  strings)
+
+End Sub
+
+Private doc as Document
+
+Public Sub SetSketchText(ByVal sketchName As String, ByVal strings As Generic.List(Of String))
+         Dim Sketch As PlanarSketch = FindSketch(sketchName)
+		 For Each textB As Inventor.TextBox In Sketch.TextBoxes
+			Dim newFormattedText As String = ReplacementFormattedText(textB.FormattedText, strings)
+			textB.FormattedText = "<StyleOverride FontSize='"+CStr(CharHeight)+"'>"+newFormattedText+"</StyleOverride>"
+			Return
+         Next
+End Sub
+
+Public Function ReplacementFormattedText(ByVal formattedText As String, ByVal strings As Generic.List(Of String)) As String
+         Dim textLength As Integer = formattedText.Length
+            Dim k_gt As Integer = formattedText.IndexOf(">"c)
+         If (textLength < 4 OrElse k_gt < 0) Then
+                   Return strings(0)    ' no formatting
+            End If
+
+         Dim newFormattedText As String = String.Empty
+            Dim stringsIndex As Integer = 0
+         Dim k_start As Integer = 0
+         Do
+                   k_gt = formattedText.IndexOf(">"c, k_start)
+                   If (k_gt > 0) Then
+                            newFormattedText += formattedText.Substring(k_start, k_gt - k_start + 1)
+                            Dim k_lt As Integer = formattedText.IndexOf("<"c, k_gt + 1)
+                            If (k_lt > k_gt + 1) Then
+                                      If (stringsIndex < strings.Count) Then
+                                               newFormattedText += HttpUtility.HtmlEncode(strings(stringsIndex))
+                                               stringsIndex += 1
+                                      End If
+                            End If
+                            k_start = k_lt
+                        End If
+         Loop Until k_gt < 0 OrElse k_start < 0
+         Return newFormattedText
+End Function
+
+
+Public Function FindSketch(ByVal sketchName As String) As Inventor.PlanarSketch
+            Dim sketches As Inventor.PlanarSketches = Nothing
+            Dim oPartDoc As Inventor.PartDocument
+            Dim oAssemDoc As Inventor.AssemblyDocument
+            If (doc.DocumentType = Inventor.DocumentTypeEnum.kPartDocumentObject) Then
+                   oPartDoc = doc
+                        sketches = oPartDoc.ComponentDefinition.Sketches
+            ElseIf (doc.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject) Then
+                   oAssemDoc = doc
+                        sketches = oAssemDoc.ComponentDefinition.Sketches
+            End If
+         If (sketches Is Nothing) Then Return Nothing
+
+            For Each Sketch As Inventor.PlanarSketch In sketches
+                        If (String.Compare(Sketch.Name, sketchName, True) = 0) Then
+                            Return Sketch
+                   End If
+         Next
+
+         Throw New ArgumentException("No sketch named: " & sketchName & " was found.")
+End Function

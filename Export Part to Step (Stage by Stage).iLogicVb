@@ -1,0 +1,67 @@
+﻿Private Sub Main()
+Call BeginExportFileStagesToStep
+End Sub
+
+'only works on Part files.
+' portions of this code copied from: http://adndevblog.typepad.com/manufacturing/2012/06/getting-the-node-represented-in-the-inventor-part-browser-tree.html
+Private Sub BeginExportFileStagesToStep()
+	Dim oApp As Inventor.Application = ThisApplication
+	Dim oPartDoc As Inventor.PartDocument = oApp.ActiveDocument
+	EOPQuery = MsgBox("Would you like to export this part file to step format at each feature to look for translation errors?" _ 
+		& vbCrLf & "Click 'Yes' to shrink." _ 
+		& vbCrLf & "Click 'No' to expand" _ 
+		, vbYesNo, "EOP Move and Step export")
+	If EOPQuery = vbYes Then
+		oPartDoc.ComponentDefinition.SetEndOfPartToTopOrBottom (True) ' Set to top
+		'get the Model browser
+		Dim TopNode As BrowserNode = oPartDoc.BrowserPanes("Model").TopNode
+		For Each obrowsernode As BrowserNode In TopNode.BrowserNodes
+			If Not obrowsernode.BrowserNodeDefinition.Label.Contains("View") And Not obrowsernode.BrowserNodeDefinition.Label.Contains("Origin") And Not obrowsernode.BrowserNodeDefinition.Label.Contains("Table") And Not 		obrowsernode.BrowserNodeDefinition.Label.Contains("iMates") And Not obrowsernode.BrowserNodeDefinition.Label.Contains("Solid Bodies") Then
+				Dim oNativeObject As Object = obrowsernode.BrowserNodeDefinition.NativeObject
+				If TypeOf oNativeObject Is PartFeature Then
+					'uncomment the following line for debugging purposes. Do NOT leave it uncommented if you run this on a complex part file.
+					'MessageBox.Show("Feature name is: " + obrowsernode.BrowserNodeDefinition.Label, "Featurenode Names")
+					Dim oFeature As PartFeature = oNativeObject
+					oFeature.SetEndOfPart(False)
+					'insert export to step code here!
+					ExportToStep(oFeature.Name)
+				End If
+			End If
+		Next
+	End If
+End Sub
+
+Private Sub ExportToStep(LastActiveFeatureName As String)
+	' Get the STEP translator Add-In.
+	Dim oSTEPTranslator As TranslatorAddIn
+	oSTEPTranslator = ThisApplication.ApplicationAddIns.ItemById("{90AF7F40-0C01-11D5-8E83-0010B541CD80}")
+	Dim oContext As TranslationContext
+	oContext = ThisApplication.TransientObjects.CreateTranslationContext
+	Dim oOptions As NameValueMap
+	oOptions = ThisApplication.TransientObjects.CreateNameValueMap
+
+	If oSTEPTranslator.HasSaveCopyAsOptions(ThisApplication.ActiveDocument, oContext, oOptions) Then
+		' Set application protocol.
+		' 2 = AP 203 - Configuration Controlled Design
+		' 3 = AP 214 - Automotive Design
+		oOptions.Value("ApplicationProtocolType") = 3
+		' Other options...
+		'oOptions.Value("Author") = ""
+		'oOptions.Value("Authorization") = ""
+		'oOptions.Value("Description") = ""
+		'oOptions.Value("Organization") = ""
+		oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
+		Dim oData As DataMedium
+		oData = ThisApplication.TransientObjects.CreateDataMedium
+		oData.FileName = ThisDoc.PathAndFileName(False) & "_" & LastActiveFeatureName & "-exported.stp"
+		oSTEPTranslator.SaveCopyAs(ThisApplication.ActiveDocument, oContext, oOptions, oData)
+		OpenAndSaveExportedStep(oData.FileName)
+	End If
+End Sub
+
+Private Sub OpenAndSaveExportedStep(FileToOpenAndSave as string)
+Dim PartDocToSave as PartDocument = ThisApplication.Documents.Open(FileToOpenAndSave)
+ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
+PartDocToSave.SaveAs(System.IO.Path.Getfilenamewithoutextension(FileToOpenAndSave) & ".ipt",false)
+PartDocToSave.Close()
+end sub

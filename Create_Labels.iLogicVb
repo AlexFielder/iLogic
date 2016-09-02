@@ -1,0 +1,151 @@
+﻿' <SilentOperation>False</SilentOperation>
+
+AddReference "System.Web"
+Imports System.Web
+Imports System.IO
+
+    ''' <summary>
+    ''' This is the main iLogic subroutine.
+    ''' It needs to be the first Sub in the file or Inventor will shit the bed.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Sub Main()
+        Dim SheetName As String = "Sheet1"
+        Dim i As Integer = 2
+        Dim CellVal As String = "Test"
+        GoExcel.Open(ThisDoc.PathAndFileName(False) & ".xlsx", "Sheet1")
+        MessageBox.Show("Successfully opened: " & ThisDoc.PathAndFileName(False) & ".xlsx")
+        Dim originalfilename As String = ThisDoc.PathAndFileName(True)
+        Do Until CellVal = ""
+            Dim columnLetter As String = "A" 'FILENAME
+            CellVal = GoExcel.CellValue(columnLetter & CStr(i))
+            Dim lbl As clsLabel
+            lbl = New clsLabel
+            lbl.PartNo = GoExcel.CellValue(columnLetter & CStr(i))
+            columnLetter = "B" 'TEXT LINE 1
+            lbl.NewLabelText1 = GoExcel.CellValue(columnLetter & CStr(i))
+            columnLetter = "C" 'TEXT LINE 2 (IF EXISTS)
+            lbl.NewLabelText2 = GoExcel.CellValue(columnLetter & CStr(i))
+            columnLetter = "D" 'CHARACTER HEIGHT IN cm
+            lbl.NewCharHeight = GoExcel.CellValue(columnLetter & CStr(i))
+			'MessageBox.Show( lbl.NewCharHeight,"NewCharHeight")
+            columnLetter = "E" 'DIM A IN mm
+            lbl.NewDimA = GoExcel.CellValue(columnLetter & CStr(i))
+            columnLetter = "F" 'DIM B IN mm
+            lbl.NewDimB = GoExcel.CellValue(columnLetter & CStr(i))
+			columnLetter = "G" 'Font
+			lbl.Font = GoExcel.CellValue(columnLetter & CStr(i))
+            columnLetter = "A"
+            If CellVal = "" Then Exit Do
+			'modify parameters to suit
+            If Not lbl.NewDimA = 0 Then
+                Parameter("a") = lbl.NewDimA
+            End If
+            If Not lbl.NewDimB = 0 Then
+                Parameter("b") = lbl.NewDimB
+            End If
+            MessageBox.Show("Parameters Updated, Continuing")
+            If Not lbl.NewLabelText2 = "" Then
+                TextChanger(lbl.NewLabelText1, "Text1",lbl.NewCharHeight,lbl.Font)
+                TextChanger(lbl.NewLabelText2, "Text2",lbl.NewCharHeight,lbl.Font)
+            Else
+				Try
+					Call TextChanger(lbl.NewLabelText1, "Text1",lbl.NewCharHeight,lbl.Font)
+				Catch
+					Call TextChanger(lbl.NewLabelText1, "Text",lbl.NewCharHeight,lbl.Font)
+				Finally
+					MessageBox.Show("You need to make sure you have a sketch called 'Text' or 'Text1'")
+				End Try
+            End If
+			Try
+				ThisDoc.Document.SaveAs(ThisDoc.Path & "\" & lbl.PartNo & ".ipt", False)
+			Catch
+				MessageBox.Show("If we're having trouble saving, the PartNo could be referencing a vaulted part " & vbCrLf & "Or you copied the spreadsheet and haven't fully updated every row!" )
+				Exit Sub
+			End Try
+            i = i + 1
+        Loop
+        ThisDoc.Document.SaveAs(originalfilename, False)
+		MessageBox.Show("Files Created, Finished")
+    End Sub
+
+    ''' <summary>
+    ''' Modifys the SketchText in SketchName
+    ''' </summary>
+    ''' <param name="SketchText">the text to modify/update</param>
+    ''' <param name="SketchName">the sketch containing the text</param>
+    ''' <remarks></remarks>
+    Sub TextChanger(ByVal SketchText As String, ByVal SketchName As String,ByVal CharHeight As Double, ByVal Font As String)
+        doc = ThisDoc.Document
+		Dim Sketch As PlanarSketch = FindSketch(sketchName)
+        For Each textB As Inventor.TextBox In Sketch.TextBoxes
+            textB.FormattedText = "<StyleOverride Font='" + Font + "' FontSize='" + CStr(CharHeight) + "'>" + SketchText + "</StyleOverride>"
+			Exit For
+        Next
+        InventorVb.DocumentUpdate()
+    End Sub
+
+    Private doc As Document
+
+    ''' <summary>
+    ''' Finds the sketch we want to edit
+    ''' </summary>
+    ''' <param name="sketchName">the name of the sketch to look for.</param>
+    ''' <returns>returns the sketch name</returns>
+    ''' <remarks></remarks>
+    Public Function FindSketch(ByVal sketchName As String) As Inventor.PlanarSketch
+        Dim sketches As Inventor.PlanarSketches = Nothing
+        Dim oPartDoc As Inventor.PartDocument
+        Dim oAssemDoc As Inventor.AssemblyDocument
+        If (doc.DocumentType = Inventor.DocumentTypeEnum.kPartDocumentObject) Then
+            oPartDoc = doc
+            sketches = oPartDoc.ComponentDefinition.Sketches
+        ElseIf (doc.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject) Then
+            oAssemDoc = doc
+            sketches = oAssemDoc.ComponentDefinition.Sketches
+        End If
+        If (sketches Is Nothing) Then Return Nothing
+
+        For Each Sketch As Inventor.PlanarSketch In sketches
+            If (String.Compare(Sketch.Name, sketchName, True) = 0) Then
+                Return Sketch
+            End If
+        Next
+
+        Throw New ArgumentException("No sketch named: " & sketchName & " was found.")
+    End Function
+	
+    ''' <summary>
+    ''' the Label class which makes passing of variables easy-peasy.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Class clsLabel
+        Public PartNo As String
+
+        Public NewLabelText1 As String
+
+        Public NewLabelText2 As String 'can be empty!
+
+        Public NewCharHeight As String
+		
+		Public Font As String
+
+        Public NewDimA As Double
+
+        Public NewDimB As Double
+
+        Public Sub Init(m_partno As String, _
+                        m_labeltext1 As String, _
+                        m_charheight As Double, _
+                        m_dima As Double, m_dimb As Double, _
+                        m_labeltext2 As String, _
+						m_font As String)
+            PartNo = m_partno
+            NewLabelText1 = m_labeltext1
+            NewLabelText2 = m_labeltext2
+            NewCharHeight = m_charheight
+            NewDimA = m_dima
+            NewDimB = m_dimb
+			Font = m_font
+        End Sub
+    End Class

@@ -1,0 +1,63 @@
+﻿ 
+'AddReference "System.Core"
+'AddReference "System.Linq"
+AddReference "CreateAssemblyFromExcelVB.dll"
+'Imports System.Collections.Generic
+'Imports System
+'Imports System.IO
+'Imports System.Linq
+Imports CreateAssemblyFromExcelVB
+Sub Main()
+Dim XTVB As New CreateAssemblyFromExcelVB.ExternalVBClass
+Dim FilesArray As New ArrayList
+Dim PartsList As List(Of CreateAssemblyFromExcelVB.SubObjectCls)
+PartsList = New List(Of CreateAssemblyFromExcelVB.SubObjectCls)
+'pass the local variables to our external .dll
+XTVB.InventorApplication = ThisApplication
+Dim ProjectCode as string = InputBox("Which project?", "4 Letter Project Code", "CODE")
+Dim filetab As String = ProjectCode + "-MODELLING-BASELINE"
+FilesArray = GoExcel.CellValues("C:\LEGACY VAULT WORKING FOLDER\Designs\Project Tracker.xlsx", filetab, "A3", "A4") ' sets excel to the correct sheet!
+For MyRow As Integer = 3 To 5000 ' max limit = 50 rows for debugging purposes
+    Dim SO As CreateAssemblyFromExcelVB.SubObjectCls
+    'not sure if we should change this to Column C as it contains the files we know about from the Vault
+    'if we did we could then have it insert that file if we linked this routine to Vault...?
+    If GoExcel.CellValue("B" & MyRow) = "" Then Exit For 'exits when the value is empty!
+'    Dim tmpstr As String = GoExcel.CellValue("I" & MyRow) 'parent row
+'    If Not tmpstr.StartsWith("AS-") Then
+'        Continue For
+'    End If
+	'some error checking since we don't always have parent assembly information in Excel:
+	Dim PartNo As String = GoExcel.CellValue("B" & MyRow)
+	Dim Descr As String = GoExcel.CellValue("K" & MyRow)
+	Dim RevNumber As String = GoExcel.CellValue("L" & MyRow)
+	Dim LegacyDrawingNumber As String = GoExcel.CellValue("M" & MyRow)
+	Dim ParentAssembly As String = GoExcel.CellValue("I" & MyRow)
+	If ParentAssembly = "" Then
+		ParentAssembly = "NA"
+	End If
+	SO = New CreateAssemblyFromExcelVB.SubObjectCls(PartNo,
+													Descr,
+													RevNumber,
+													LegacyDrawingNumber,
+													ParentAssembly)
+    'SO.PartNo = GoExcel.CellValue("B" & MyRow)  'PART NUMBER
+    'SO.LegacyDescr = GoExcel.CellValue("K" & MyRow) 'DESCRIPTION
+    'SO.LegacyRev = GoExcel.CellValue("L" & MyRow)   'REV
+    'SO.LegacyDrawingNo = GoExcel.CellValue("M" & MyRow) 'SUBJECT/LEGACY DRAWING NUMBER
+    'SO.ParentAssembly = GoExcel.CellValue("I" & MyRow)  'PARENT ASSEMBLY
+    PartsList.Add(SO)
+Next
+'MessageBox.Show(PartsList.Count)
+'Call XTVB.PopulatePartsList(PartsList)
+XTVB.StartFolder = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(ThisApplication.ActiveDocument.FullDocumentName))
+XTVB.ProjectCode = ProjectCode
+XTVB.PartsList = PartsList
+GoExcel.Close
+'XTVB.FilesArray = FilesArray
+'XTVB.GoExcel = GoExcel.Application
+Dim tr As transaction
+tr = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Create Standard Parts From Excel")
+Call XTVB.BeginCreateAssemblyStructure
+tr.End()
+InventorVb.DocumentUpdate()
+End Sub

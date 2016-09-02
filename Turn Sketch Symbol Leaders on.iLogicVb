@@ -1,0 +1,35 @@
+﻿'''Turns sketch symbol leaders off if the user selects yes, turns them off
+'''if the user selects no, does nothing if the user selects cancel.
+Sub Main() 
+Dim oDoc As DrawingDocument = ThisDoc.Document
+oModel = ThisDoc.ModelDocument
+
+Dim Result As DialogResult = MessageBox.Show("Turn all sketch symbol leaders on?","Sketch symbol leaders toggle",MessageBoxButtons.YesNoCancel)
+Dim viewlabelresult As Boolean = False
+If Result = dialogresult.yes Then
+	viewlabelresult = True
+ElseIf Result = dialogresult.no Then
+	viewlabelresult = False
+ElseIf Result = dialogresult.cancel Then
+	Exit Sub
+Else
+Exit Sub
+End If
+Dim oSheets As Sheets
+Dim oSheet As Sheet
+Dim oSketchedSymbol As SketchedSymbol
+
+
+oSheets = oDoc.Sheets
+
+For Each oSheet In oSheets
+	For Each oSketchedSymbol in oSheet.SketchedSymbols
+		If oSketchedSymbol.Name = "View Title Block" Then
+			oSketchedSymbol.leadervisible = viewlabelresult
+		Else
+			'turn everything else on regardless
+			oSketchedSymbol.leadervisible = True
+		End If
+	Next
+Next
+End Sub

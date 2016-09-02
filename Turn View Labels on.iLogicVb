@@ -1,0 +1,34 @@
+﻿'''Turns view labels off if the user selects yes, turns them off
+'''if the user selects no, does nothing if the user selects cancel.
+Sub Main() 
+Dim oDoc As DrawingDocument = ThisDoc.Document
+oModel = ThisDoc.ModelDocument
+
+Dim Result As DialogResult = MessageBox.Show("Turn all drawing view labels on?","Drawing view label toggle",MessageBoxButtons.YesNoCancel)
+Dim viewlabelresult As Boolean = False
+If Result = dialogresult.yes Then
+	viewlabelresult = True
+ElseIf Result = dialogresult.no Then
+	viewlabelresult = False
+ElseIf Result = dialogresult.cancel Then
+	Exit Sub
+Else
+Exit Sub
+End If
+Dim oSheets As Sheets
+Dim oSheet As Sheet
+Dim oViews As DrawingViews
+Dim oView As DrawingView
+
+oSheets = oDoc.Sheets
+
+For Each oSheet In oSheets
+
+oViews = oSheet.DrawingViews
+    For Each oView In oViews
+    'set view to messagebox result
+    oView.ShowLabel = viewlabelresult
+	Next
+	
+Next
+End Sub

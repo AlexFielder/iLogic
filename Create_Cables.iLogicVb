@@ -1,0 +1,88 @@
+﻿' <SilentOperation>False</SilentOperation>
+
+AddReference "System.Web"
+Imports System.Web
+Imports System.IO
+
+    ''' <summary>
+    ''' This is the main iLogic subroutine.
+    ''' It needs to be the first Sub in the file or Inventor will shit the bed.
+	''' runs like so:
+	''' open excel
+	''' do until excel row is empty
+	''' saveas the parent ass'y
+	''' use system.io to copy part:1 to new part
+	''' replace original part:1 with new part:1
+	'''	edit new part:1 cable_id parameter
+	'''	update
+	''' loop
+    ''' </summary>
+    ''' <remarks></remarks>
+    Sub Main()
+        Dim SheetName As String = "Sheet1"
+        Dim i As Integer = 2
+        Dim CellVal As String = "Test"
+        GoExcel.Open(ThisDoc.PathAndFileName(False) & ".xlsx", "Sheet1")
+        MessageBox.Show("Successfully opened: " & ThisDoc.PathAndFileName(False) & ".xlsx")
+        Dim OriginalAssemblyFileName As String = ThisDoc.PathAndFileName(True)
+		'Dim OriginalPartFileName As String = ThisDoc.Document.ReferencedDocumentDescriptors.Item(1).FullDocumentName
+		'MessageBox.Show(OriginalPartFileName)
+		Dim path As String = ThisDoc.Path & "\"
+        Do Until CellVal = ""
+            Dim columnLetter As String = "A" 'ASSEMBLY NAME
+            CellVal = GoExcel.CellValue(columnLetter & CStr(i))
+			If CellVal = "" Then Exit Do
+            Dim NewAssemblyName As String = GoExcel.CellValue(columnLetter & CStr(i))
+			columnLetter = "B" 'CABLE NUMBER
+			Dim NewPartName As String = GoExcel.CellValue(columnLetter & CStr(i))
+            columnLetter = "C" 'CABLE NUMBER
+            Dim NewCableText As String = GoExcel.CellValue(columnLetter & CStr(i))
+			For Each a As ComponentOccurrence In ThisDoc.Document.ComponentDefinition.Occurrences
+				'MessageBox.Show(a.name)
+				If a.Name.Endswith(":1") Then
+					If System.IO.File.Exists(Path & NewPartName & ".ipt") Then
+						a.Replace(Path & NewPartName & ".ipt",True)
+					Else
+						a.definition.Document.saveas(Path & NewPartName & ".ipt",False)
+						a.Replace(Path & NewPartName & ".ipt",True)
+					End If
+					If Not NewCableText = "" Then
+						Parameter(NewPartName & ":1", "CABLE_ID") = NewCableText
+						iProperties.Value(NewPartName & ":1", "Project", "Part Number") = NewCableText
+						a.definition.Document.Save()
+            		End If
+				Else
+					Exit For
+				End If
+			Next
+			If Not NewAssemblyName = "" Then
+				iProperties.Value("Project", "Part Number") = NewCableText
+				iProperties.Value("Project", "Description") = "CABLE ASSEMBLY"
+				ThisDoc.Document.Saveas(Path & NewAssemblyName & ".iam",False)
+			End If
+            i = i + 1
+        Loop
+		ThisDoc.Document.Close()
+		ThisApplication.Documents.Open(OriginalAssemblyFileName)
+		MessageBox.Show("Files Created, Finished")
+    End Sub
+
+    Private doc As Document
+
+    ''' <summary>
+    ''' the Label class which makes passing of variables easy-peasy.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Class clsCable
+        Public AssemblyName As String
+		Public PartName As String
+        Public NewCableText As String
+
+        Public Sub Init(m_assemblyname As String, _
+                        m_cabletext As String, _
+						m_partname As String)
+            AssemblyName = m_assemblyname
+            NewCableText = m_cabletext
+			PartName = m_partname
+        End Sub
+    End Class

@@ -1,0 +1,4 @@
+﻿Dim oProperty
+oProperty = ThisApplication.ActiveDocument.PropertySets.Item("32853F0F-3444-11d1-9E93-0060B03C1CA6").ItemByPropId(56)
+oProperty.Value = ""
+

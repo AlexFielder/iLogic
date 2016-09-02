@@ -1,0 +1,108 @@
+modelName = IO.Path.GetFileName(ActiveSheet.View("VIEW1").ModelDocument.FullFileName)
+
+
+ActiveSheet.View("VIEW1").Scale = ViewScale
+
+Dim ViewW As Double
+Dim ViewL As Double
+Dim ViewSize As Double
+ViewW = ActiveSheet.View("VIEW1").Height
+ViewL = ActiveSheet.View("VIEW1").Width
+
+Dim SizeChange As Double
+Dim LSizeChange As Double
+Dim WSizeChange As Double 
+
+If Format_Select = "A size" Then
+	LSizeChange = 11/17
+Else If Format_Select = "B size" Then
+	LSizeChange = 1
+Else If Format_Select = "D size" Then
+	LSizeChange = 34/17
+Else If Format_Select = "E size" Then
+	LSizeChange = 44/17
+End If
+ViewLSize = ((20.375*ViewScale)/ViewL)*LSizeChange
+
+
+If Format_Select = "A size" Then
+	WSizeChange = 8.5/11
+Else If Format_Select = "B size" Then
+	WSizeChange = 1
+Else If Format_Select = "D size" Then
+	WSizeChange = 22/11
+Else If Format_Select = "E size" Then
+	WSizeChange = 34/11
+End If
+ViewWSize = (15*ViewScale/ViewW)*WSizeChange
+
+If ViewLSize > ViewWSize Then
+	ViewSize = ViewWSize
+	SizeChange = WSizeChange
+Else If ViewLSize < ViewWSize 
+	ViewSize = ViewLSize
+	SizeChange = LSizeChange
+Else If ViewLSize = ViewWSize 
+	ViewSize = ViewLSize
+	SizeChange = LSizeChange
+End If
+
+ActiveSheet.View("VIEW1").Scale = ViewScale*ViewSize
+
+Dim OffsetViewX As Double
+Dim OffsetViewY As Double
+Dim ViewGap As Double
+
+'If Format_Select = "A size" Then
+	OffsetViewX = 1 * SizeChange
+	OffsetViewY = 1 * SizeChange
+	ViewGap = 1.6 * SizeChange
+'Else If Format_Select = "B size" Then
+'	OffsetViewX = 4
+'	OffsetViewY = 2
+'	ViewGap = 2
+'Else If Format_Select = "D size" Then
+'	OffsetViewX = 8
+'	OffsetViewY = 3.75
+'	ViewGap = 4.5
+'Else If Format_Select = "E size" Then
+'	OffsetViewX = 10
+'	OffsetViewY = 6
+'	ViewGap = 7.5
+'End If
+
+View1_Width = ActiveSheet.View("VIEW1").Width
+View1_Height = ActiveSheet.View("VIEW1").Height
+View2_Width = ActiveSheet.View("VIEW2").Width
+View2_Height = ActiveSheet.View("VIEW2").Height
+View4_Width = ActiveSheet.View("VIEW4").Width
+View4_Height = ActiveSheet.View("VIEW4").Height
+View5_Width = ActiveSheet.View("VIEW5").Width
+View5_Height = ActiveSheet.View("VIEW5").Height
+View6_Width = ActiveSheet.View("VIEW6").Width
+View6_Height = ActiveSheet.View("VIEW6").Height
+View7_Width = ActiveSheet.View("VIEW7").Width
+View7_Height = ActiveSheet.View("VIEW7").Height
+
+
+ActiveSheet.View("VIEW1").SetSpacingToCorner(OffsetViewX, OffsetViewY, SheetCorner.BottomLeft)
+ActiveSheet.View("VIEW2").SetSpacingToCorner((View1_Width + OffsetViewX + ViewGap), OffsetViewY, SheetCorner.BottomLeft)
+ActiveSheet.View("VIEW3").SetSpacingToCorner(12.2, 5, SheetCorner.BottomLeft)
+ActiveSheet.View("VIEW4").SetSpacingToCorner(OffsetViewX, (View1_Height + OffsetViewY + ViewGap), SheetCorner.BottomLeft)
+ActiveSheet.View("VIEW5").SetSpacingToCorner((View1_Width + OffsetViewX + ViewGap), (View1_Height + OffsetViewY + ViewGap), SheetCorner.BottomLeft)
+ActiveSheet.View("VIEW6").SetSpacingToCorner(OffsetViewX, (View1_Height + OffsetViewY  +ViewGap + View1_Height + ViewGap), SheetCorner.BottomLeft)
+ActiveSheet.View("VIEW7").SetSpacingToCorner((View1_Width + OffsetViewX + ViewGap), (View1_Height + OffsetViewY + ViewGap + View4_Height + ViewGap), SheetCorner.BottomLeft)
+ActiveSheet.View("A").SetSpacingToCorner((View1_Width + OffsetViewX + ViewGap + View2_Width + ViewGap), (View1_Height/2 + OffsetViewY + View1_Height/4), SheetCorner.BottomLeft)
+ActiveSheet.View("B").SetSpacingToCorner((View1_Width + OffsetViewX + ViewGap + View2_Width + ViewGap), (OffsetViewY), SheetCorner.BottomLeft)
+
+
+'If ViewsToPlace = "Top" Then
+'	ActiveSheet.View("VIEW2").SetSpacingToCorner(OffsetViewX, (ActiveSheet.View("VIEW1").Height+OffsetViewY+ViewGap), SheetCorner.BottomLeft)
+'
+'Else If ViewsToPlace = "Right"
+'	ActiveSheet.View("VIEW2").SetSpacingToCorner((ActiveSheet.View("VIEW1").Width+OffsetViewX+ViewGap), OffsetViewY, SheetCorner.BottomLeft)
+'
+'Else If ViewsToPlace = "Top_Right"
+'	ActiveSheet.View("VIEW2").SetSpacingToCorner(OffsetViewX, (ActiveSheet.View("VIEW1").Height+OffsetViewY+ViewGap), SheetCorner.BottomLeft)
+'	ActiveSheet.View("VIEW3").SetSpacingToCorner((ActiveSheet.View("VIEW1").Width+OffsetViewX+ViewGap), OffsetViewY, SheetCorner.BottomLeft)
+'End If

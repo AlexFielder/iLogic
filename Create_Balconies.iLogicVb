@@ -1,0 +1,294 @@
+﻿' <SilentOperation>False</SilentOperation>
+Option Explicit On
+'AddReference "System.Web"
+AddReference "System.Collections"
+AddReference "System.Text.RegularExpressions"
+
+'Imports System.Web
+Imports System.IO
+Imports System.Collections.Generic
+Imports System.Text.RegularExpressions
+
+
+''' <summary>
+''' This is the main iLogic subroutine.
+''' It needs to be the first Sub in the file or Inventor will shit the bed.
+''' </summary>
+''' <remarks></remarks>
+Sub Main()
+	Dim StartTime As DateTime
+    Dim ElapsedTime As TimeSpan
+    Try
+        
+        StartTime = Now()
+        ThisApplication.ScreenUpdating = False
+        ThisApplication.UserInterfaceManager.UserInteractionDisabled = True
+        Dim ThisDoc As PartDocument = ThisApplication.ActiveDocument
+        Dim RootFolder As String = System.IO.Path.GetDirectoryName(ThisDoc.FullFileName) & "\"
+        'gets the Excel Data
+        Dim SheetName As String = "Sheet1"
+        Dim i As Integer = 2
+        Dim CellVal As String = "Test"
+        GoExcel.Open(System.IO.Path.GetFileNameWithoutExtension(ThisDoc.FullFileName) & ".xlsx", "Sheet1")
+        MessageBox.Show("Successfully opened: " & System.IO.Path.GetFileNameWithoutExtension(ThisDoc.FullFileName) & ".xlsx")
+        Dim BalconyList As List(Of clsBalcony) = New List(Of clsBalcony)
+        Do Until CellVal = ""
+            Dim columnLetter As String = "A"
+            CellVal = GoExcel.CellValue(columnLetter & CStr(i))
+            Dim balcony As clsBalcony
+            balcony = New clsBalcony
+            balcony.BayNumber = GoExcel.CellValue(columnLetter & CStr(i))
+            columnLetter = "B"
+            balcony.StackNumber = GoExcel.CellValue(columnLetter & CStr(i))
+            columnLetter = "C"
+            balcony.DimAFeatureFinCentres = GoExcel.CellValue(columnLetter & CStr(i))
+            columnLetter = "D"
+            balcony.DimBOverallBalconyLength = GoExcel.CellValue(columnLetter & CStr(i))
+            columnLetter = "E"
+            balcony.BalconyType = GoExcel.CellValue(columnLetter & CStr(i))
+            columnLetter = "F"
+            balcony.Bnumber = GoExcel.CellValue(columnLetter & CStr(i))
+
+            balcony.PartNo = balcony.Bnumber & "-" & balcony.StackNumber
+
+            columnLetter = "A"
+            If CellVal = "" Then Exit Do
+
+            i = i + 1
+            BalconyList.Add(balcony)
+        Loop
+        GoExcel.Close()
+        'uses the Excel data.
+        For Each balcony As clsBalcony In BalconyList
+            'need to map relevant class objects to Inventor Parameters.
+
+            Parameter("OverallBalconyLength") = balcony.DimBOverallBalconyLength
+
+            Select Case balcony.BalconyType
+                Case "T1"
+                    Parameter("NumArms") = 2
+                    Parameter("ArmSpacing") = 2400
+                Case "T2"
+                    Parameter("NumArms") = 3
+                    Parameter("ArmSpacing") = 1500
+                Case "T3"
+                    Parameter("NumArms") = 3
+                    Parameter("ArmSpacing") = 2050
+                Case Else
+                    'nothing
+            End Select
+
+            'Try
+            Dim ResultsFolder As String = RootFolder & System.IO.Path.GetFileNameWithoutExtension(balcony.PartNo) & "\"
+            Dim NewFileName As String = ResultsFolder & "\" & balcony.PartNo & ".ipt"
+
+            'need to update here otherwise we will not see any errors in the updated parameter values.
+            InventorVb.DocumentUpdate()
+
+            ThisApplication.StatusBarText = NewFileName
+            ThisDoc.SaveAs(NewFileName, False)
+            ' Catch
+            'MessageBox.Show("If we're having trouble saving, the PartNo could be referencing a vaulted part " & vbCrLf & "Or you copied the spreadsheet and haven't fully updated every row!")
+            'Exit Sub
+            'End Try
+            Dim oErrorMgr As ErrorManager = ThisApplication.ErrorManager
+
+            Dim oMessageSection As MessageSection = oErrorMgr.StartMessageSection
+            'only continue if we have zero errors or warnings
+            If Not oMessageSection.HasErrors Or Not oMessageSection.HasWarnings Then
+                MakeComponentsProgrammatically(ThisDoc, ResultsFolder)
+            End If
+            ' End section by clearing all messages in section
+            oMessageSection.ClearMessages
+
+            Dim result As DialogResult = MessageBox.Show("Want to continue exporting files?", "Say Yes To continue, No to stop!", MessageBoxButtons.YesNoCancel)
+            If result = vbNo Then
+                MessageBox.Show("Processing stopped after completion of: " & System.IO.Path.GetFileNameWithoutExtension(ThisDoc.FullFileName))
+                Exit For
+            End If
+        Next
+        'modify parameters to suit
+
+        'MessageBox.Show("Parameters Updated, Continuing")
+        'ThisDoc.Document.SaveAs(originalfilename, False)
+        'MessageBox.Show("Files Created, Finished")
+
+        ' ... rule code ...
+    Catch ex As Exception
+        'if some error occurs then this code will be executed
+        ThisApplication.ScreenUpdating = True
+        ThisApplication.UserInterfaceManager.UserInteractionDisabled = False
+        Beep()
+        MessageBox.Show("Error info: " & vbNewLine & ex.ToString)
+    Finally
+        ThisApplication.ScreenUpdating = True
+        ThisApplication.UserInterfaceManager.UserInteractionDisabled = False
+    End Try
+
+    ElapsedTime = Now().Subtract(StartTime)
+
+    MessageBox.Show("Operation took " & elapsedtime.TotalMinutes & " Minutes")
+End Sub
+
+' Run this inside a Multi-Solid part
+Sub MakeComponentsProgrammatically(ByVal ThisPart As PartDocument, ByVal ResultsFolder As String)
+    ' Folder to place the new components:
+    ' assembly and subcomponents
+    'Dim ResultsFolder As String = System.IO.Path.GetDirectoryName(ThisPart.FullFileName) & "\" & System.IO.Path.GetFileNameWithoutExtension(ThisPart.DisplayName) & "\"
+
+    Dim Thispartname As String = System.IO.Path.GetFileNameWithoutExtension(ThisPart.FullFileName)
+    ThisApplication.StatusBarText = ResultsFolder & " - " & Thispartname
+    If Not System.IO.Directory.Exists(ResultsFolder) Then
+        System.IO.Directory.CreateDirectory(ResultsFolder)
+    End If
+
+    ' Create the assembly
+    Dim asm As AssemblyDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kAssemblyDocumentObject)
+
+    Call asm.SaveAs(ResultsFolder + System.IO.Path.GetFileNameWithoutExtension(ThisPart.DisplayName) + ".iam", False)
+
+    Dim solidbody As SurfaceBody
+    For Each solidbody In ThisPart.ComponentDefinition.SurfaceBodies
+        If solidbody.Name.StartsWith("Solid") Then
+            Continue For
+        End If
+        ' Create part for each body
+        Dim prt As PartDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject)
+
+        ' Set iProperties >> Project >> Description
+        ' It's inside "Design Tracking Properties"
+        Dim p As Inventor.Property = prt.PropertySets("{32853F0F-3444-11D1-9E93-0060B03C1CA6}")("Description")
+        p.Expression = solidbody.Name
+
+        Dim dpcs As DerivedPartComponents = prt.ComponentDefinition.ReferenceComponents.DerivedPartComponents
+
+        Dim dpd As DerivedPartUniformScaleDef = dpcs.CreateUniformScaleDef(ThisPart.FullDocumentName)
+
+        ' Exclude the other solid bodies
+        Dim dpe As DerivedPartEntity
+        For Each dpe In dpd.Solids
+            If Not dpe.ReferencedEntity Is solidbody Then
+                dpe.IncludeEntity = False
+            End If
+        Next
+
+        Call dpcs.Add(dpd)
+
+        'DOES NOT WORK!!
+        ' Could have any name but we use the solid body's name
+        'if we can work out how to use the sketch blocks in this part they too need a material. which isn't one of these:
+        'If solidbody.name.contains("Panel") Then
+        '    SetMaterialToPart(prt, "Glass")
+        'Else
+        '    SetMaterialToPart(prt, "Aluminum 6061")
+        'End If
+        Dim newfilename As String = Regex.Replace(solidbody.Name, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ")
+
+        Call prt.SaveAs(ResultsFolder + Thispartname + "-" + newfilename + ".ipt", False)
+
+        ' Place an instance of it inside the assembly
+        Dim mx As Matrix = ThisApplication.TransientGeometry.CreateMatrix()
+        Call asm.ComponentDefinition.Occurrences.AddByComponentDefinition(prt.ComponentDefinition, mx)
+
+        ' Don't need it anymore
+        Call prt.Close
+    Next
+
+    Call asm.Close
+End Sub
+
+
+''' <summary>
+''' Sets the material of any part document we pass to it.
+''' </summary>
+''' <param name="ThisDerivedPart"></param>
+''' <param name="name"></param>
+Private Sub SetMaterialToPart(ByVal ThisDerivedPart As PartDocument, ByVal name As String)
+
+    'Dim oDoc As PartDocument = ThisApplication.ActiveDocument
+
+    'Dim Name As String
+    'Name = "Copper"
+    '    Name = "Steel"
+
+    Dim localAsset As Asset = ThisDerivedPart.Assets.Item(name)
+    'If Err Then
+    '    On Error GoTo 0
+    ' Failed to get the appearance
+    ' in the document, so import it.
+
+    ' Get an asset library by name.
+    ' Either the displayed name (which
+    ' can changed based on the current language)
+    ' or the internal name
+    ' (which is always the same) can be used.
+    Dim assetLib As AssetLibrary = ThisApplication.AssetLibraries.Item("Autodesk Material Library")
+        '    Set assetLib = ThisApplication.AssetLibraries _
+        '.Item("AD121259-C03E-4A1D-92D8-59A22B4807AD")
+
+        ' Get an asset in the library
+        Dim libAsset As Asset = assetLib.MaterialAssets.Item(name)
+        ' Copy the asset locally.
+        localAsset = libAsset.CopyTo(ThisDerivedPart)
+    'End If
+    'On Error GoTo 0
+
+    'set material to the part
+    ThisDerivedPart.ActiveMaterial = localAsset
+
+    ' Select the top browser node of the model pane.
+    ' This is a workaround to refresh materials info in the UI.
+    Call ThisDerivedPart.BrowserPanes.ActivePane.TopNode.DoSelect
+
+End Sub
+
+Public Sub SetParameter()
+    ' Get the Parameters object. Assumes a part or assembly document is active.
+    Dim oParameters As Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
+
+    ' Get the parameter named "Length".
+    Dim oLengthParam As Parameter = oParameters.Item("Length")
+
+    ' Change the equation of the parameter.
+    oLengthParam.Expression = "3.5 in"
+
+    ' Update the document.
+    ThisApplication.ActiveDocument.Update
+End Sub
+
+
+''' <summary>
+''' the Label class which makes passing of variables easy-peasy.
+''' </summary>
+''' <remarks></remarks>
+Class clsBalcony
+    Public PartNo As String
+
+    Public BayNumber As String
+
+    Public StackNumber As String 'can be empty!
+
+    Public BalconyType As String
+
+    Public Bnumber As String
+
+    Public DimAFeatureFinCentres As Double
+
+    Public DimBOverallBalconyLength As Double
+
+    Public Sub Init(m_partno As String,
+                    m_BayNumber As Double,
+                    m_StackNumber As String,
+                    m_DimAFeatureFinCentres As Double,
+                    m_DimBOverallBalconyLength As Double,
+                    m_BalconyType As String,
+                    m_Bnumber As String)
+        PartNo = m_partno
+        BayNumber = m_BayNumber
+        Bnumber = m_Bnumber
+        StackNumber = m_StackNumber
+        BalconyType = m_BalconyType
+        DimAFeatureFinCentres = m_DimAFeatureFinCentres
+        DimBOverallBalconyLength = m_DimBOverallBalconyLength
+    End Sub
+End Class

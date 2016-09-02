@@ -1,0 +1,66 @@
+' Run this inside a Multi-Solid part
+Sub MakeComponentsProgrammatically()
+  ' Folder to place the new components:
+  ' assembly and subcomponents
+  Dim f As String: f = "C:\temp\test1\"
+  
+  ' Make sure the folder exists
+  Dim fso As Object
+  Set fso = ThisApplication.FileManager.FileSystemObject
+  If Not fso.FolderExists(f) Then Call fso.CreateFolder(f)
+  
+  Dim doc As PartDocument
+  Set doc = ThisApplication.ActiveDocument
+  
+  ' Create the assembly
+  Dim asm As AssemblyDocument
+  Set asm = ThisApplication.Documents.Add(kAssemblyDocumentObject)
+  
+  Dim sb As SurfaceBody
+  For Each sb In doc.ComponentDefinition.SurfaceBodies
+    ' Create part for each body
+    Dim prt As PartDocument
+    Set prt = ThisApplication.Documents.Add(kPartDocumentObject)
+    
+    ' Set iProperties >> Project >> Description
+    ' It's inside "Design Tracking Properties"
+    Dim p As Property
+    Set p = prt.PropertySets( _
+      "{32853F0F-3444-11D1-9E93-0060B03C1CA6}")("Description")
+    p.Expression = sb.name
+    
+    Dim dpcs As DerivedPartComponents
+    Set dpcs = prt.ComponentDefinition.ReferenceComponents. _
+      DerivedPartComponents
+    
+    Dim dpd As DerivedPartUniformScaleDef
+    Set dpd = dpcs.CreateUniformScaleDef(doc.FullDocumentName)
+       
+    ' Exclude the other solid bodies
+    Dim dpe As DerivedPartEntity
+    For Each dpe In dpd.Solids
+      If Not dpe.ReferencedEntity Is sb Then
+        dpe.IncludeEntity = False
+      End If
+    Next
+    
+    Call dpcs.Add(dpd)
+    
+    ' Could have any name but we use the solid body's name
+    Call prt.SaveAs(f + sb.name + ".ipt", False)
+        
+    ' Place an instance of it inside the assembly
+    Dim mx As Matrix
+    Set mx = ThisApplication.TransientGeometry.CreateMatrix()
+    Call asm.ComponentDefinition.Occurrences. _
+      AddByComponentDefinition(prt.ComponentDefinition, mx)
+    
+    ' Don't need it anymore
+    Call prt.Close
+  Next
+  
+  Call asm.SaveAs( _
+    f + Left(doc.DisplayName, Len(doc.DisplayName) - 4) + _
+    ".iam", False)
+  Call asm.Close
+End Sub

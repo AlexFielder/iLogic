@@ -1,0 +1,99 @@
+Sub Main
+
+DefaultChoice = True
+
+'CadlinePathProperty()
+
+Cadline()
+
+End Sub
+
+ 
+
+REM Sub CadlinePathProperty()
+
+REM Dim FilePATH As String = "FilePATH"
+
+REM customPropertySet = ThisDoc.Document.PropertySets.Item("Inventor User Defined Properties")
+
+REM Try
+
+         REM prop= customPropertySet.Item(FilePATH)
+
+REM Catch
+
+            REM customPropertySet.Add("", FilePATH)
+
+REM End Try
+
+REM 'If iProperties.Value("Custom", "FilePATH") = "" Then
+
+REM 'iProperties.Value("Custom", "FilePATH") = "C:\"
+
+REM 'Else
+
+REM 'End If
+
+REM Dim partDoc As PartDocument
+
+REM If ThisApplication.ActiveDocument.DocumentType <> kPartDocumentObject Then
+
+REM MessageBox.Show ("Please open a part document", "iLogic")
+
+REM End If
+
+REM 'FilePATH = InputBox("Enter a FilePATH for part file", "iLogic", iProperties.Value("Custom", "FilePATH"))
+
+REM 'iProperties.Value("Custom", "FilePATH") = FilePATH
+
+REM End Sub
+
+ 
+
+Public Sub Cadline()
+
+    Dim oDoc As PartDocument
+
+    oDoc = ThisApplication.ActiveDocument
+
+    Dim oCompDef As SheetMetalComponentDefinition
+
+    oCompDef = oDoc.ComponentDefinition
+
+     If oCompDef.HasFlatPattern = False Then
+
+     oCompDef.Unfold
+
+    Else
+
+    oCompDef.FlatPattern.Edit
+
+    End If
+
+    Dim sOut As String
+
+    'Dim sPATH As String
+
+    'sPATH = iProperties.Value("Custom", "FilePATH")
+
+    sOut = "FLAT PATTERN DXF?AcadVersion=2000&OuterProfileLayer=IV_INTERIOR_PROFILES"
+
+    Dim sFname As String
+
+    sFname = ThisDoc.Path & "\" & ThisDoc.FileName(False) & ".dxf"
+
+    MessageBox.Show("DXF SAVED TO: " & sFname ,"DXF Saved", MessageBoxButtons.OK)
+
+    oCompDef.DataIO.WriteDataToFile( sOut, sFname)
+
+  oDoc = ThisApplication.ActiveDocument
+
+Dim oSMDef As SheetMetalComponentDefinition
+
+oSMDef = oDoc.ComponentDefinition
+
+oSMDef.FlatPattern.ExitEdit
+
+'This code has been adapted from http://www.cadlinecommunity.co.uk/Blogs/Blog.aspx?ScoId=4733ef2d-cd48-4bd9-a280-1d88dbbf3556&returnTo=%2fBlogs%2fclintonbrown%2fDefault.aspx&returnTitle=Clinton+Brown%20Blog
+
+End Sub

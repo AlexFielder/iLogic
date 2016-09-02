@@ -1,0 +1,36 @@
+﻿ 
+' Set a reference to the Sketches collection.  This assumes
+    ' that a part document containing a sketch is active.
+    Dim oSketches As PlanarSketches
+    oSketches = ThisApplication.ActiveDocument.ComponentDefinition.Sketches
+
+    ' Get whether the sketch visibility should be turned on or off.
+    Dim bVisibleOn As Boolean
+    If MsgBox("Do you want to turn all sketches on?", vbYesNo + vbQuestion) = vbYes Then
+        bVisibleOn = True
+    Else
+        bVisibleOn = False
+    End If
+
+    ' Iterate through all of the sketches and set their visibility.
+    Dim oSketch As PlanarSketch
+    For Each oSketch In oSketches
+        If bVisibleOn Then
+            oSketch.Visible = True
+        Else
+            oSketch.Visible = False
+        End If
+    Next
+    
+    Dim partDef As PartComponentDefinition
+    partDef = ThisApplication.ActiveDocument.ComponentDefinition
+    Dim o3DSketches As Sketches3D
+    o3DSketches = partDef.Sketches3D
+    Dim oSketch3D As Sketch3D
+    For Each oSketch3D In o3DSketches
+        If bVisibleOn Then
+            oSketch3D.Visible = True
+        Else
+            oSketch3D.Visible = False
+        End If
+    Next

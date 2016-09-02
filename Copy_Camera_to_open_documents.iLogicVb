@@ -1,0 +1,148 @@
+﻿Sub Main()
+
+'Ask for zoom and image save options
+zoomfit = InputRadioBox("Zoom Options", "Copy with same Zoom Ratio", _
+"Copy with same Zoom", booleanParam, Title := "Copy Active View to open Docs")
+
+
+image = InputRadioBox("Create Images in C:\Temp",  _
+"Create Images", "Don't create Images", booleanParam, Title := "Copy Active View to open Docs")
+
+
+Dim oInventor As Application
+Dim oDoc, Doc As Document
+
+Dim oView, DocView As View
+Dim oCamera, DocCamera  As Camera
+Dim eye, target As Point
+Dim upvector As UnitVector
+
+'Get the active document and the active Camera Position
+oInventor = ThisApplication
+oDoc = oInventor.ActiveDocument
+oView = oInventor.ActiveView
+oCamera = oView.Camera
+
+'Prepare Transient Geometry and copy Camera properties
+Dim tg As TransientGeometry
+tg = oInventor.TransientGeometry
+eye = tg.CreatePoint(oCamera.eye.X, oCamera.eye.Y, oCamera.eye.Z)
+target = tg.CreatePoint(oCamera.target.X, oCamera.target.Y, oCamera.target.Z)
+upvector = tg.CreateUnitVector(oCamera.upvector.X, oCamera.upvector.Y, oCamera.upvector.Z)
+
+Dim width As Double
+Dim height As Double
+Call oCamera.GetExtents(width, height)
+
+
+'If Zoom Ratio then perform a Zoom All to calculate the actual Window Ratio
+If Zoomfit = True Then  
+    oCamera.Fit
+    
+    Dim widthfit As Double
+    Dim heightfit As Double
+    Call oCamera.GetExtents(widthfit, heightfit)
+        
+    Call oCamera.SetExtents(width, height)
+    
+    widthratio = width / widthfit
+    heightratio = height / heightfit
+End If
+
+'if Image saving is asked save in C:\Temp + Display Name of the file. Error if display name contains special character
+If Image = True Then
+	Try
+	'Switch Off 3D Indicator
+	oInventor.DisplayOptions.Show3DIndicator = False
+
+    Call oView.SaveAsBitmap("C:\Temp\" & oDoc.DisplayName & ".jpg", 1400, 825)
+	Catch
+	MsgBox ("Invalid Name. Impossible to save Image from"  & oDoc.DisplayName )
+	Finally
+	'Switch Off 3D Indicator
+	oInventor.DisplayOptions.Show3DIndicator = True
+	
+	End Try
+    
+End If
+
+
+'Scan through all the opened documents except the active one and the drawings
+For Each Doc In oInventor.Documents.VisibleDocuments
+    If Doc.FullFileName <> oDoc.FullFileName And (Doc.DocumentType = kAssemblyDocumentObject Or Doc.Documenttype = kpartdocumentobject) Then
+        
+        Doc.Activate
+        DocView = oInventor.ActiveView
+        DocCamera = DocView.Camera
+        
+        'Set camera perspective to apply camera settings
+        'DocCamera.Perspective = True
+        
+        DocCamera.eye = eye
+        DocCamera.target = target
+        DocCamera.upvector = upvector
+		
+		
+        
+        'If Zoom Ratio then perform apply zoom ratio
+        If Zoomfit = True Then
+            DocCamera.Fit
+            
+            Dim Docwidth As Double
+            Dim Docheight As Double
+            Call DocCamera.GetExtents(Docwidth, Docheight)
+            Call DocCamera.SetExtents(Docwidth * widthratio, Docheight * heightratio)
+            
+            DocCamera.Apply
+            DocView.Update
+		
+		Else
+		
+		Call DocCamera.SetExtents(width, height)
+       
+        DocCamera.Apply
+        DocView.Update
+			
+        End If
+        
+        
+        
+        'Enable Autosave Camera, not possible if view is set to master
+        If Doc.DocumentType = kAssemblyDocumentObject Then
+            Dim asm As AssemblyDocument
+			Try
+            asm = Doc
+            asm.ComponentDefinition.RepresentationsManager.ActiveDesignViewRepresentation.AutoSaveCamera = True
+        	Catch
+			End Try
+		ElseIf Doc.DocumentType = kPartDocumentObject Then
+			Try
+            Dim prt As PartDocument
+            prt = Doc
+            prt.ComponentDefinition.RepresentationsManager.ActiveDesignViewRepresentation.AutoSaveCamera = True
+        	Catch
+			End Try
+		End If
+        
+        'if Image saving is asked save in C:\Temp + Display Name of the file. Error if display name contains special character
+        If Image = True Then
+			Try
+			'Switch Off 3D Indicator
+			oInventor.DisplayOptions.Show3DIndicator = False
+
+        	Call DocView.SaveAsBitmap("C:\Temp\" & Doc.DisplayName & ".jpg", 1400, 825)
+		   	Catch
+			MsgBox ("Invalid Name. Impossible to save Image from"  & Doc.DisplayName )
+			Finally
+			'Switch Off 3D Indicator
+			oInventor.DisplayOptions.Show3DIndicator = True
+			End Try
+        End If
+        
+    End If
+Next
+  
+oDoc.Activate
+
+End Sub
+ 

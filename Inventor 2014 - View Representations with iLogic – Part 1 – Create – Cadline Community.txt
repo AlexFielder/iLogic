@@ -1,0 +1,299 @@
+﻿'Cadline Community > Blogs > Manufacturing 
+'Inventor 2014 - View Representations With 
+'iLogic � Part 1 � Create 
+'by Luke Davenport 
+'Welcome To Part 1 Of a 3 part Blog On iLogic View Representations! 
+'Question: Can you use iLogic To automatically create And update view reps based On a particular 
+'Part Number (Or section Of a Part Number) you specify? 
+'Answer: Why yes, yes you can. 
+'Part 1 � Creating the View Reps Automatically 
+'I�ve pasted 2 iLogic rules below. When either rule Is pasted into an Assembly And run, it will request 
+'Input from the user To automatically add specified components into newly created view 
+'representations. Why 2 rules instead Of 1? Well you may wish To Choose which components To add To 
+'your view reps by whether your Input appears anywhere In the PN (in which Case use the �Create 
+'Contains� rule), Or only at the beginning Of the PN (in which Case use the �Create Begins� rule). 
+'Otherwise the rules are identical. 
+'Here�s what the �Create Contains� rule will Do when it Is run (in sequence); 
+'1) Return the view To �home� view. 
+'2) Look For And delete any existing view reps that have a name beginning With �Contains� � 
+'IMPORTANT! (delete this part Of the code If you want To keep them). 
+'3) Request Input String For first view rep. 
+'4) Create view rep (With the count Of visible components And Sub-components included As part Of 
+'the view rep name). 
+'5) Fit view To screen so New view rep can be viewed. 
+'6) Ask user If they want To add another rep. 
+'7) Return To 3) If the answer Is yes. 
+'As always � a video Is better than a thousand words 
+'@CadlineComms 
+'Posted 4 hours ago 
+'Carter lands �35m aircraft design 
+'centre deal http://bit.ly/1fGhpK2 
+'#Cadline 
+'Previous 
+'Sign In 
+'Contact us 
+'Log a support Call 
+'Autodesk Platinum Partner 
+'. Search Entire site Search
+'
+'In part 2 Of this blog I�ll provide the code required To automatically update the view reps you have 
+'created � stick around. Enjoy! 
+'--------------------------------------------------------------------------- 
+'�iLogic code starts here; 
+'�Create Contains� Rule; 
+'Return view to Home view 
+ThisApplication.CommandManager.ControlDefinitions.Item _ 
+("AppViewCubeHomeCmd").Execute 
+'define current document 
+Dim openDoc As Document 
+openDoc = ThisDoc.Document 
+Dim oAsmCompDef As AssemblyComponentDefinition 
+oAsmCompDef = openDoc.ComponentDefinition 
+Dim oViewRep As DesignViewRepresentation 
+Try 
+'Activate a writeable View Rep (master view rep is not writeable) 
+oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Item("WIP View 
+Rep").activate 
+Catch 
+'Assume error means this View Rep does not exist, so create it (will be deleted at end) 
+oViewRep = oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Add("WIP View
+
+Rep") 
+End Try 
+'Delete all existing 'Contains' View reps 
+For Each oViewRep In oAsmCompDef.RepresentationsManager.DesignViewRepresentations 
+If oViewRep.Name.Contains("Contains") Then 
+oViewRep.Delete 
+End If 
+Next 
+Start: 
+iCount = 1 
+'request part names to create view reps for. 
+Do Until iCount = 1000 
+StrInput1 = InputBox("Enter Part Names to Add to View Rep", "Set View Representations", "Enter all 
+Or part Of PN",MessageBoxDefaultButton.Button1) 
+'Check to see whether that view rep has already been created 
+ViewRepExists = 0 
+For Each oViewRep In oAsmCompDef.RepresentationsManager.DesignViewRepresentations 
+If oViewRep.Name.Contains("Contains '" & StrInput1 & "'") Then 
+ViewRepExists = 1 
+oCreatedAlready = MessageBox.Show("That View Rep Has Already Been Created!" & vbLf & vbLf & 
+"Do You Still Want To Continue?","Already Entered",MessageBoxButtons.YesNo) 
+If oCreatedAlready = vbYes Then 
+Goto Start 
+Else 
+Return 
+End If 
+End If 
+Next 
+If ViewRepExists = 0 Then 
+'Create new View Rep 
+oViewRep = oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Add("Contains " 
+& StrInput1) 
+'Activate new View Rep
+
+oViewRep.activate 
+End If 
+oOccCounter = 0 
+oSubOccCounter = 0 
+'look at all of the components in the assembly 
+Dim oCompDef As Inventor.ComponentDefinition = openDoc.ComponentDefinition 
+'define the first level components collection 
+Dim oCompOcc As Inventor.ComponentOccurrence 
+'define the next level components collection 
+Dim oSubCompOcc As Inventor.ComponentOccurrence 
+'Turn off the visibility of parts in the top level assembly that don't contain the specified text string 
+(StrInput1) 
+For Each oCompOcc in oCompDef.Occurrences 
+If oCompOcc.Suppressed = False Then 
+If oCompOcc.Name.Contains(StrInput1) Then 
+oCompOcc.Visible = True 
+'Increment counter for top level components 
+oOccCounter = oOccCounter+1 
+Else 
+oCompOcc.Visible = False 
+End If 
+'Turn off the visibility of parts in the next level assembly that don't contain the specified text 
+String (StrInput1) 
+For Each oSubCompOcc In oCompOcc.SubOccurrences 
+If oSubCompOcc.Suppressed = False Then 
+If oSubCompOcc.Name.Contains(StrInput1) Then 
+oSubCompOcc.Visible = True 
+'Increment counter for first level components 
+oSubOccCounter = oSubOccCounter+1 
+Else 
+oSubCompOcc.Visible = False 
+End If 
+End If 
+Next 
+End If 
+Next
+
+'Rename View Rep to include component counts 
+oViewRep.Name = ("Contains '" & StrInput1 & "' (Qty: " & oOccCounter & " Top Level, " & 
+oSubOccCounter & " Sub Comps)") 
+'lock the new view rep 
+oViewRep.Locked = True 
+'Count no. of view reps already created 
+ViewRepCount = -1 
+For Each oViewRep In oAsmCompDef.RepresentationsManager.DesignViewRepresentations 
+If oViewRep.Name.Contains("Contains") Then 
+ViewRepCount = ViewRepCount + 1 
+End If 
+Next 
+'Zoom all 
+ThisApplication.ActiveView.Fit 
+'See if another View Rep is required. 
+oContinue = MessageBox.Show("Add Another View Rep?" & vbLf & ViewRepCount & " View Reps 
+Have Been Created", "Continue Creating?",MessageBoxButtons.YesNo) 
+If oContinue = vbYes Then 
+iCount = iCount+1 
+Else 
+iCount = 1000 
+End If 
+Loop 
+Try 
+'Delete WIP View Rep 
+oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Item("WIP View Rep").delete 
+Catch 
+End Try 
+�------------------------------------------------------------------------------------------------------------------------------------ 
+Start Of �Create Begins� Rule; 
+
+�Note I must subscribe To Luke Davenport�s blog � it�ll change my life. 
+�http://www.cadlinecommunity.co.uk/Blogs/lukedavenport/Default.aspx 
+'Return view to Home view 
+ThisApplication.CommandManager.ControlDefinitions.Item _ 
+("AppViewCubeHomeCmd").Execute 
+'define current document 
+Dim openDoc As Document 
+openDoc = ThisDoc.Document 
+Dim oAsmCompDef As AssemblyComponentDefinition 
+oAsmCompDef = openDoc.ComponentDefinition 
+Dim oViewRep As DesignViewRepresentation 
+Try 
+'Activate a writeable View Rep (master view rep is not writeable) 
+oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Item("WIP View 
+Rep").activate 
+Catch 
+'Assume error means this View Rep does not exist, so create it (will be deleted at end) 
+oViewRep = oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Add("WIP View 
+Rep") 
+End Try 
+'Delete all existing 'Begins' View reps 
+For Each oViewRep In oAsmCompDef.RepresentationsManager.DesignViewRepresentations 
+If oViewRep.Name.Contains("Begins") Then 
+oViewRep.Delete 
+End If 
+Next 
+Start: 
+iCount = 1 
+'request part names to create view reps for. 
+Do Until iCount = 1000
+
+StrInput1 = InputBox("Enter Beginning of Part Names to Add to View Rep", "Set View 
+Representations", "Enter beginning Of PN",MessageBoxDefaultButton.Button1) 
+'Check to see whether that view rep has already been created 
+For Each oViewRep In oAsmCompDef.RepresentationsManager.DesignViewRepresentations 
+If oViewRep.Name.Contains("Begins '" & StrInput1 & "'") Then 
+ViewRepExists = 1 
+oCreatedAlready = MessageBox.Show("That View Rep Has Already Been Created!" & vbLf & vbLf & 
+"Do You Still Want To Continue?","Already Entered",MessageBoxButtons.YesNo) 
+If oCreatedAlready = vbYes Then 
+Goto Start 
+Else 
+Return 
+End If 
+End If 
+Next 
+If ViewRepExists = 0 Then 
+'Create new View Rep 
+oViewRep = oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Add("Begins " & 
+StrInput1) 
+'Activate new View Rep 
+oViewRep.activate 
+End If 
+oOccCounter = 0 
+oSubOccCounter = 0 
+'look at all of the components in the assembly 
+Dim oCompDef As Inventor.ComponentDefinition = openDoc.ComponentDefinition 
+'define the first level components collection 
+Dim oCompOcc As Inventor.ComponentOccurrence 
+'define the next level components collection 
+Dim oSubCompOcc As Inventor.ComponentOccurrence 
+'Turn off the visibility of parts in the top level assembly that don't begin with the specified text string 
+(StrInput1) 
+For Each oCompOcc in oCompDef.Occurrences 
+If oCompOcc.Suppressed = False Then 
+If Left(oCompOcc.Name,Len(StrInput1)) = StrInput1 Then
+
+oCompOcc.Visible = True 
+'Increment counter for top level components 
+oOccCounter = oOccCounter+1 
+Else 
+oCompOcc.Visible = False 
+End If 
+'Turn off the visibility of parts in the next level assembly that don't begin with the specified text 
+String (StrInput1) 
+For Each oSubCompOcc In oCompOcc.SubOccurrences 
+If oSubCompOcc.Suppressed = False Then 
+If Left(oSubCompOcc.Name,Len(StrInput1)) = StrInput1 Then 
+oSubCompOcc.Visible = True 
+'Increment counter for first level components 
+oSubOccCounter = oSubOccCounter+1 
+Else 
+oSubCompOcc.Visible = False 
+End If 
+End If 
+Next 
+End If 
+Next 
+'Rename View Rep to include component counts 
+oViewRep.Name = ("Begins '" & StrInput1 & "' (Qty: " & oOccCounter & " Top Level, " & 
+oSubOccCounter & " Sub Comps)") 
+'lock the new view rep 
+oViewRep.Locked = True 
+'Count no. of view reps already created 
+ViewRepCount = -1 
+For Each oViewRep In oAsmCompDef.RepresentationsManager.DesignViewRepresentations 
+If oViewRep.Name.Contains("Begins") Then 
+ViewRepCount = ViewRepCount + 1 
+End If 
+Next 
+'Zoom all 
+ThisApplication.ActiveView.Fit
+
+. . . . 
+Recently viewed articles 
+Luke Davenport 
+Related articles 
+Inventor 2014 - View Representations 
+With iLogic � Part 2 � Update 
+Inventor 2014 - View Representations 
+With iLogic � Part 3 � Check 
+Autodesk Inventor 2015 � Place 
+Component With iLogic 
+Inventor 2015 iLogic � Accurately 
+Position Drawing Views 
+Navisworks 2015 - Files Types 
+� Copyright 2015 Cadline Limited Privacy Policy & Cookies Legal 
+'See if another View Rep is required. 
+oContinue = MessageBox.Show("Add Another View Rep?" & vbLf & ViewRepCount & " View Reps 
+Have Been Created", "Continue Creating?",MessageBoxButtons.YesNo) 
+If oContinue = vbYes Then 
+iCount = iCount+1 
+Else 
+iCount = 1000 
+End If 
+Loop 
+Try 
+'Delete WIP View Rep 
+oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Item("WIP View Rep").delete 
+Catch 
+End Try 
+Have more questions? Submit a request 
+Comments 
+Was this article helpful? 
+0 out Of 0 found this helpful 
+. .
+

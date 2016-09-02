@@ -1,0 +1,5 @@
+﻿'For Each Feature In thispart.features
+'	If Feature.Name.contains("*WELD PREP*") Then
+'		Feature.IsActive(Feature.Name) = False
+'	End If
+'Next

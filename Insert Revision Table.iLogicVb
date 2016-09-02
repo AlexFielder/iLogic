@@ -1,0 +1,166 @@
+﻿Public Sub Main
+'revision box properties
+ThisRevision = InputBox("This Revision is?", "Revision", "2")
+ThisRevComment = InputBox("This Revision Comment is?", "Comment", "FIRST ISSUE")
+ThisRevDate = InputBox("This Revision Date is?", "Today's Date", "22-APR-14")
+ThisRevDrawnBy = InputBox("This Revision Drawn By?", "DrawnBy", "AF")
+ThisRevCheckedBy = InputBox("This Revision Checked By?", "Comment", "SM")
+ThisRevCheckedEngBy = InputBox("This Revision Checked By Engineering?", "Comment", "JP")
+ThisRevApprovedBy =InputBox("This Revision Approved By?", "Comment", "")
+'Drawing border properties
+ThisProjectNo = InputBox("The Project Number is?", "Project Number", "TA5BE")
+ThisProjectName = InputBox("The Project Name is?", "Project Name", "AQUARIUS")
+ThisPurposeForIssue = InputBox("Purpose of Issue?", "Purpose of Issue?", "FOR MANUFACTURE")
+
+booleanParam = InputRadioBox("Add the same revision box to all open drawings?", _
+"All Drawings", _
+"This Drawing", _
+booleanParam, Title := "Single or Multiple files?")
+If booleanParam Then
+	For Each oDoc in ThisApplication.Documents
+		If oDoc.DocumentType = Inventor.DocumentTypeEnum.kDrawingDocumentObject Then
+			oDoc.Activate
+			BeginCreateRevTable(True,oDoc)
+		End If
+	Next
+Else
+	Dim ThisDoc = ThisApplication.ActiveDocument
+	If ThisDoc.DocumentType = Inventor.DocumentTypeEnum.kDrawingDocumentObject Then
+		CreateRevTable(ThisDoc)
+		UpdatePromptedEntries(ThisDoc)
+	End If
+End If
+
+End Sub
+#Region "Revision Box string variables"
+Public ThisRevision As String = "2"
+Public ThisRevComment As String = "FIRST ISSUE"
+Public ThisRevDate As String = "22-APR-14"
+Public ThisRevDrawnBy As String = "AF"
+Public ThisRevCheckedBy As String = "SM"
+Public ThisRevCheckedEngBy As String = "JP"
+Public ThisRevApprovedBy As String = ""
+#End Region
+#Region "Prompted Entry String variables"
+Public ThisProjectNo As String = "TA5BE"
+Public ThisProjectName As String = "AQUARIUS"
+Public ThisPurposeForIssue As String = "FOR MANUFACTURE"
+#End Region
+Sub BeginCreateRevTable(ByVal multiOrSingleFiles As Boolean,ByVal oDoc As DrawingDocument)
+
+If multiOrSingleFiles Then
+	'Only on the front sheet
+	CreateRevTable(oDoc)
+	'process all sheets
+	UpdatePromptedEntries(oDoc)
+Else
+	'Only on the front sheet
+'	Dim ThisDoc = ThisApplication.ActiveDocument
+'	CreateRevTable(ThisDoc)
+	'process all sheets
+	'UpdatePromptedEntries(ThisDoc)
+End If
+	
+End Sub
+
+Sub CreateRevTable(oDoc As DrawingDocument)
+    'This assumes a drawing document Is active
+    'Dim oDoc As DrawingDocument
+    'oDoc = ThisApplication.ActiveDocument
+    
+    Dim oPt As Point2d
+	If ODOC.ActiveSheet.Size = 9996 Then
+		'MessageBox.Show("A3 Sheet", "Title")
+		oPt = ThisApplication.TransientGeometry.CreatePoint2d(0.9, 28.8)
+	Else If ODOC.ActiveSheet.Size = 9995 Then
+		'MessageBox.Show("A2 Sheet", "Title")
+		oPt = ThisApplication.TransientGeometry.CreatePoint2d(0.9, 41.1)
+	Else If ODOC.ActiveSheet.Size = 9994 Then
+		'MessageBox.Show("A1 Sheet", "Title")
+		oPt = ThisApplication.TransientGeometry.CreatePoint2d(0.9, 58.5)	
+	Else If ODOC.ActiveSheet.Size = 9993 Then
+		'MessageBox.Show("A0 Sheet", "Title")
+		oPt = ThisApplication.TransientGeometry.CreatePoint2d(0.9, 83.2)
+	End If
+    Dim oRevTable As RevisionTable
+	If oDoc.Sheets(1).RevisionTables.Count > 0 Then 'Exit Sub
+		orevtable = ODOC.SHEETS(1).RevisionTables.Item(1)
+		orevtable.Delete
+	End If
+    
+    oRevTable = oDoc.Sheets(1).RevisionTables.Add(oPt)
+	oPt = Nothing
+    ' Get last row
+	Dim oRow As RevisionTableRow
+	oRow = oRevTable.RevisionTableRows.Item(oRevTable.RevisionTableRows.Count)
+
+	' Make sure we have the active row
+	If oRow.IsActiveRow Then
+		' Go through all columns in that row
+		For i = 1 To oRevTable.RevisionTableColumns.Count
+			Dim oCell As RevisionTableCell = oRow.Item(i)
+			Select oRevTable.RevisionTableColumns.Item(i).Title
+				Case "REV":
+					oCell.Text = iProperties.Value("Project", "Revision Number")
+				Case "COMMENTS":
+					oCell.Text = ThisRevComment
+				Case "DATE":
+					oCell.Text = ThisRevDate
+				Case "DRN":
+					oCell.Text = ThisRevDrawnBy
+				Case "CHKD DO":
+					oCell.Text = ThisRevCheckedBy
+				Case "CHKD Eng":
+					oCell.Text = ThisRevCheckedEngBy
+				Case "APPR":
+					oCell.Text = ThisRevApprovedBy
+			End Select
+
+			' Set all cells to static
+			oCell.Text = oCell.Text
+			' or static and blank
+			'oCell.Text = ""
+		Next
+	End If
+End Sub
+Sub UpdatePromptedEntries(oDoc As DrawingDocument)
+'assumes the oDoc is activated
+Dim oPromptEntry
+Dim actSheet As Sheet = ThisApplication.ActiveDocument.ActiveSheet
+'For Each oSheet In ThisApplication.ActiveDocument.Sheets
+For Each oSheet In oDoc.Sheets
+	'MessageBox.Show(oSheet.Name, "Sheet Name")
+    ActiveSheet=ThisDrawing.Sheet(oSheet.Name)
+    If oSheet.TitleBlock Is Nothing Then Exit Sub
+	'MessageBox.Show("Title OKAY!", "Go Gadget Go")
+    oTitleBlock=oSheet.TitleBlock
+    oTextBoxes=oTitleBlock.Definition.Sketch.TextBoxes
+    For Each oTextBox In oTitleBlock.Definition.Sketch.TextBoxes
+		'comment this ASAP otherwise it will break! ALOT!
+'		If Not oTitleBlock.GetResultText(oTextBox) = String.Empty Then
+'			MessageBox.Show(oTitleBlock.GetResultText(oTextBox), oTextBox.Text)
+'		Else
+'			MessageBox.Show(oTextBox.Text, "Empty PE Found!")
+'		End If
+On Error Resume Next
+		If otextbox.Text <>"" Then
+			Select oTextBox.Text
+				Case "PROJECT REF No":
+					oPromptEntry = ThisProjectNo
+					Call oTitleBlock.SetPromptResultText(oTextBox, oPromptEntry)
+				Case "PURPOSE OF ISSUE":
+					oPromptEntry = ThisPurposeForIssue
+					Call oTitleBlock.SetPromptResultText(oTextBox, oPromptEntry)
+				Case "DELETEME":
+					oPromptEntry = "BUGGER ME IT WORKS!"
+					Call oTitleBlock.SetPromptResultText(oTextBox, oPromptEntry)
+				Case "DELETE ME":
+					oPromptEntry = "WTF DUDES?"
+					Call oTitleBlock.SetPromptResultText(oTextBox, oPromptEntry)
+			End Select
+		End If
+    Next
+Next
+actSheet.Activate
+InventorVb.DocumentUpdate()
+End Sub

@@ -1,0 +1,34 @@
+﻿AddReference "CreateAssemblyFromExcelVB.dll"
+Imports CreateAssemblyFromExcelVB
+Sub Main()
+Dim XTVB As New CreateAssemblyFromExcelVB.ExternalVBClass
+Dim FilesArray As New ArrayList
+Dim PartsList As List(Of CreateAssemblyFromExcelVB.SubObjectCls)
+PartsList = New List(Of CreateAssemblyFromExcelVB.SubObjectCls)
+'pass the local variables to our external .dll
+XTVB.InventorApplication = ThisApplication
+Dim filetab As String = InputBox("Which project?", "Select Sheet Name", "SHEETNAME")
+FilesArray = GoExcel.CellValues("C:\VAULT WORKING FOLDER\Designs\Project Tracker.xlsx", filetab, "A3", "A4") ' opens and sets excel to the correct sheet!
+For MyRow As Integer = 3 To 5000 ' max limit = 5000 rows but could be much higher
+    Dim SO As CreateAssemblyFromExcelVB.SubObjectCls
+    If GoExcel.CellValue("A" & MyRow) = "" Then Exit For 'exits when the value is empty!
+    Dim tmpstr As String = GoExcel.CellValue("I" & MyRow) 'parent row
+    If Not tmpstr.StartsWith("AS-") Then
+        Continue For
+    End If
+	'capture iproperties from the available Excel Data.
+	SO = New CreateAssemblyFromExcelVB.SubObjectCls(GoExcel.CellValue("B" & MyRow),
+													GoExcel.CellValue("K" & MyRow),
+													GoExcel.CellValue("L" & MyRow),
+													GoExcel.CellValue("M" & MyRow),
+													GoExcel.CellValue("I" & MyRow))
+    PartsList.Add(SO)
+Next
+XTVB.PartsList = PartsList
+GoExcel.Close
+Dim tr As transaction
+tr = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Create Standard Parts From Excel")
+Call XTVB.BeginCreateAssemblyStructure
+tr.End()
+InventorVb.DocumentUpdate()
+End Sub

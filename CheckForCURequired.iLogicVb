@@ -1,0 +1,63 @@
+﻿Option Explicit On
+	''' <summary>
+	''' This is always the first Sub and has no inputs.
+	''' Includes elements from this page: https://www.cadlinecommunity.co.uk/hc/en-us/articles/202782862-Inventor-2016-ILogic-to-update-parameters-in-every-part-of-an-Assembly
+	''' </summary>
+	''' <remarks></remarks>
+	Public Sub Main()
+		Dim AssemblyDoc as AssemblyDocument = ThisApplication.ActiveDocument
+		Dim csvFile As System.IO.File
+		csvWriter = csvFile.CreateText(ThisDoc.PathAndFileName(False) & ".csv")
+		csvWriter.WriteLine("Mass Values for " & ThisDoc.PathAndFileName(True))
+		csvWriter.WriteLine("Mass Values for all occurrences in the above name Assembly")
+		csvWriter.WriteLine(Now())
+		csvWriter.WriteLine()
+		csvWriter.WriteLine("Occurrence Name,Mass")
+		Call iterate(AssemblyDoc)
+		'Call Iterate(AssemblyDoc.ComponentDefinition.Occurrences,1)
+		csvWriter.Close()		
+		Dim go As Integer = MessageBox.Show("Would you like to view the file?", "iLogic Mass Properties to csv", MessageBoxButtons.YesNo)
+		If go = 6 Then ThisDoc.Launch(ThisDoc.PathAndFileName(False) & ".csv")
+	End Sub
+	
+	Public csvWriter As System.IO.StreamWriter
+	
+	''' <summary>
+    ''' Performs some task without returning a result to the parent method
+    ''' </summary>
+    ''' <param name="ObjectOne"></param>
+    ''' <param name="ObjectTwo"></param>
+    ''' <param name="ObjectThree"></param>
+    ''' <remarks></remarks>
+    Private Sub Iterate(ByVal Occurrences as ComponentOccurrences, ByVal Level As Integer)
+	Dim Occurrence As ComponentOccurrence
+	
+	For Each Occurrence In Occurrences
+		'Dim UpdateRequired As Boolean = False
+		Dim Mass as String = iProperties.Mass(Occurrence.Name)
+		csvWriter.WriteLine(Occurrence.Name & "," & Mass)
+		'Run through the sub assemblies 
+		If Occurrence.DefinitionDocumentType = DocumentTypeEnum.kAssemblyDocumentObject Then
+			Call Iterate(Occurrence.SubOccurrences, Level + 1) 
+		End If
+	Next
+	End Sub
+
+	''' <summary>
+    ''' Performs some task without returning a result to the parent method
+	''' Some parts copied from here: https://forums.autodesk.com/t5/inventor-general-discussion/use-ilogic-to-change-custom-iproperty-in-several-components-at/td-p/3813955
+    ''' </summary>
+    ''' <param name="ObjectOne"></param>
+    ''' <param name="ObjectTwo"></param>
+    ''' <param name="ObjectThree"></param>
+    ''' <remarks></remarks>
+    Private Sub Iterate(ByVal DocumentObject As Inventor.Document)
+		Dim AssemblyDoc as AssemblyDocument
+		AssemblyDoc = CType(DocumentObject,AssemblyDocument)
+		For Each Component As Inventor.Document In AssemblyDoc.AllReferencedDocuments
+			Dim FileNamePos As String = InStrRev(Component.FullFileName,"\",-1)
+			Dim FileName As String = Mid(Component.FullFileName,FileNamePos + 1, Len(Component.FullFileName) - FileNamePos)
+			Dim Mass as String = iProperties.Mass(FileName)
+			csvWriter.WriteLine(Component.FullFileName & "," & Mass)
+		Next
+	End Sub

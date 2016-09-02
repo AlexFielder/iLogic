@@ -1,0 +1,103 @@
+﻿ Option Explicit
+ Sub Main()
+'default folder
+	Dim oDesignProjectMgr As DesignProjectManager = ThisApplication.DesignProjectManager
+	Dim oProject As DesignProject = oDesignProjectMgr.DesignProjects.ItemByName(oDesignProjectMgr.ActiveDesignProject.FullFileName)
+	Dim FolderName As String = oProject.WorkspacePath()
+	'Dim FolderName As String  = Left$(doc.FullFileName, InStrRev(doc.FullFileName, "\") )	
+	Dim selectedfile1 As String = String.Empty
+	Dim selectedfile2 As String = String.Empty
+	Dim oFileDlg As inventor.FileDialog = Nothing
+	InventorVb.Application.CreateFileDialog(oFileDlg)
+	oFileDlg.Filter = "All files (*.*)|*.*"
+	oFileDlg.InitialDirectory = FolderName
+	oFileDlg.CancelError = True
+	oFileDlg.MultiSelectEnabled = False
+	
+	Try
+		oFileDlg.ShowOpen()
+		selectedfile1 = oFileDlg.FileName
+	Catch
+		Return
+	End Try
+	Try
+		If Not selectedfile1 = String.Empty Then
+			oFileDlg.ShowOpen()
+			selectedfile2 = oFileDlg.FileName
+		End If
+	Catch
+		Return
+	End Try
+	Dim Result As String = CompareVolumes(selectedfile1, selectedfile2)
+	MessageBox.Show("The Hash comparison result was: " & Result)
+	
+	End Sub
+	
+	Private Function CompareVolumes(ByVal file1 as String, ByVal file2 as String)
+	Dim Mass1 as String
+	Dim Volume1 as String
+	Dim CenterOfMass1 as String
+	Dim Mass2 as String
+	Dim Volume2 as String
+	Dim CenterOfMass2 as String
+	GetPartMassProps(file1,Volume1,Mass1,CenterOfMass1)
+	GetPartMassProps(file2,Volume2,Mass2,CenterOfMass2)
+	MessageBox.Show("Completed comparison!")
+	If Volume1 = Volume2 then
+		MessageBox.Show("Volumes match!")
+	else
+		MessageBox.Show("Volumes don't match!")
+	End if
+	If Mass1 = Mass2 then
+		MessageBox.Show("Masses match!")
+	else
+		MessageBox.Show("Masses Don't match!")
+	end if
+	If CenterOfMass1 = CenterOfMass2 then
+		MessageBox.Show("Center of Masses match!")
+	else
+		MessageBox.Show("Center of Masses don't match!")
+	end if
+	MessageBox.Show(Volume1 & "," & Mass1 & "," & CenterOfMass1)
+	MessageBox.Show(Volume2 & "," & Mass2 & "," & CenterOfMass2)
+	End Function
+Public Sub GetPartMassProps(ByVal file As String, ByRef Volume As String, ByRef Mass as String,ByRef CenterOfMass as String)
+    ' Set a reference to the part document.
+    ' This assumes a part document is active.
+	Dim oPartDoc as PartDocument
+	Try
+    oPartDoc = ThisApplication.Documents.Open(file)
+	Catch
+		'tried to open an assembly?
+		Return
+	End Try
+    ' Set a reference to the mass properties object.
+    Dim oMassProps As MassProperties = oPartDoc.ComponentDefinition.MassProperties
+
+    If oMassProps.AvailableAccuracy <> MassPropertiesAccuracyEnum.k_High And _
+      oMassProps.AvailableAccuracy <> MassPropertiesAccuracyEnum.k_VeryHigh Then
+      ' Set the accuracy to high.
+      oMassProps.Accuracy = MassPropertiesAccuracyEnum.k_High
+
+      'Set CacheResultsOnCompute property to False
+      'so that results are not saved with the document
+      'and hence the document is not 'dirtied'.
+      oMassProps.CacheResultsOnCompute = False
+    End If
+	CenterOfMass = oMassProps.CenterOfMass.X & ", " & oMassProps.CenterOfMass.Y & ", " & oMassProps.CenterOfMass.Z
+	Mass = oMassProps.Mass.ToString()
+    Dim adPrincipalMoments(0 To 2) As Double
+    Call oMassProps.PrincipalMomentsOfInertia(adPrincipalMoments(0), adPrincipalMoments(1), adPrincipalMoments(2))
+    Dim adRadiusOfGyration(0 To 2) As Double
+    Call oMassProps.RadiusOfGyration(adRadiusOfGyration(0), adRadiusOfGyration(1), adRadiusOfGyration(2))
+	Volume = oMassProps.Volume.ToString()
+
+    Dim Ixx As Double
+    Dim Iyy As Double
+    Dim Izz As Double
+    Dim Ixy As Double
+    Dim Iyz As Double
+    Dim Ixz As Double
+    Call oMassProps.XYZMomentsOfInertia(Ixx, Iyy, Izz, Ixy, Iyz, Ixz)
+	oPartDoc.Close(True)
+End Sub

@@ -1,0 +1,1541 @@
+﻿Imports Inventor.ViewOrientationTypeEnum
+Imports Inventor.DrawingViewStyleEnum
+Imports Inventor.PointIntentEnum
+Imports Inventor.DimensionTypeEnum
+Imports Inventor.DrawingCurveSegmentEnum
+Imports Inventor.DrawingCurveEnum
+Imports Inventor.CurveTypeEnum
+
+
+'///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+'CreateDrawing_PlaceViews (PartNumber, DrawingViewScale, ViewsToPlace, AssemblyDrawing, oBaseView, oView2, oView3, oView4)
+		'WHAT IT DOES: Used to place Views (Assumes all Parts are saved in the same folder as the Assembly)
+		'CODE RETURNS: The Drawing Document for use in other functions (See Code)
+		'Part Number: The Name of the Part you want to place a view of as a String ("Must have Quotes")
+		'DrawinViewScale: The Scale you want to place the view in as a number
+		'ViewsToPlace: String which specifies which views to project off of the Base View
+				'OPTIONS: ("Top", "Right", "Project", "Top_Right", "Top_Project", "Right_Project", "Top_Right_Project")
+		'AssemblyDrawing: True or False as to whether this is the Assembly view or not 
+				'(If this is the assembly view, this view must be placed first in the code as the drawing is craeted only with this views placement)
+		'oBaseView: (FILLER) Parameter passed by Reference which will return the view for future use in dimensioning
+		'oView2: (FILLER) Parameter passed by Reference which will return the view for future use in dimensioning
+		'oView3: (FILLER) Parameter passed by Reference which will return the view for future use in dimensioning
+		'oView4: (FILLER) Parameter passed by Reference which will return the view for future use in dimensioning
+		'**** (FILLER) are just place holders so that the code will run, you may place your own view name for ease of reference (See Code)
+		
+'CreateLinearDimension (oDrawingDoc, oDrawingView, DimensionLength, DirectionOfDim, OffsetDistance, DimensionLocation, ReferencedDim)
+		'WHAT IT DOES: Used to place linear dimensions on Horizontal or Vertical Lines
+		'CODE RETURNS: The Dimension for use in of Functions such as Aligning Text
+		'oDrawingDoc: The Drawing Document which the View exists in
+		'oDrawingView: The View you which to place the dimension on
+		'DimensionLength: The length of the Curve you want to dimension (Mine are Driven by a parameter in the Model)
+		'DirectionOfDim: A String which specifies the orientation of the line to look for
+				'OPTIONS: ("Vertical", "Horizontal")
+		'OffsetDistance: A number which specifies the distance to Offset the text from the line 
+				'(Must be negative Or positive based on your knowledge of where the line is (ie. "-" if Left and "+" if Right))
+				'Or you can place the dimension inside the view by choosing the appropriate sign
+		'DimensionLocation: Multiple lines can have the same length, this String specifies which line to choose. Closest to the given side
+				'OPTIONS: ("Top", "Bottom", "Right", "Left")
+		'ReferenceDim: True or False as to whether this dimension is to be a referenced dimension
+				'(This is selects between 2 Styles previously set up in the Drawing Template)
+				
+'CreateAlignedDimension (oDrawingDoc, oDrawingView, DimensionLength, DirectionOfDim, OffsetDistance, DimensionLocation, DimensionType, ReferencedDim)
+		'WHAT IT DOES: Used to place dimensions onto Slanted lines (Lines at an Angle)
+		'CODE RETURNS: The Dimension for use in of Functions such as Aligning Text
+		'oDrawingDoc: The Drawing Document which the View exists in
+		'oDrawingView: The View you which to place the dimension on
+		'DimensionLength: The Vertical or Horizontal length of the line (Mine are Driven by a parameter in the Model)
+				'(ie. distance between y And y Or x And x Based On the Orientation you wish To check in DirectionOfDim)
+		'DirectionOfDim: A String which specifies the points to check the distance for (Based on DimensionLength)
+				'OPTIONS: ("Vertical", "Horizontal")
+		'OffsetDistance: A number which specifies the distance to Offset the text from the point closest to the specified side based on DimensionLocation 
+				'(Must be negative Or positive based on your knowledge of where the line is (ie. "-" if Left and "+" if Right))
+				'Or you can place the dimension inside the view by choosing the appropriate sign
+		'DimensionLocation: Multiple lines can have the same length, this String specifies which line to choose. Closest to the given side
+				'OPTIONS: ("Top", "Bottom", "Right", "Left")
+		'DimensionType: Type of Dimension to place
+				'OPTIONS: ("Vertical", "Horizontal", "Aligned")
+		'ReferenceDim: True or False as to whether this dimension is to be a referenced dimension
+				'(This is selects between 2 Styles previously set up in the Drawing Template)
+				
+'CreateDetailView (oDrawingDoc, oDrawingView, ScaleSize, DimensionLength, DirectionOfDim, DimensionLocation, PointLocation, Radius)
+		'WHAT IT DOES: Places a Detail View with a Circular fence to represent the Detail only (Code can be modified if Rectangular fence is wanted)
+		'CODE RETURNS: The Drawing Document for use in other functions (See Code)
+		'oDrawingDoc: The Drawing Document which the View exists in
+		'oDrawingView: The View you which to find the line on to place the detail
+		'ScaleSize: The Scale you wish to make the Detail View
+		'DimensionLength: The length of the Curve you want to locate (Mine are Driven by a parameter in the Model)
+		'DirectionOfDim: A String which specifies the orientation of the line to look for
+				'OPTIONS: ("Vertical", "Horizontal")
+		'DimensionLocation: Multiple lines can have the same length, this String specifies which line to choose. Closest to the given side
+				'OPTIONS: ("Top", "Bottom", "Right", "Left")
+		'PointLocation: The Point you which to attach the center of the view to 
+				'OPTIONS: ("Top", "Bottom", "Right", "Left")
+		'Radius: A Number specifying the size of the detail fence radius
+		
+'AlignText (TargetText, DestinationText11, DestinationText22, Direction, Side)
+		'WHAT IT DOES: Aligns the text to the destination text, in which the target text will not interfere with the view (See Code to better Understand)
+		'TargetText: Text you wish to move or become Aligned
+		'DestinationText11: An option to align the dimension text with which is located on one side 
+		'DestinationText22: An option to align the dimension text with which is located on the opposite side of DestinationText11
+		'Direction: A String specifying which direction you are aligning in
+				'OPTION: ("Vertical", "Horizontal")
+		'Side: The Side of the view that the TargetText's dimension line is on
+				'The side where the drawing curve exists which the dimesion was applied to
+				
+'CreateText (oDrawingDoc, ViewNumber, oText, OffsetDistance)
+		'WHAT IT DOES: Places the text to the Bottom of a Specified view
+		'NOTE: This is placed after the drawing is saved and the rule in the drawing is Run. Therefore the views are in there final location
+				'Text does not move with the view but is placed on the views current location
+		'oDrawingDoc: The Drawing Document which the View exists in
+		'ViewNumber: Since this is now considered a new Drawing Document after a Save As is done. The View Index must be passed into the function instead of the view itself
+		'oText: A String that specifies what you want the Text to say (ie. "ITEM# 01")
+		'OffsetDistance: A Number which Specifies the distance to Offset the text from the base of the view
+
+'FindViewIndex (oDrawingDoc, oDrawingView)	
+		'WHAT IT DOES: Gets the Index number of the specified view for use in CreateText
+		'oDrawingDoc: The Drawing Document which the View exists in
+		'oDrawingView: The View you which to get the Index of
+		
+'FindCurve (oDrawingDoc, oDrawingView, DimensionLength, DirectionOfDim, DimensionLocation)
+		'WHAT IT DOES: Finds the specified curve in order to create Overall dimensions between to non-connecting lines
+		'CODE RETURNS: The Specified Curve
+		'oDrawingDoc: The Drawing Document which the View exists in
+		'oDrawingView: The View you which to place the dimension on
+		'DimensionLength: The length of the Curve you want to dimension (Mine are Driven by a parameter in the Model)
+		'DirectionOfDim: A String which specifies the orientation of the line to look for
+				'OPTIONS: ("Vertical", "Horizontal")
+		'DimensionLocation: Multiple lines can have the same length, this String specifies which line to choose. Closest to the given side
+				'OPTIONS: ("Top", "Bottom", "Right", "Left")
+				
+'CreateOverallDimension(oDrawingDoc, DimensionType, DimAlign, CurveMin, PointMin, CurveMax, PointMax, OffsetDistance)
+		'WHAT IT DOES: Creates a dimension between 2 non-connecting curves
+		'oDrawingDoc: The Drawing Document which the Curve exists in
+		'DimensionType: Type of Dimension to place
+				'OPTIONS: ("Vertical", "Horizontal")
+		'DimAlign: Specifies towards which side to originally align the text with (Can extend further past this point with OffsetDistance)
+				'OPTIONS: ("Top", "Bottom", "Right", "Left")
+		'CurveMin: First curve you wish to attach the dimension to
+		'PointMin: A String the specifes towards which side you want to use the point from on CurveMin
+				'OPTIONS: ("Top", "Bottom", "Right", "Left")
+		'CurveMax: Second curve you wish to attach the dimension to
+		'PointMax: A String the specifes towards which side you want to use the point from on CurveMax
+				'OPTIONS: ("Top", "Bottom", "Right", "Left")
+		'OffsetDistance: A number which specifies the distance to Offset the text from the point closest to the specified side based on DimAlign 
+				'(Must be negative Or positive based on your knowledge of where the line is (ie. "-" if Left and "+" if Right))
+				'Or you can place the dimension inside the view by choosing the appropriate sign
+
+'CreateAngularDimension(oDrawingDoc, CurveMin, PointMin, OffsetDistanceX, CurveMax, PointMax, OffsetDistanceY)
+		'WHAT IT DOES: Creates an Angular dimension (Use FindCurve to get the to lines you wish to dimension between)
+		'oDrawingDoc: The Drawing Document which the Curve exists in
+		'CurveMin: The first line you want to dimension (I suggest the more Vertical one for ease of placing the text)
+		'PointMin: The Point on this line which is closest to CurveMax
+				'OPTIONS: ("Top", "Bottom", "Right", "Left")
+		'OffsetDistanceX: The x-axis value you wish to offset the dimension text from PointMin
+		'CurveMax: The second line you want to dimension (I suggest the more Horizontal one for ease of placing the text)
+		'PointMax: The Point on this line which is closest to CurveMin
+				'OPTIONS: ("Top", "Bottom", "Right", "Left")
+		'OffsetDistanceY: The y-axis value you wish to offset the dimension text from PointMax
+
+'///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+Sub Main()
+
+	'Ask to Create Drawing
+	AskCreateDrawing = MessageBox.Show("Would you like to Create Drawings for the Current Model?", "Drawing Automation",MessageBoxButtons.YesNo)
+	
+	'If the User Presses YES
+	If AskCreateDrawing = vbYes Then
+		
+		'Set the View Scales
+		Dim DrawingViewScale As Double 
+		DrawingViewScale = 1/10
+		
+		
+		'////////// Assembly Views //////////
+		
+		Dim AssemblyDocName As String 
+		AssemblyDocName = ThisDoc.FileName(False) 'without extension
+		
+		Assem_DrawingDoc = CreateDrawing_PlaceViews (AssemblyDocName, DrawingViewScale, "Right_Project", True, oBaseView, oRightSideView, oProjectView, oView4)
+		
+		CreateLinearDimension (Assem_DrawingDoc, oBaseView, INLET_Flange_OutW, "Horizontal", 0.75, "Top", True)
+		CreateLinearDimension (Assem_DrawingDoc, oBaseView, OUTLET_Flange_OutW, "Horizontal", -0.75, "Bottom", True)
+		
+		CreateLinearDimension (Assem_DrawingDoc, oRightSideView, INLET_Flange_OutL, "Horizontal", 0.75, "Top", True)
+		CreateLinearDimension (Assem_DrawingDoc, oRightSideView, OUTLET_Flange_OutL, "Horizontal", -0.75, "Bottom", True)
+		
+		DetailViewA = CreateDetailView (Assem_DrawingDoc, oBaseView, 1/3, (Overall_Height - INWelding_Gap - OUTWelding_Gap), "Vertical", "Right", "Top", 0.7)
+		DetailViewB = CreateDetailView (Assem_DrawingDoc, oRightSideView, 1/3, (Overall_Height - INWelding_Gap - OUTWelding_Gap), "Vertical", "Right", "Bottom", 0.7)
+
+		OverallDimTop = FindCurve (Assem_DrawingDoc, oBaseView, INLET_Flange_OutW, "Horizontal", "Top")
+		OverallDimBot = FindCurve (Assem_DrawingDoc, oBaseView, OUTLET_Flange_OutW, "Horizontal", "Bottom")
+		CreateOverallDimension(Assem_DrawingDoc, "Vertical", "Left", OverallDimTop, "Left", OverallDimBot, "Left", -0.75)
+		
+		CreateLinearDimension (Assem_DrawingDoc, DetailViewA, INLET_Flange_Thick, "Vertical", 1.1, "Right", False)
+		CreateLinearDimension (Assem_DrawingDoc, DetailViewB, OUTLET_Flange_Thick, "Vertical", 1.1, "Right", False)
+
+		ChuteTop = FindCurve (Assem_DrawingDoc, DetailViewA, Chute_Thick, "Horizontal", "Top")
+		FlangeEdge = FindCurve (Assem_DrawingDoc, DetailViewA, INLET_Flange_Thick, "Vertical", "Right")
+		CreateOverallDimension(Assem_DrawingDoc, "Vertical", "Right", FlangeEdge, "Top", ChuteTop, "Right", 0.5)
+		
+		ChuteTop22 = FindCurve (Assem_DrawingDoc, DetailViewB, Chute_Thick, "Horizontal", "Bottom")
+		FlangeEdge22 = FindCurve (Assem_DrawingDoc, DetailViewB, OUTLET_Flange_Thick, "Vertical", "Right")
+		CreateOverallDimension(Assem_DrawingDoc, "Vertical", "Right", FlangeEdge22, "Bottom", ChuteTop22, "Right", 0.5)
+	
+		
+		
+		'////////// Inlet Flange Views //////////
+		
+		CreateDrawing_PlaceViews (Inlet_Flange_Name, DrawingViewScale, "None", False, In_FlangeView, oView2, oView3, oView4)
+		
+		CreateLinearDimension (Assem_DrawingDoc, In_FlangeView, INLET_Flange_OutW, "Horizontal", -1.15, "Bottom", False)
+		CreateLinearDimension (Assem_DrawingDoc, In_FlangeView, INLET_Flange_InW, "Horizontal", -1, "Bottom", False)
+		CreateLinearDimension (Assem_DrawingDoc, In_FlangeView, INLET_Flange_OutL, "Vertical", 1.15, "Right", False)
+		CreateLinearDimension (Assem_DrawingDoc, In_FlangeView, INLET_Flange_InL, "Vertical", 1, "Right", False)
+		
+		
+		
+		'////////// Outlet Flange Views //////////
+		
+		CreateDrawing_PlaceViews (Outlet_Flange_Name, DrawingViewScale, "None", False, Out_FlangeView, oView2, oView3, oView4)
+		
+		CreateLinearDimension (Assem_DrawingDoc, Out_FlangeView, OUTLET_Flange_OutW, "Horizontal", -1.15, "Bottom", False)
+		CreateLinearDimension (Assem_DrawingDoc, Out_FlangeView, OUTLET_Flange_InW, "Horizontal", -1, "Bottom", False)
+		CreateLinearDimension (Assem_DrawingDoc, Out_FlangeView, OUTLET_Flange_OutL, "Vertical", 1.15, "Right", False)
+		CreateLinearDimension (Assem_DrawingDoc, Out_FlangeView, OUTLET_Flange_InL, "Vertical", 1, "Right", False)
+		
+		
+		
+		'////////// Chute Front Side Views //////////
+		
+		CreateDrawing_PlaceViews (ChuteFS_Name, DrawingViewScale, "None", False, ChuteFSView, oView2, oView3, oView4)
+		
+		DestinationDim1 = CreateLinearDimension (Assem_DrawingDoc, ChuteFSView, Parameter("Chute Front Side:1", "ChuteFS_InletWidth"), "Horizontal", 0.75, "Top", False)
+		DestinationDim2 = CreateLinearDimension (Assem_DrawingDoc, ChuteFSView, Parameter("Chute Front Side:1", "ChuteFS_OutletWidth"), "Horizontal", -0.75, "Bottom", False)
+		CreateAlignedDimension (Assem_DrawingDoc, ChuteFSView, Parameter("Chute Front Side:1", "d38"), "Vertical", 0.75, "Right", "Vertical", False)
+		TargetDim1 = CreateAlignedDimension (Assem_DrawingDoc, ChuteFSView, Parameter("Chute Front Side:1", "d38"), "Vertical", -0.75, "Left", "Horizontal", False)
+		
+		AlignText (TargetDim1, DestinationDim1, DestinationDim2, "Vertical", "Left")
+		
+		BottomCurve = FindCurve (Assem_DrawingDoc, ChuteFSView, Parameter("Chute Front Side:1", "ChuteFS_OutletWidth"), "Horizontal", "Bottom")
+		LeftCurve = FindCurve (Assem_DrawingDoc, ChuteFSView, Parameter("Chute Front Side:1", "d38"), "Vertical", "Left")
+		CreateAngularDimension(Assem_DrawingDoc, LeftCurve, "Bottom", 1, BottomCurve, "Left", 1)
+		
+		
+		
+		'////////// Chute Right Side Views //////////
+		
+		CreateDrawing_PlaceViews (ChuteRS_Name, DrawingViewScale, "None", False, ChuteRSView, oView2, oView3, oView4)
+		
+		DestinationDim1 = CreateLinearDimension (Assem_DrawingDoc, ChuteRSView, Parameter("Chute Right Side:1", "ChuteRS_InletWidth"), "Horizontal", 0.75, "Top", False)
+		DestinationDim2 = CreateLinearDimension (Assem_DrawingDoc, ChuteRSView, Parameter("Chute Right Side:1", "ChuteRS_OutletWidth"), "Horizontal", -0.75, "Bottom", False)
+		CreateAlignedDimension (Assem_DrawingDoc, ChuteRSView, Parameter("Chute Right Side:1", "d23"), "Vertical", 0.75, "Right", "Vertical", False)
+		TargetDim1 = CreateAlignedDimension (Assem_DrawingDoc, ChuteRSView, Parameter("Chute Right Side:1", "d23"), "Vertical", -0.75, "Left", "Horizontal", False)
+		
+		AlignText (TargetDim1, DestinationDim1, DestinationDim2, "Vertical", "Left")
+		
+		BottomCurve = FindCurve (Assem_DrawingDoc, ChuteRSView, Parameter("Chute Right Side:1", "ChuteRS_OutletWidth"), "Horizontal", "Bottom")
+		LeftCurve = FindCurve (Assem_DrawingDoc, ChuteRSView, Parameter("Chute Right Side:1", "d23"), "Vertical", "Left")
+		CreateAngularDimension(Assem_DrawingDoc, LeftCurve, "Bottom", 1, BottomCurve, "Left", 1)
+		
+		
+		
+		'////////// View Indexes //////////
+		
+		In_FlangeView_Index = FindViewIndex (Assem_DrawingDoc, In_FlangeView)
+		Out_FlangeView_Index = FindViewIndex (Assem_DrawingDoc, Out_FlangeView)
+		ChuteFSView_Index = FindViewIndex (Assem_DrawingDoc, ChuteFSView)
+		ChuteRSView_Index = FindViewIndex (Assem_DrawingDoc, ChuteRSView)
+		DetailViewA_Index = FindViewIndex (Assem_DrawingDoc, DetailViewA)
+		DetailViewB_Index = FindViewIndex (Assem_DrawingDoc, DetailViewB)
+	
+		
+	'/////////////////////////To Place Centerlines////////////
+	
+	'NOTE: This code was working when I originally added it but has stopped since, please post on the thread if you fix it
+	
+'		Dim oNumView As DrawingView
+'		Dim ViewCount As Integer
+'		Dim StartCount As Integer
+'		
+'		ViewCount = 0
+'		StartCount = 0
+'		MessageBox.Show("1", "Title")
+'
+'		For Each oNumView In Assem_DrawingDoc.ActiveSheet
+'			ViewCount = ViewCount + 1
+'		Next
+'		MessageBox.Show("2", "Title")
+'
+'		For StartCount = 1 To ViewCount
+'			Assem_DrawingDoc.Sheets(1).DrawingViews(StartCount).SetAutomatedCenterlineSettings()
+'		Next
+	'////////////////////////////////////////////////////////////
+	
+		
+		'Save As oDrawingDoc (Path and File Name) 
+		oPartPath = ThisDoc.Path
+		oPartPathLength = Len(oPartPath)
+		oDrawingPath = Left(oPartPath, oPartPathLength - 7)
+		
+		oDrawingDoc = oDrawingPath & "\" & AssemblyDocName & ".idw"
+			
+		Assem_DrawingDoc.SaveAs(oDrawingDoc, False)
+		'Close the Template Drawing
+		Assem_DrawingDoc.Close(True)
+		'Open the Newly Saved Drawing
+		DrawingDoc = ThisApplication.Documents.Open(oDrawingDoc, True)
+		
+		
+		'After the new Drawing is Opened the Rule inside the drawing will run and place all of the views
+		'Place the following texts based on the new location of the views
+		CreateText (DrawingDoc, In_FlangeView_Index, "ITEM# 1", 0.5)
+		CreateText (DrawingDoc, Out_FlangeView_Index, "ITEM# 2", 0.5)
+		CreateText (DrawingDoc, ChuteFSView_Index, "ITEM# 3", 1)
+		CreateText (DrawingDoc, ChuteRSView_Index, "ITEM# 4", 1)
+		CreateText (DrawingDoc, DetailViewA_Index, "DETAIL A", 0.7)
+		CreateText (DrawingDoc, DetailViewB_Index, "DETAIL B", 0.5)
+		
+	End If
+
+End Sub
+
+
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+Function CreateDrawing_PlaceViews (PartNumber As String, DrawingViewScale As Double, ViewsToPlace As String, AssemblyDrawing As Boolean, ByRef oBaseView As DrawingView, ByRef oView2 As DrawingView, ByRef oView3 As DrawingView, ByRef oView4 As DrawingView)
+
+	Dim oDrawDoc As DrawingDocument
+	Dim oPartDoc As Document
+	Dim oSheet As Sheet
+	Dim oTG As TransientGeometry
+	Dim oPoint1 As Point2d
+	Dim oPoint2 As Point2d
+	Dim oPoint3 As Point2d
+	
+	
+	'If this is the Assembly View, then use this Document as reference and open Drawing Template
+	'Otherwise use the given Part Number And invisibly open the part, Use the active drawing
+	If AssemblyDrawing = True Then
+		oPartDoc = ThisDoc.Document
+		oDrawDoc = ThisApplication.Documents.Add(kDrawingDocumentObject, "C:\Users\Public\Documents\Autodesk\Inventor 2017\Templates\standard.dwg", True)
+	Else If AssemblyDrawing = False 
+		oPartDocPath = ThisDoc.Path & "\" & PartNumber & ".ipt"
+		oPartDoc = ThisApplication.Documents.Open(oPartDocPath, False)
+		oDrawDoc = ThisApplication.ActiveDocument 
+	End If
+	
+	
+	oSheet = oDrawDoc.Sheets.Item(1)
+	oTG = ThisApplication.TransientGeometry
+	
+	'Set points in order to get wanted View (ie. if 'Y' is the same and 'X' is greater or less, you will get a Side View)
+	oPoint1 = oTG.CreatePoint2d(5, 5)
+	oPoint2 = oTG.CreatePoint2d(5, 30)
+	oPoint3 = oTG.CreatePoint2d(30, 5)
+	oPoint4 = oTG.CreatePoint2d(30, 30)
+	
+	'Create the Base View
+	oBaseView = oSheet.DrawingViews.AddBaseView(oPartDoc, oPoint1, DrawingViewScale, kFrontViewOrientation, kHiddenLineDrawingViewStyle, "Default")
+	
+	
+	'//////// Place the rest of the Projected Views According to the Parameter String Specified ////////////
+	
+	If ViewsToPlace = "Top" Then
+		oView2 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint2, kHiddenLineDrawingViewStyle, DrawingViewScale)
+		
+	Else If ViewsToPlace = "Right" 
+		oView2 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint3, kHiddenLineDrawingViewStyle, DrawingViewScale)
+		
+	Else If ViewsToPlace = "Project"
+		oView2 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint4, kHiddenLineDrawingViewStyle, DrawingViewScale)
+		
+	Else If ViewsToPlace = "Top_Right"
+		oView2 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint2, kHiddenLineDrawingViewStyle, DrawingViewScale)
+		oView3 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint3, kHiddenLineDrawingViewStyle, DrawingViewScale)
+		
+	Else If ViewsToPlace = "Top_Project"
+		oView2 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint2, kHiddenLineDrawingViewStyle, DrawingViewScale)
+		oView3 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint4, kHiddenLineDrawingViewStyle, DrawingViewScale)
+		
+	Else If ViewsToPlace = "Right_Project"
+		oView2 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint3, kHiddenLineDrawingViewStyle, DrawingViewScale)
+		oView3 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint4, kHiddenLineDrawingViewStyle, DrawingViewScale)
+		
+	Else If ViewsToPlace = "Top_Right_Project"
+		oView2 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint2, kHiddenLineDrawingViewStyle, DrawingViewScale)
+		oView3 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint3, kHiddenLineDrawingViewStyle, DrawingViewScale)
+		oView4 = oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint4, kHiddenLineDrawingViewStyle, DrawingViewScale)
+	
+	Else If ViewsToPlace = "None" Then
+	'Only Place Base View, therefore do nothing
+	End If
+	
+	
+	'Return the Drawing Document 
+	Return oDrawDoc
+
+End Function
+
+
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+Function CreateLinearDimension (oDrawingDoc As DrawingDocument, oDrawingView As DrawingView, DimensionLength As DoubleForEquals, DirectionOfDim As String, OffsetDistance As Double, DimensionLocation As String, ReferencedDim As Boolean)
+
+	Dim oSheet As Sheet
+	oSheet = oDrawingDoc.Sheets.Item(1)
+	
+	Dim oDrawingCurve As DrawingCurve
+	Dim oTG As TransientGeometry
+	Dim Count As Integer
+	Dim DrawingViewScale As Double
+	
+	DrawingViewScale = oDrawingView.Scale
+	oTG = ThisApplication.TransientGeometry
+	
+	'Set up Phantom points in order to locate the Wanted lines 
+	'(If you want To find the lower line, you must start With a higher point And work your way down)
+	If DimensionLocation = "Top" Or DimensionLocation = "Right" Then
+		DrawingCurvePoint = oTG.CreatePoint2d(0, 0)
+	Else If DimensionLocation = "Bottom" Or DimensionLocation = "Left" 
+		DrawingCurvePoint = oTG.CreatePoint2d(100, 100)
+	End If
+	
+	'The 'X' is used for both the 'X' and 'Y' when locating the point
+	'It Is only a place holder so that the variables match for programming
+	DrawingCurvePointX = DrawingCurvePoint.x
+	
+	Dim CurveCount As Integer
+	CurveCount = 0
+	
+	'Find the amount of curves in the specified view
+	For Each oDrawingCurve In oDrawingView.DrawingCurves
+		CurveCount = CurveCount + 1
+	Next
+	
+	'From the First Curve until the Last Curve (All curves based on the last For loop)
+	For StartCount = 1 To CurveCount
+		
+		'Select the curve
+		oDrawingCurve = oDrawingView.DrawingCurves.Item(StartCount)
+		
+		'If this curve is Linear
+		If oDrawingCurve.CurveType = kLineSegmentCurve Then
+			
+			Dim DimLength As DoubleForEquals
+			
+			'Get the Length of the Curve based on the Orientation passed into the Sub
+			'Abs(a - b) gives you the number whether it is a negative number or positive, it will always convert to positive
+			'This Number is in Sheet Space and 'cm', Divide by the View Scale and by 2.54 to convert to Model Space and 'in'
+			If DirectionOfDim = "Vertical" Then
+				DimLength = Abs(oDrawingCurve.StartPoint.y - oDrawingCurve.EndPoint.y)/DrawingViewScale/2.54
+			Else If DirectionOfDim = "Horizontal" Then
+				DimLength = Abs(oDrawingCurve.StartPoint.x - oDrawingCurve.EndPoint.x)/DrawingViewScale/2.54
+			End If
+			
+			'If this Curve is Equal to the Wanted Dimension Specified by the Parameter Passed into the Sub (Within Tolerance)
+			If Abs(DimLength - DimensionLength) < 0.0001 Then 
+			
+				'Based on the direction you want the line to be towards, this computes appropriate calculations for each direction
+				'If the calculation Proves to be right (This Curve is farther towards the specified side than the previous curve)
+				'Then the current curve will be saved as the Correct one
+				If DirectionOfDim = "Vertical" And DimensionLocation = "Right" Then
+					If DrawingCurvePointX < oDrawingCurve.StartPoint.x
+						DrawingCurvePointX = oDrawingCurve.StartPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+				Else If DirectionOfDim = "Vertical" And DimensionLocation = "Left" Then
+					If DrawingCurvePointX > oDrawingCurve.StartPoint.x
+						DrawingCurvePointX = oDrawingCurve.StartPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+				Else If DirectionOfDim = "Horizontal" And DimensionLocation = "Top" Then
+					If DrawingCurvePointX < oDrawingCurve.StartPoint.y
+						DrawingCurvePointX = oDrawingCurve.StartPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+				Else If DirectionOfDim = "Horizontal" And DimensionLocation = "Bottom" Then
+					If DrawingCurvePointX > oDrawingCurve.StartPoint.y
+						DrawingCurvePointX = oDrawingCurve.StartPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+				End If
+			End If
+		End If
+	Next
+	
+	
+	Dim oDim As LinearGeneralDimension
+	Dim oPt As Point2d
+	Dim oPlaceDimX As Double
+	Dim oPlaceDimY As Double
+	Dim oIntent1 As GeometryIntent
+	Dim oIntent2 As GeometryIntent
+	
+	'Create the Intent points based on the Correct Curve found through the For Loop
+	oIntent1 = oSheet.CreateGeometryIntent(CorrectCurve, kStartPointIntent)
+	oIntent2 = oSheet.CreateGeometryIntent(CorrectCurve, kEndPointIntent)
+	
+	'Offset the Text in the appropriate direction based on the Curve orientation and center
+	If DirectionOfDim = "Vertical" Then
+		oPlaceDimX = CorrectCurve.MidPoint.x + OffsetDistance
+		oPlaceDimY = CorrectCurve.MidPoint.y
+	
+	Else If DirectionOfDim = "Horizontal"
+		oPlaceDimX = CorrectCurve.MidPoint.x
+		oPlaceDimY = CorrectCurve.MidPoint.y + OffsetDistance
+	End If
+	
+	'Create the Point using these locations
+	oPt = oTG.CreatePoint2d(oPlaceDimX, oPlaceDimY)
+	
+	
+	'Set the Appropriate Style based on the Parameter passed into the Sub
+	'(These Styles are pre set up in the Drawing Template)
+	Dim DimStyle As DimensionStyle
+	
+	If ReferencedDim = False Then
+		DimStyle = oDrawingDoc.StylesManager.DimensionStyles.Item("GT - Fraction (ANSI)")
+	
+	Else If ReferencedDim = True 
+		DimStyle = oDrawingDoc.StylesManager.DimensionStyles.Item("GT - Reference Fraction (ANSI)")
+	End If
+	
+	
+	'Set the Type of dimension to create
+	Dim TypeOfDim As String
+	
+	If DirectionOfDim = "Vertical" Then
+		TypeOfDim = kVerticalDimensionType
+	Else If DirectionOfDim = "Horizontal" 
+		TypeOfDim = kHorizontalDimensionType
+	End If
+	
+	
+	'Create the Dimension and Re-Center the text inbetween the leaders
+	Dim oDimension As DrawingDimension
+	oDimension = oSheet.DrawingDimensions.GeneralDimensions.AddLinear(oPt, oIntent1, oIntent2, TypeOfDim, True, DimStyle)
+	oDimension.CenterText
+	
+	'Return this Dimension
+	Return oDimension
+
+End Function
+
+
+
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+Function CreateAlignedDimension (oDrawingDoc As DrawingDocument, oDrawingView As DrawingView, DimensionLength As DoubleForEquals, DirectionOfDim As String, OffsetDistance As Double, DimensionLocation As String, DimensionType As String, ReferencedDim As Boolean)
+
+	Dim oSheet As Sheet
+	oSheet = oDrawingDoc.Sheets.Item(1)
+	
+	Dim oDrawingCurve As DrawingCurve
+	Dim CorrectCurve As DrawingCurve
+	Dim oTG As TransientGeometry
+	Dim StartCount As Integer
+	Dim DrawingViewScale As Double
+	
+	DrawingViewScale = oDrawingView.Scale
+	oTG = ThisApplication.TransientGeometry
+	
+	'Set up Phantom points in order to locate the Wanted lines 
+	'(If you want To find the lower line, you must start With a higher point And work your way down)
+	If DimensionLocation = "Top" Or DimensionLocation = "Right" Then
+		DrawingCurvePoint = oTG.CreatePoint2d(0, 0)
+	Else If DimensionLocation = "Bottom" Or DimensionLocation = "Left" 
+		DrawingCurvePoint = oTG.CreatePoint2d(100, 100)
+	End If
+	
+	'The 'X' is used for both the 'X' and 'Y' when locating the point
+	'It Is only a place holder so that the variables match for programming
+	DrawingCurvePointX = DrawingCurvePoint.x
+	
+	Dim CurveCount As Integer
+	CurveCount = 0
+	
+	'Find the amount of curves in the specified view
+	For Each oDrawingCurve In oDrawingView.DrawingCurves
+		CurveCount = CurveCount + 1
+	Next
+	
+	'From the First Curve until the Last Curve (All curves based on the last For loop)
+	For StartCount = 1 To CurveCount
+		
+		'Select the Curve
+		oDrawingCurve = oDrawingView.DrawingCurves.Item(StartCount)
+		
+		'If this Curve is linear
+		If oDrawingCurve.CurveType = kLineSegmentCurve Then
+		
+			Dim DimLength As DoubleForEquals
+			
+			'Get the Length of the Curve based on the Orientation passed into the Sub
+			'Abs(a - b) gives you the number whether it is a negative number or positive, it will always convert to positive
+			'This Number is in Sheet Space and 'cm', Divide by the View Scale and by 2.54 to convert to Model Space and 'in'
+			If DirectionOfDim = "Vertical" Then
+				DimLength = Abs(oDrawingCurve.StartPoint.y - oDrawingCurve.EndPoint.y)/DrawingViewScale/2.54
+			Else If DirectionOfDim = "Horizontal" Then
+				DimLength = Abs(oDrawingCurve.StartPoint.x - oDrawingCurve.EndPoint.x)/DrawingViewScale/2.54
+			End If
+			
+			'If this Curve is Equal to the Wanted Dimension Specified by the Parameter Passed into the Sub (Within Tolerance)
+			If Abs(DimLength - DimensionLength) < 0.0001 Then 
+			
+				'Based on the direction you want the line to be towards, this computes appropriate calculations for each direction
+				'If the calculation Proves to be right (This Curve is farther towards the specified side than the previous curve)
+				'Then the current curve will be saved as the Correct one
+				If DirectionOfDim = "Vertical" And DimensionLocation = "Right" Then
+					If DrawingCurvePointX < oDrawingCurve.StartPoint.x
+						DrawingCurvePointX = oDrawingCurve.StartPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+					If DrawingCurvePointX < oDrawingCurve.EndPoint.x
+						DrawingCurvePointX = oDrawingCurve.EndPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+					
+				Else If DirectionOfDim = "Vertical" And DimensionLocation = "Left" Then
+					If DrawingCurvePointX > oDrawingCurve.StartPoint.x
+						DrawingCurvePointX = oDrawingCurve.StartPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+					If DrawingCurvePointX > oDrawingCurve.EndPoint.x
+						DrawingCurvePointX = oDrawingCurve.EndPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+					
+				Else If DirectionOfDim = "Horizontal" And DimensionLocation = "Top" Then
+					If DrawingCurvePointX < oDrawingCurve.StartPoint.y
+						DrawingCurvePointX = oDrawingCurve.StartPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+					If DrawingCurvePointX < oDrawingCurve.EndPoint.y
+						DrawingCurvePointX = oDrawingCurve.EndPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+					
+				Else If DirectionOfDim = "Horizontal" And DimensionLocation = "Bottom" Then
+					If DrawingCurvePointX > oDrawingCurve.StartPoint.y
+						DrawingCurvePointX = oDrawingCurve.StartPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+					If DrawingCurvePointX > oDrawingCurve.EndPoint.y
+						DrawingCurvePointX = oDrawingCurve.EndPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+				End If
+			End If
+		End If
+	Next
+	
+	
+	Dim oDim As LinearGeneralDimension
+	Dim oPt As Point2d
+	Dim oPlaceDimX As Double
+	Dim oPlaceDimY As Double
+	Dim oIntent1 As GeometryIntent
+	Dim oIntent2 As GeometryIntent
+	
+	
+	'Create the Intent points based on the Correct Curve found through the For Loop
+	oIntent1 = oSheet.CreateGeometryIntent(CorrectCurve, kStartPointIntent)
+	oIntent2 = oSheet.CreateGeometryIntent(CorrectCurve, kEndPointIntent)
+	
+	
+	
+	'Brings the Dimension Text to the furthest Point based on the whether Offset distance is '-' or '+'
+	'This is to keep the same effect in using OffsetDistance as a Linear Dimension
+	Dim LineOffset As Double
+	
+	If OffsetDistance < 0 Then
+		If DirectionOfDim = "Vertical" Then
+			LineOffset = -Abs(CorrectCurve.StartPoint.x - CorrectCurve.EndPoint.x)/2 'Horizontal
+		Else If DirectionOfDim = "Horizontal"
+			LineOffset = -Abs(CorrectCurve.StartPoint.y - CorrectCurve.EndPoint.y)/2 'Vertical
+		End If
+	Else If OffsetDistance >= 0 
+		If DirectionOfDim = "Vertical" Then
+			LineOffset = Abs(CorrectCurve.StartPoint.x - CorrectCurve.EndPoint.x)/2 'Horizontal
+		Else If DirectionOfDim = "Horizontal"
+			LineOffset = Abs(CorrectCurve.StartPoint.y - CorrectCurve.EndPoint.y)/2 'Vertical
+		End If
+	End If
+	
+	
+	'Offset the Text in the appropriate direction based on the Curve orientation and center
+	If DirectionOfDim = "Vertical" Then
+		oPlaceDimX = CorrectCurve.MidPoint.x + LineOffset + OffsetDistance
+		oPlaceDimY = CorrectCurve.MidPoint.y
+	
+	Else If DirectionOfDim = "Horizontal"
+		oPlaceDimX = CorrectCurve.MidPoint.x
+		oPlaceDimY = CorrectCurve.MidPoint.y + LineOffset + OffsetDistance
+	End If
+	
+	'Create the Point using the above Values
+	oPt = oTG.CreatePoint2d(oPlaceDimX, oPlaceDimY)
+	
+	
+	'Set the Appropriate Style based on the Parameter passed into the Sub
+	'(These Styles are pre set up in the Drawing Template)
+	Dim DimStyle As DimensionStyle
+	
+	If ReferencedDim = False Then
+		DimStyle = oDrawingDoc.StylesManager.DimensionStyles.Item("GT - Fraction (ANSI)")
+	
+	Else If ReferencedDim = True 
+		DimStyle = oDrawingDoc.StylesManager.DimensionStyles.Item("GT - Reference Fraction (ANSI)")
+	End If
+	
+	
+	'Set the type of dimension to create
+	Dim TypeOfDim As String
+	
+	If DimensionType = "Vertical" Then
+		TypeOfDim = kVerticalDimensionType
+	Else If DimensionType = "Horizontal" 
+		TypeOfDim = kHorizontalDimensionType
+	Else If DimensionType = "Aligned" 
+		TypeOfDim = kAlignedDimensionType
+	End If
+	
+	
+	'Create the Dimension and Re-Center the text inbetween the leaders
+	Dim oDimension As DrawingDimension
+	oDimension = oSheet.DrawingDimensions.GeneralDimensions.AddLinear(oPt, oIntent1, oIntent2, TypeOfDim, True, DimStyle)
+	
+	'Return this Dimension
+	Return oDimension
+
+End Function
+			
+			
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+Function CreateDetailView (oDrawingDoc As DrawingDocument, oDrawingView As DrawingView, ScaleSize As Double, DimensionLength As DoubleForEquals, DirectionOfDim As String, DimensionLocation As String, PointLocation As String, Radius As Double)
+
+
+	Dim oSheet As Sheet
+	oSheet = oDrawingDoc.Sheets.Item(1)
+	
+	Dim oDrawingCurve As DrawingCurve
+	Dim CorrectCurve As DrawingCurve
+	Dim oTG As TransientGeometry
+	Dim StartCount As Integer
+	Dim oDetailView As DetailDrawingView
+	Dim DrawingViewScale As Double
+	
+	DrawingViewScale = oDrawingView.Scale
+	oTG = ThisApplication.TransientGeometry
+	
+		'//////////												//////////////////
+	'//////////  SEE 'CreateLinearDimension' FOR THIS PORTION OF CODE  //////////////////
+		'//////////												//////////////////
+		
+	If DimensionLocation = "Top" Or DimensionLocation = "Right" Then
+		DrawingCurvePoint = oTG.CreatePoint2d(0, 0)
+	Else If DimensionLocation = "Bottom" Or DimensionLocation = "Left" 
+		DrawingCurvePoint = oTG.CreatePoint2d(100, 100)
+	End If
+	
+	DrawingCurvePointX = DrawingCurvePoint.x
+	
+	Dim CurveCount As Integer
+	CurveCount = 0
+	
+	For Each oDrawingCurve In oDrawingView.DrawingCurves
+		CurveCount = CurveCount + 1
+	Next
+	
+	
+	For StartCount = 1 To CurveCount
+		
+		oDrawingCurve = oDrawingView.DrawingCurves.Item(StartCount)
+		
+		If oDrawingCurve.CurveType = kLineSegmentCurve Then
+		
+			Dim DimLength As DoubleForEquals
+			
+			If DirectionOfDim = "Vertical" Then
+				DimLength = Abs(oDrawingCurve.StartPoint.y - oDrawingCurve.EndPoint.y)/DrawingViewScale/2.54
+			Else If DirectionOfDim = "Horizontal" Then
+				DimLength = Abs(oDrawingCurve.StartPoint.x - oDrawingCurve.EndPoint.x)/DrawingViewScale/2.54
+			End If
+	
+			If Abs(DimLength - DimensionLength) < 0.0001 Then 
+				If DirectionOfDim = "Vertical" And DimensionLocation = "Right" Then
+					If DrawingCurvePointX < oDrawingCurve.StartPoint.x
+						DrawingCurvePointX = oDrawingCurve.StartPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+					If DrawingCurvePointX < oDrawingCurve.EndPoint.x
+						DrawingCurvePointX = oDrawingCurve.EndPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+					
+				Else If DirectionOfDim = "Vertical" And DimensionLocation = "Left" Then
+					If DrawingCurvePointX > oDrawingCurve.StartPoint.x
+						DrawingCurvePointX = oDrawingCurve.StartPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+					If DrawingCurvePointX > oDrawingCurve.EndPoint.x
+						DrawingCurvePointX = oDrawingCurve.EndPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+					
+				Else If DirectionOfDim = "Horizontal" And DimensionLocation = "Top" Then
+					If DrawingCurvePointX < oDrawingCurve.StartPoint.y
+						DrawingCurvePointX = oDrawingCurve.StartPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+					If DrawingCurvePointX < oDrawingCurve.EndPoint.y
+						DrawingCurvePointX = oDrawingCurve.EndPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+					
+				Else If DirectionOfDim = "Horizontal" And DimensionLocation = "Bottom" Then
+					If DrawingCurvePointX > oDrawingCurve.StartPoint.y
+						DrawingCurvePointX = oDrawingCurve.StartPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+					If DrawingCurvePointX > oDrawingCurve.EndPoint.y
+						DrawingCurvePointX = oDrawingCurve.EndPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+				End If
+			End If
+		End If
+	Next
+	
+	
+	
+	
+	Dim StartPoint As Point2d
+	Dim EndPoint As Point2d
+	Dim CenterPoint As Point2d
+	Dim Coords As Point2d
+	
+	'Set the Start Point and End Point to the correct curve
+	StartPoint = CorrectCurve.StartPoint
+	EndPoint = CorrectCurve.EndPoint
+	
+	'Find the Center Point of the Detail based on the Parameters passed into the Sub
+	If DirectionOfDim = "Horizontal" And PointLocation = "Left" Then
+		If StartPoint.x < EndPoint.x Then
+			CenterPoint = StartPoint
+		Else
+			CenterPoint = EndPoint
+		End If
+		
+	Else If DirectionOfDim = "Horizontal" And PointLocation = "Right"
+		If StartPoint.x > EndPoint.x Then
+			CenterPoint = StartPoint
+		Else
+			CenterPoint = EndPoint
+		End If
+	
+	Else If DirectionOfDim = "Vertical" And PointLocation = "Top"
+		If StartPoint.y > EndPoint.y Then
+			CenterPoint = StartPoint
+		Else
+			CenterPoint = EndPoint
+		End If
+		
+	Else If DirectionOfDim = "Vertical" And PointLocation = "Bottom"
+		If StartPoint.y < EndPoint.y Then
+			CenterPoint = StartPoint
+		Else
+			CenterPoint = EndPoint
+		End If
+	End If
+	
+	
+	'Create a phantom point to place the view (Changed after Rule in the Drawing template is run)
+	Dim ViewPoint As Point2d
+	ViewPoint = oTG.CreatePoint2d(5, 5)
+	
+	'Creates an anchor point to attach the Detail to 
+	'(This Is Not the Detail View itself but the little circle that creates the view)
+	Dim oAttachPoint As GeometryIntent
+	oAttachPoint = oSheet.CreateGeometryIntent(CorrectCurve, kStartPointIntent)
+	
+	'Create the Detail View
+	oDetailView = oSheet.DrawingViews.AddDetailView(oDrawingView, ViewPoint, kFromBaseDrawingViewStyle, True, CenterPoint, Radius, oAttachPoint, ScaleSize, False)
+	
+	'Return the View
+	Return oDetailView
+
+End Function
+
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+Sub AlignText (TargetText As DrawingDimension, DestinationText11 As DrawingDimension, DestinationText22 As DrawingDimension, Direction As String, Side As String)
+	
+	Dim oTG As TransientGeometry
+	oTG = ThisApplication.TransientGeometry
+	
+	
+	Dim Num11 As Double
+	Dim Num22 As Double
+	Dim StartPoint11 As Point2d
+	Dim EndPoint11 As Point2d
+	Dim Point11 As Point2d
+	Dim StartPoint22 As Point2d
+	Dim EndPoint22 As Point2d
+	Dim Point22 As Point2d
+	Dim CountStart As Integer
+	Dim CountEnd As Integer
+	CountEnd = 2
+	
+	
+	'Set the Points
+	Point11 = oTG.CreatePoint2d(0, 0)
+	Point22 = oTG.CreatePoint2d(0, 0)
+	
+	'Set the Start Points and end points for both possible sides of the text alignment
+	StartPoint11 = DestinationText11.IntentOne.PointOnSheet
+	EndPoint11 = DestinationText11.IntentTwo.PointOnSheet
+	
+	StartPoint22 = DestinationText22.IntentOne.PointOnSheet
+	EndPoint22 = DestinationText22.IntentTwo.PointOnSheet
+
+	
+	For CountStart = 1 To CountEnd
+		
+		Dim StartPoint As Point2d
+		Dim EndPoint As Point2d
+		Dim CorrectPoint As Point2d
+		
+		StartPoint = oTG.CreatePoint2d(0, 0)
+		EndPoint = oTG.CreatePoint2d(0, 0)
+		CorrectPoint = oTG.CreatePoint2d(0, 0)
+		
+		'Because the same calculations are needed for 3 different sets of variable, the variables will be replaced
+		'with each cycle of the For loop
+		If CountStart = 1 Then
+			StartPoint = StartPoint11
+			EndPoint = EndPoint11
+			CorrectPoint = Point11
+		Else If CountStart = 2
+			StartPoint = StartPoint22
+			EndPoint = EndPoint22
+			CorrectPoint = Point22
+		End If
+		
+		
+		If Side = "Left" Then
+			If StartPoint.x < EndPoint.x Then
+				CorrectPoint = StartPoint
+			Else 
+				CorrectPoint = EndPoint
+			End If
+			
+		Else If Side = "Right" Then
+			If StartPoint.x > EndPoint.x Then
+				CorrectPoint = StartPoint
+			Else 
+				CorrectPoint = EndPoint
+			End If
+			
+		Else If Side = "Bottom" Then
+			If StartPoint.y < EndPoint.y Then
+				CorrectPoint = StartPoint
+			Else 
+				CorrectPoint = EndPoint
+			End If
+			
+		Else If Side = "Top" Then
+			If StartPoint.y > EndPoint.y Then
+				CorrectPoint = StartPoint
+			Else 
+				CorrectPoint = EndPoint
+			End If
+		End If
+		
+		'Set the Variable to the Correct one
+		If CountStart = 1 Then
+			Point11 = CorrectPoint	
+		Else If CountStart = 2
+			Point22 = CorrectPoint		
+		End If	
+	Next
+
+					
+	'Set the Text to Align the Target Text with
+	'You'll want to align with the smaller Line
+	If Side = "Left"
+		If Point11.x > Point22.x Then
+			DestinationText = DestinationText11
+		Else
+			DestinationText = DestinationText22
+		End If
+	Else If Side = "Right"
+		If Point11.x < Point22.x Then
+			DestinationText = DestinationText11
+		Else
+			DestinationText = DestinationText22
+		End If
+	Else If Side = "Top"
+		If Point11.y < Point22.y Then
+			DestinationText = DestinationText11
+		Else
+			DestinationText = DestinationText22
+		End If
+	Else If Side = "Bottom"
+		If Point11.y > Point22.y Then
+			DestinationText = DestinationText11
+		Else
+			DestinationText = DestinationText22
+		End If
+	End If
+	
+	
+	
+	Dim dPosition As Double
+	Dim oPosition As Point2d
+	
+	'Get the Origin Point of the Target Text
+	oPosition = TargetText.Text.Origin
+	
+	'Align the Target Text according to the proper direction
+	If Direction = "Vertical" Then
+		dPosition = DestinationText.Text.Origin.Y
+		oPosition.Y = dPosition
+		
+	Else If Direction = "Horizontal" Then
+		dPosition = DestinationText.Text.Origin.X
+		oPosition.X = dPosition
+	End If
+	
+	'Set the Target text Origin
+	TargetText.Text.Origin = oPosition 
+
+End Sub
+
+
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+Sub CreateText (oDrawingDoc As DrawingDocument, ViewNumber As Double, oText As String, OffsetDistance As Double)
+
+	Dim oSheet As Sheet
+	Dim oDrawingView As DrawingView
+	Dim oTG As TransientGeometry
+	Dim oPoint As Point2d
+	Dim TextPoint As Point2d
+	Dim ViewWidth As Double
+	Dim TextWidth As Double
+	
+	'Set the Drawing View based on the Index passed into the sub
+	oSheet = oDrawingDoc.Sheets.Item(1)
+	oDrawingView = oSheet.DrawingViews.Item(ViewNumber)
+	oTG = ThisApplication.TransientGeometry
+	
+	TextPoint = oTG.CreatePoint2d(0, 0)
+	
+	
+	Dim oGeneralNotes As GeneralNotes
+	oGeneralNotes = oSheet.DrawingNotes.GeneralNotes
+	
+	'Randomly place the Text (oText is the string passed through the sub)
+	Dim oGeneralNote As GeneralNote
+	oGeneralNote = oGeneralNotes.AddFitted(oTG.CreatePoint2d(5, 5), oText)
+	
+	'Get the origin points of the View
+	oPointx = oDrawingView.Position.x
+	oPointy = oDrawingView.Position.y
+	
+	'Get the Lengths of the View and Text
+	ViewWidth = oDrawingView.Width
+	ViewHeight = oDrawingView.Height
+	TextWidth = oGeneralNote.Width
+	
+	'This will Center the text width wise and place it at the OffsetDistance Vertically
+	TextPoint.x = oPointx - TextWidth/2
+	TextPoint.y = oPointy - ViewHeight + OffsetDistance
+	
+	'Set the TextPoint 
+	oGeneralNote.Position = TextPoint
+
+End Sub
+
+
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+Function FindViewIndex (oDrawingDoc As DrawingDocument, oDrawingView As DrawingView)
+
+	Dim oSheet As Sheet
+	oSheet = oDrawingDoc.Sheets.Item(1)
+	
+	Dim oView As DrawingView
+	Dim ViewNumber As Integer
+	
+	Dim iIndex As Integer
+	iIndex = 1
+	
+	'For Each View, Cycle through until the Current View is the Target View
+	For Each oView In oSheet.DrawingViews
+		If oView Is oDrawingView Then
+			ViewNumber = iIndex
+		End If
+		iIndex = iIndex + 1
+	Next
+	
+	'Return the Index Number
+	Return ViewNumber
+
+End Function
+
+
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Function FindCurve (oDrawingDoc As DrawingDocument, oDrawingView As DrawingView, DimensionLength As DoubleForEquals, DirectionOfDim As String, DimensionLocation As String)
+
+	Dim oSheet As Sheet
+	oSheet = oDrawingDoc.Sheets.Item(1)
+	
+	Dim oDrawingCurve As DrawingCurve
+	Dim oTG As TransientGeometry
+	Dim Count As Integer
+	Dim DrawingViewScale As Double
+	
+	DrawingViewScale = oDrawingView.Scale
+	oTG = ThisApplication.TransientGeometry
+	
+	
+			'//////////												//////////////////
+	'//////////  SEE 'CreateLinearDimension' FOR THIS PORTION OF CODE  //////////////////
+		'//////////												//////////////////
+		
+	If DimensionLocation = "Top" Or DimensionLocation = "Right" Then
+		DrawingCurvePoint = oTG.CreatePoint2d(0, 0)
+	Else If DimensionLocation = "Bottom" Or DimensionLocation = "Left" 
+		DrawingCurvePoint = oTG.CreatePoint2d(100, 100)
+	End If
+	
+	DrawingCurvePointX = DrawingCurvePoint.x
+	
+	Dim CurveCount As Integer
+	CurveCount = 0
+	
+	For Each oDrawingCurve In oDrawingView.DrawingCurves
+		CurveCount = CurveCount + 1
+	Next
+	
+	
+	For StartCount = 1 To CurveCount
+		
+		oDrawingCurve = oDrawingView.DrawingCurves.Item(StartCount)
+		
+		If oDrawingCurve.CurveType = kLineSegmentCurve Then
+			
+			Dim DimLength As DoubleForEquals
+			
+			If DirectionOfDim = "Vertical" Then
+				DimLength = Abs(oDrawingCurve.StartPoint.y - oDrawingCurve.EndPoint.y)/DrawingViewScale/2.54
+			Else If DirectionOfDim = "Horizontal" Then
+				DimLength = Abs(oDrawingCurve.StartPoint.x - oDrawingCurve.EndPoint.x)/DrawingViewScale/2.54
+			End If
+	
+			If Abs(DimLength - DimensionLength) < 0.01 Then 
+				If DirectionOfDim = "Vertical" And DimensionLocation = "Right" Then
+					If DrawingCurvePointX < oDrawingCurve.StartPoint.x
+						DrawingCurvePointX = oDrawingCurve.StartPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+				Else If DirectionOfDim = "Vertical" And DimensionLocation = "Left" Then
+					If DrawingCurvePointX > oDrawingCurve.StartPoint.x
+						DrawingCurvePointX = oDrawingCurve.StartPoint.x
+						CorrectCurve = oDrawingCurve
+					End If
+				Else If DirectionOfDim = "Horizontal" And DimensionLocation = "Top" Then
+					If DrawingCurvePointX < oDrawingCurve.StartPoint.y
+						DrawingCurvePointX = oDrawingCurve.StartPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+				Else If DirectionOfDim = "Horizontal" And DimensionLocation = "Bottom" Then
+					If DrawingCurvePointX > oDrawingCurve.StartPoint.y
+						DrawingCurvePointX = oDrawingCurve.StartPoint.y
+						CorrectCurve = oDrawingCurve
+					End If
+				End If
+			End If
+		End If
+	Next
+	
+	Return CorrectCurve
+
+End Function
+
+
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+Sub CreateOverallDimension(oDrawingDoc As DrawingDocument, DimensionType As String, DimAlign As String, CurveMin As DrawingCurve, PointMin As String, CurveMax As DrawingCurve, PointMax As String, OffsetDistance As Double)
+
+	Dim oSheet As Sheet
+	oSheet = oDrawingDoc.Sheets.Item(1)
+	
+	Dim oTG As TransientGeometry
+	oTG = ThisApplication.TransientGeometry
+
+
+	Dim StartMin As Point2d
+	Dim EndMin As Point2d
+	Dim StartMax As Point2d
+	Dim EndMax As Point2d
+	Dim IntentMin As Point2d
+	Dim IntentMax As Point2d
+	Dim CountStart As Integer
+	Dim CountEnd As Integer
+	Dim PointAlign As Point2d
+	CountEnd = 3
+	
+	IntentMin = oTG.CreatePoint2d(0, 0)
+	IntentMax = oTG.CreatePoint2d(0, 0)
+	PointAlign = oTG.CreatePoint2d(0, 0)
+	
+	'Get the Points of the First Curve
+	StartMin = CurveMin.StartPoint
+	EndMin = CurveMin.Endpoint
+	
+	'Get the Points of the Second Curve
+	StartMax = CurveMax.StartPoint
+	EndMax = CurveMax.Endpoint
+
+
+	For CountStart = 1 To CountEnd
+		
+		Dim PointLocation As String
+		Dim StartPoint As Point2d
+		Dim EndPoint As Point2d
+		Dim IntentPoint As Point2d
+		Dim SelectCurve As DrawingCurve
+		
+		'For Each Curve, Run through the same calculations for each set of variables
+		'Because the same calculations are needed for 3 different sets of variable, the variables will be replaced
+		'with each cycle of the For loop
+		If CountStart = 1 Then
+			PointLocation = PointMin
+			StartPoint = StartMin
+			EndPoint = EndMin
+			IntentPoint = IntentMin
+			SelectCurve = CurveMin
+			
+		Else If CountStart = 2
+			PointLocation = PointMax
+			StartPoint = StartMax
+			EndPoint = EndMax
+			IntentPoint = IntentMax
+			SelectCurve = CurveMax
+			
+		Else If CountStart = 3
+			PointLocation = DimAlign
+			StartPoint = IntentMin
+			EndPoint = IntentMax
+			IntentPoint = PointAlign
+		End If
+		
+			
+		If PointLocation = "Top" Then
+			If StartPoint.y > EndPoint.y Then
+				IntentPoint = StartPoint
+			Else 
+				IntentPoint = EndPoint
+			End If
+			
+		Else If PointLocation = "Bottom"
+			If StartPoint.y < EndPoint.y Then
+				IntentPoint = StartPoint
+			Else 
+				IntentPoint = EndPoint
+			End If
+			
+		Else If PointLocation = "Right"
+			If StartPoint.x > EndPoint.x Then
+				IntentPoint = StartPoint
+			Else 
+				IntentPoint = EndPoint
+			End If
+			
+		Else If PointLocation = "Left"
+			If StartPoint.x < EndPoint.x Then
+				IntentPoint = StartPoint
+			Else 
+				IntentPoint = EndPoint
+			End If
+			
+		Else If PointLocation = "Center"
+			IntentPoint = SelectCurve.CenterPoint
+		End If
+		
+		'Set the Variable to the Correct one
+		If CountStart = 1 Then
+			IntentMin = IntentPoint	
+		Else If CountStart = 2
+			IntentMax = IntentPoint		
+		Else If CountStart = 3
+			PointAlign = IntentPoint
+		End If		
+	Next
+
+
+	Dim oDim As LinearGeneralDimension
+	Dim oPt As Point2d
+	Dim oPlaceDimX As Double
+	Dim oPlaceDimY As Double
+	Dim oIntent1 As GeometryIntent
+	Dim oIntent2 As GeometryIntent
+
+	'Set the Intent Points
+	oIntent1 = oSheet.CreateGeometryIntent(CurveMin, IntentMin)
+	oIntent2 = oSheet.CreateGeometryIntent(CurveMax, IntentMax)
+	
+	'Place the Dim Text 
+	If DimensionType = "Vertical" Then
+		oPlaceDimX = PointAlign.x + OffsetDistance
+		oPlaceDimY = Abs(IntentMin.y - IntentMax.y)/2
+	
+	Else If DimensionType = "Horizontal"
+		oPlaceDimX = Abs(IntentMin.x - IntentMax.x)/2
+		oPlaceDimY = PointAlign.y + OffsetDistance
+	End If
+	
+
+	Dim TypeOfDim As String
+	
+	If DimensionType = "Vertical" Then
+		TypeOfDim = kVerticalDimensionType
+	Else If DimensionType = "Horizontal" 
+		TypeOfDim = kHorizontalDimensionType
+	End If
+
+	oPt = oTG.CreatePoint2d(oPlaceDimX, oPlaceDimY)
+	
+	'Create the Dim
+	Dim oDimension As DrawingDimension
+	oDimension = oSheet.DrawingDimensions.GeneralDimensions.AddLinear(oPt, oIntent1, oIntent2, TypeOfDim, True)
+	oDimension.CenterText
+
+
+End Sub
+
+
+
+
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+Sub CreateAngularDimension(oDrawingDoc As DrawingDocument, CurveMin As DrawingCurve, PointMin As String, OffsetDistanceX As Double, CurveMax As DrawingCurve, PointMax As String, OffsetDistanceY As Double)
+
+	Dim oSheet As Sheet
+	oSheet = oDrawingDoc.Sheets.Item(1)
+	
+	Dim oTG As TransientGeometry
+	oTG = ThisApplication.TransientGeometry
+
+
+	Dim StartMin As Point2d
+	Dim EndMin As Point2d
+	Dim StartMax As Point2d
+	Dim EndMax As Point2d
+	Dim IntentMin As Point2d
+	Dim IntentMax As Point2d
+	Dim CountStart As Integer
+	Dim CountEnd As Integer
+	CountEnd = 2
+	
+	IntentMin = oTG.CreatePoint2d(0, 0)
+	IntentMax = oTG.CreatePoint2d(0, 0)
+	
+	StartMin = CurveMin.StartPoint
+	EndMin = CurveMin.Endpoint
+	
+	StartMax = CurveMax.StartPoint
+	EndMax = CurveMax.Endpoint
+
+	
+	'Find the Point intents based on Parameters passed into the Sub
+	For CountStart = 1 To CountEnd
+		
+		Dim PointLocation As String
+		Dim StartPoint As Point2d
+		Dim EndPoint As Point2d
+		Dim IntentPoint As Point2d
+		Dim SelectCurve As DrawingCurve
+		
+		StartPoint = oTG.CreatePoint2d(0, 0)
+		EndPoint = oTG.CreatePoint2d(0, 0)
+		IntentPoint = oTG.CreatePoint2d(0, 0)
+		
+		'For Each Curve, Run through the same calculations for each set of variables
+		'Because the same calculations are needed for 3 different sets of variable, the variables will be replaced
+		'with each cycle of the For loop
+		If CountStart = 1 Then
+			PointLocation = PointMin
+			StartPoint = StartMin
+			EndPoint = EndMin
+			IntentPoint = IntentMin
+			SelectCurve = CurveMin
+			
+		Else If CountStart = 2
+			PointLocation = PointMax
+			StartPoint = StartMax
+			EndPoint = EndMax
+			IntentPoint = IntentMax
+			SelectCurve = CurveMax
+		End If
+		
+			
+		If PointLocation = "Top" Then
+			If StartPoint.y > EndPoint.y Then
+				IntentPoint = StartPoint
+			Else 
+				IntentPoint = EndPoint
+			End If
+			
+		Else If PointLocation = "Bottom"
+			If StartPoint.y < EndPoint.y Then
+				IntentPoint = StartPoint
+			Else 
+				IntentPoint = EndPoint
+			End If
+			
+		Else If PointLocation = "Right"
+			If StartPoint.x > EndPoint.x Then
+				IntentPoint = StartPoint
+			Else 
+				IntentPoint = EndPoint
+			End If
+			
+		Else If PointLocation = "Left"
+			If StartPoint.x < EndPoint.x Then
+				IntentPoint = StartPoint
+			Else 
+				IntentPoint = EndPoint
+			End If
+			
+		Else If PointLocation = "Center"
+			IntentPoint = SelectCurve.CenterPoint
+		End If
+		
+		
+		If CountStart = 1 Then
+			IntentMin = IntentPoint	
+		Else If CountStart = 2
+			IntentMax = IntentPoint		
+		End If		
+	Next
+
+
+	Dim oDim As LinearGeneralDimension
+	Dim oPt As Point2d
+	Dim oPlaceDimX As Double
+	Dim oPlaceDimY As Double
+	Dim oIntent1 As GeometryIntent
+	Dim oIntent2 As GeometryIntent
+
+	'Create the Point Intent on the line
+	oIntent1 = oSheet.CreateGeometryIntent(CurveMin)
+	oIntent2 = oSheet.CreateGeometryIntent(CurveMax)
+	
+	'Set the Point Values
+	oPlaceDimX = IntentMin.x + OffsetDistanceX
+	oPlaceDimY = IntentMax.y + OffsetDistanceY
+	
+	'Create the Point
+	oPt = oTG.CreatePoint2d(oPlaceDimX, oPlaceDimY)
+	
+	'Create the Dim and Center the Text
+	Dim oDimension As DrawingDimension
+	oDimension = oSheet.DrawingDimensions.GeneralDimensions.AddAngular(oPt, oIntent1, oIntent2)
+	oDimension.CenterText
+
+
+End Sub

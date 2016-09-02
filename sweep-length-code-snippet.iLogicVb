@@ -1,0 +1,61 @@
+'Set a reference to the active part document
+    Dim oDoc As PartDocument
+    oDoc = ThisApplication.ActiveDocument
+    
+    Dim oDef As PartComponentDefinition
+    oDef = oDoc.ComponentDefinition
+
+
+    ' Set a reference to the selected feature. Make sure you name the Sweep "Sweep1" or change this variable to match the Sweep you wish to calculate
+    Dim oSweep As SweepFeature
+    oSweep = oDef.Features.SweepFeatures.Item("Sweep1")
+    
+    ' Get the centroid of the sweep profile in sketch space
+    Dim oProfileOrigin As Point2d
+    oProfileOrigin = oSweep.Profile.RegionProperties.Centroid
+    
+    ' Transform the centroid from sketch space to model space
+    Dim oProfileOrigin3D As Point
+    oProfileOrigin3D = oSweep.Profile.Parent.SketchToModelSpace(oProfileOrigin)
+    
+    ' Get the set of curves that represent the true path of the sweep
+    Dim oCurves As ObjectsEnumerator
+    oCurves = oDef.Features.SweepFeatures.GetTruePath(oSweep.Path, oProfileOrigin3D)
+    
+    Dim TotalLength As Double
+    TotalLength = 0
+    
+    Dim oCurve As Object
+    For Each oCurve In oCurves
+        
+        Dim oCurveEval As CurveEvaluator
+        oCurveEval = oCurve.Evaluator
+        
+        Dim MinParam As Double
+        Dim MaxParam As Double
+        Dim length As Double
+        
+        Call oCurveEval.GetParamExtents(MinParam, MaxParam)
+        Call oCurveEval.GetLengthAtParam(MinParam, MaxParam, length)
+        
+        TotalLength = TotalLength + length
+    Next
+
+    Dim oparams As Parameters
+    Dim oparam As Parameter
+    oparams = oDoc.ComponentDefinition.Parameters
+    Dim exists As Boolean
+    exists = False
+
+    'Find out if parameter exists, if not it will create this parameter in the table, if you want another name then change Sweeplength to something else
+    For Each oparam In oparams
+    If oparam.Name = "Sweeplength" Then exists = True
+    Next oparam
+
+    'Change the value if the parameter exists otherwise add the parameter
+    If exists Then
+        oparams.Item("Sweeplength").Value = TotalLength
+    Else
+        oparams.UserParameters.AddByValue ("Sweeplength", TotalLength, 11266)
+    End If
+	odoc.Update

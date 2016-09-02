@@ -1,0 +1,30 @@
+﻿ 
+Sub Main()
+CheckiPartTableForErrors()
+End Sub
+Sub CheckiPartTableForErrors()
+	Dim oErrorManager As ErrorManager = ThisApplication.ErrorManager
+	Dim oDoc As PartDocument = ThisApplication.ActiveDocument
+	Dim oiPart As iPartFactory = oDoc.ComponentDefinition.iPartFactory
+	Dim oTop As BrowserNode = oDoc.BrowserPanes("Model").TopNode
+	Dim bHasErrorOrWarning As Boolean
+	Dim i As Integer
+	InventorVb.DocumentUpdate()
+	ThisApplication.SilentOperation = True
+	For i = 1 To oiPart.TableRows.Count 'use first 10 rows only for debugging purposes!
+   		' Highlight the 3rd iPart table row which has invalid data
+    	oTop.BrowserNodes("Table").BrowserNodes.Item(i).DoSelect
+	   
+    	' Activate the iPart table row
+    	Dim oCommand As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("PartComputeiPartRowCtxCmd")
+    	oCommand.Execute
+   
+    	ThisApplication.SilentOperation = False
+ 		ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
+    	If oErrorManager.HasErrors Or oErrorManager.HasWarnings Then
+			MessageBox.Show(oErrorManager.LastMessage, "Title")
+    	End If
+	Next i
+	MessageBox.Show("No errors shown = None found!", "Title")
+
+End Sub

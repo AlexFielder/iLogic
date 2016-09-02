@@ -1,0 +1,35 @@
+﻿Imports Inventor.ViewOrientationTypeEnum
+Imports Inventor.DrawingViewStyleEnum
+
+Dim oDrawingDoc as DrawingDocument    
+Dim oPartDoc as Document
+Dim oSheet As sheet
+Dim oTG As TransientGeometry
+Dim oView1 as DrawingView
+Dim oView2 as DrawingView
+Dim oView3 as DrawingView
+Dim oView4 as DrawingView 
+
+ViewScale = 1/10
+
+'Ask to create drawing?
+dwgQuery=MsgBox("Would you like to Create a drawing for this MODEL?", vbYesNo,"Drawing Selection")
+If dwgQuery = vbYes Then
+    oPartDoc = ThisDoc.Document
+    
+    'Define IDW Template File Location
+    oDrawingDoc = ThisApplication.Documents.Add(kDrawingDocumentObject, "C:\Users\Public\Documents\Autodesk\Inventor 2017\Templates\APS Standard.dwg", True)
+    ' oDrawingDoc = ThisApplication.Documents.Add(kDrawingDocumentObject, "", True)
+    oSheet = oDrawingDoc.Sheets.Item(1)
+    
+    'Define 2d view bottom left corner points for four views
+    oPoint1 = ThisApplication.TransientGeometry.CreatePoint2d(1, 1)
+    oPoint2 = ThisApplication.TransientGeometry.CreatePoint2d(1, 6)
+    oPoint3 = ThisApplication.TransientGeometry.CreatePoint2d(5, 1)
+    
+	oBaseView = oSheet.DrawingViews.AddBaseView(oPartDoc,oPoint1, ViewScale,kFrontViewOrientation, kHiddenLineDrawingViewStyle)', KTANGENTEDGESON)
+    
+	oView2 = oSheet.DrawingViews.AddProjectedView(oBaseView,oPoint2, kHiddenLineDrawingViewStyle,ViewScale)
+    oView3 = oSheet.DrawingViews.AddProjectedView(oBaseView,oPoint3, kHiddenLineDrawingViewStyle, ViewScale)
+
+End If

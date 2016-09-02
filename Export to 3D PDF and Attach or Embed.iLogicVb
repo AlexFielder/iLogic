@@ -1,0 +1,178 @@
+﻿'copied from here: https://inventorlogicblog.wordpress.com/2016/04/27/autodesk-inventor-ilogic-export-to-3d-pdf-and-attachembed/
+' Start of iLogic rule =======================================================
+
+Sub Main
+
+    ' Get the 3D PDF Add-In.
+    Dim oPDFAddIn As ApplicationAddIn
+    Dim oAddin As ApplicationAddIn
+    For Each oAddin In ThisApplication.ApplicationAddIns
+        If oAddin.ClassIdString = "{3EE52B28-D6E0-4EA4-8AA6-C2A266DEBB88}" Then
+            oPDFAddIn = oAddin
+            Exit For
+        End If
+    Next
+    
+    If oPDFAddIn Is Nothing Then
+        MsgBox("Inventor 3D PDF Addin not loaded.")
+        Exit Sub
+    End If
+    
+    Dim oPDFConvertor3D = oPDFAddIn.Automation
+    
+    'Set a reference to the active document (the document to be published).
+    Dim oDocument As Document = ThisApplication.ActiveEditDocument
+    
+    If oDocument.FileSaveCounter = 0 Then
+        MsgBox("You must save the document to continue...", 64, "Excitech iLogic")
+    Return
+    End If
+    
+    ' Create a NameValueMap objectfor all options...
+    Dim oOptions As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
+    Dim STEPFileOptions As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
+    
+    ' All Possible Options
+    ' Export file name and location...
+    oOptions.Value("FileOutputLocation") = Left(oDocument.FullFileName,Len(oDocument.FullFileName) -4) & ".pdf"
+    ' Export annotations?
+    oOptions.Value("ExportAnnotations") = 1
+    ' Export work features?
+    oOptions.Value("ExportWokFeatures") = 1
+    ' Attach STEP file to 3D PDF?
+    oOptions.Value("GenerateAndAttachSTEPFile") = True
+    ' What quality (high quality takes longer to export)
+    'oOptions.Value("VisualizationQuality") = AccuracyEnumVeryHigh
+    'oOptions.Value("VisualizationQuality") = AccuracyEnum.kHigh
+    'oOptions.Value("VisualizationQuality") = AccuracyEnum.kMedium
+    oOptions.Value("VisualizationQuality") = AccuracyEnum.kLow
+    ' Limit export to entities in selected view representation(s)
+    oOptions.Value("LimitToEntitiesInDVRs") = True
+    ' Open the 3D PDF when export is complete?
+    oOptions.Value("ViewPDFWhenFinished") = False
+
+    ' Export all properties?
+    oOptions.Value("ExportAllProperties") = True
+    ' OR - Set the specific properties to export
+'    Dim sProps(5) As String
+'    sProps(0) = "{F29F85E0-4FF9-1068-AB91-08002B27B3D9}:Title"  
+'    sProps(1) = "{F29F85E0-4FF9-1068-AB91-08002B27B3D9}:Keywords"  
+'    sProps(2) = "{F29F85E0-4FF9-1068-AB91-08002B27B3D9}:Comments" 
+'    sProps(3) =    "{32853F0F-3444-11D1-9E93-0060B03C1CA6}:Description"
+'    sProps(4) =    "{32853F0F-3444-11D1-9E93-0060B03C1CA6}:Stock Number"
+'    sProps(5) =    "{32853F0F-3444-11D1-9E93-0060B03C1CA6}:Revision Number"
+
+    'oOptions.Value("ExportProperties") = sProps
+    
+    ' Choose the export template based off the current document type
+    If oDocument.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
+        oOptions.Value("ExportTemplate") = "C:\Users\Public\Documents\Autodesk\Inventor 2017\Templates\Sample Part Template.pdf"
+    Else
+        oOptions.Value("ExportTemplate") = "C:\Users\Public\Documents\Autodesk\Inventor 2017\Templates\Sample Assembly Template.pdf"
+    End If
+    
+    ' Define a file to attach to the exported 3D PDF - note here I have picked an Excel spreadsheet
+    ' You need to use the full path and filename - if it does not exist the file will not be attached.
+    Dim oAttachedFiles As String() = {"C:\FileToAttach.xlsx"}
+    oOptions.Value("AttachedFiles") = oAttachedFiles
+    
+    ' Set the design view(s) to export - note here I am exporting only the active design view (view representation)
+    Dim sDesignViews(0) As String
+    sDesignViews(0) = oDocument.ComponentDefinition.RepresentationsManager.ActiveDesignViewRepresentation.Name
+    oOptions.Value("ExportDesignViewRepresentations") = sDesignViews
+    
+    ' Step file options (if applicable) ==============================
+    If oOptions.Value("GenerateAndAttachSTEPFile") = True Then
+        STEPFileOptions.Value("ApplicationProtocolType") = 2 '(AP203)
+        'STEPFileOptions.Value("ApplicationProtocolType") = 3 '(AP214IS)
+        'STEPFileOptions.Value("ApplicationProtocolType") = 4 '(AP242)
+        STEPFileOptions.Value("Author") = ThisApplication.UserName
+        STEPFileOptions.Value("Authorization") = "Graitec"
+        STEPFileOptions.Value("Description") = iProperties.Value("Project", "Description")
+        STEPFileOptions.Value("ExportFitTolerance") = 0.001
+        STEPFileOptions.Value("IncludeSketches") = False
+        STEPFileOptions.Value("Organization") = "Graitec"
+        oOptions.Value("STEPFileOptions") = STEPFileOptions
+    End If
+    ' End of Step file options =======================================
+    
+    'Publish document.
+    Call oPDFConvertor3D.Publish(oDocument, oOptions)
+    
+    ' Specify whether you want the PDF file embedded or linked (embedding is safer of course as links can become redundant)
+    Dim Embed As Boolean = True
+    If AttachFileAsOLE(oDocument, oOptions.Value("FileOutputLocation"), Embed) = True Then ' Operation succeeded...
+        Select Case Embed
+            Case True
+                MsgBox("3D PDF successfully embedded", 64, "Graitec")    
+            Case False
+                MsgBox("3D PDF successfully attached as a link", 64, "Graitec")
+        End Select
+    Else ' Operation failed...user has already been notified...
+    End If
+    
+    
+End Sub
+    
+  Public Function AttachFileAsOLE(ByVal oDocument As Inventor.Document, ByVal FileToAttach As String, ByVal Embed As Boolean) As Boolean
+
+        ' Define stuff...
+        Dim OLERef As ReferencedOLEFileDescriptor = Nothing
+        Dim OLERefs As ReferencedOLEFileDescriptors = oDocument.ReferencedOLEFileDescriptors
+        Dim DisplayName As String = FileToAttach
+
+        If Embed Then
+            ' The file will be embedded, not linked
+            ' Change the filename to omit the path - not required for an embedded object
+            DisplayName = Mid$(FileToAttach, InStrRev(FileToAttach, "\") + 1)
+        End If
+
+        ' Check whether reference with the same name already exists
+        Try
+            OLERef = OLERefs.ItemByName(DisplayName)
+            ' File is already attached - delete the attachment so it can be recreated...
+            OLERef.Delete()
+        Catch
+            ' The file is not already attached - continue...
+        End Try
+
+        ' Perform attachment based on the value of the 'Embed' boolean...
+        Select Case Embed
+            Case False ' The file will be linked, not embedded
+                ' Link...
+                Try
+                    OLERef = oDocument.ReferencedOLEFileDescriptors.Add(FileToAttach, OLEDocumentTypeEnum.kOLEDocumentLinkObject)
+                Catch
+                    MsgBox("Failed to link to the file", 64, "Excitech iLogic")
+                    Return False
+                End Try
+
+            Case True ' The file will be embedded, not linked
+                ' Embed...
+                Try
+                    OLERef = oDocument.ReferencedOLEFileDescriptors.Add(FileToAttach, OLEDocumentTypeEnum.kOLEDocumentEmbeddingObject)
+                Catch
+                    MsgBox("Failed to embed the file", 64, "Excitech iLogic")
+                    Return False
+                End Try
+
+                ' Now attempt to delete the file on the system - as we have embedded it is no longer required...
+                If System.IO.File.Exists(FileToAttach) Then
+                    Try
+                        System.IO.File.Delete(FileToAttach)
+                    Catch
+                        MsgBox("File has been attached, but failed to delete original file on system.", 64, "Excitech iLogic")
+                    End Try
+                End If
+        End Select
+
+        ' Set the display name of the attachment
+        OLERef.DisplayName = DisplayName
+        ' Make it visible in the browser
+        OLERef.BrowserVisible = True
+        ' Make the actual PDF invisible (this option not relevant)
+        OLERef.Visible = False
+        
+        Return True
+
+    End Function

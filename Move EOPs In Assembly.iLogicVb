@@ -1,0 +1,30 @@
+﻿Private Sub Main()
+Call MoveEOPMarkers
+End Sub
+Private Sub MoveEOPMarkers()
+Dim oApp As Inventor.Application = ThisApplication
+Dim oAssy As Inventor.AssemblyDocument = oApp.ActiveDocument
+Dim oSubDoc As Inventor.Document
+Dim oPartDoc As PartDocument
+
+    EOPQuery = MsgBox("Would you like to move all EOP Markers thus shrinking the Assembly filesize?" _ 
+	& vbCrLf & "Click 'Yes' to shrink." _ 
+	& vbCrLf & "Click 'No' to expand" _ 
+	, vbYesNo, "EOP Move")
+    For Each oSubDoc In oAssy.AllReferencedDocuments
+		If Not oSubDoc.File.FullFileName.Contains("Content") Then
+			If EOPQuery = vbYes Then
+				If oSubDoc.DocumentType = kPartDocumentObject Then
+                	oPartDoc = oSubDoc
+					oPartDoc.ComponentDefinition.SetEndOfPartToTopOrBottom (True) ' Set to top
+            	End If
+			ElseIf EOPQuery = vbNo Then
+				If oSubDoc.DocumentType = kPartDocumentObject Then
+                	oPartDoc = oSubDoc
+                	oPartDoc.ComponentDefinition.SetEndOfPartToTopOrBottom (False) ' Set to bottom
+            	End If
+			End If
+		End If
+	Next
+	oAssy.Update
+End Sub

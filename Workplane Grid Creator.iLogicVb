@@ -1,0 +1,80 @@
+' Start of iLogic code - remember to subscribe to Luke Davenport's blog
+' http://www.cadlinecommunity.co.uk/Blogs/LukeDavenport/Default.aspx
+' And why not follow him on twitter @LukeCadline
+
+Imports Inventor.SelectionFilterEnum
+
+Sub Main
+	Dim Title As String = "Cadline iLogic"
+	Dim Cont As Boolean = True
+	Dim Counter As Integer = 1
+
+	oDoc = ThisDoc.Document
+	If oDoc.DocumentType = kAssemblyDocumentObject OrElse oDoc.DocumentType = kDrawingDocumentObject Then
+		MessageBox.Show("This tool can only be used in a part file!", Title, _
+		MessageBoxButtons.Ok,MessageBoxIcon.Exclamation, _
+		MessageBoxDefaultButton.Button1)
+		Return
+	End If
+
+	Dim oPartCompDef As PartComponentDefinition = oDoc.ComponentDefinition
+	Dim oWorkPlanes As WorkPlanes = oPartCompDef.WorkPlanes
+	Dim oFilter As SelectionFilterEnum
+	oFilter = kWorkPlaneFilter
+
+	' Turn origin planes on
+	For a = 1 To 3
+		oWorkPlanes.Item(a).Visible = True
+	Next
+
+	' Get start plane from user
+	oStartPlane = ThisApplication.CommandManager.Pick(oFilter, "Select Start Plane")
+	GridlineName = InputBox("Enter Name of Grid Planes", Title, "GL")
+
+	If GridlineName = "" Then
+		Cleanup(oWorkPlanes)
+		Return
+	End If
+
+	Call MakePlane(oStartPlane, oWorkPlanes, GridlineName, Counter, Title, False,1000)
+	Cleanup(oWorkPlanes)
+End Sub
+
+ 
+
+Sub MakePlane(ByVal oPlane As WorkPlane, ByRef oWorkPlanes As WorkPlanes, ByVal GridlineName As String, ByRef Counter As Integer, ByVal Title As String, ByRef Finish As Boolean, ByRef StartNo As Double)
+           
+	Do While Finish = False
+		CountString = Counter.ToString("D4")
+		Offset = InputBox("Enter Plane Offset in mm (From Previous)" & vbLf & vbLf & "Hit cancel to finish", Title, StartNo)
+		If Offset = "" Then
+			Exit Sub
+		Else If Not IsNumeric(Offset) Then
+			Exit Sub
+		End If
+		' Create work plane
+		Dim oNewWorkPlane As WorkPlane
+		oNewWorkPlane = oWorkPlanes.AddByPlaneAndOffset(oPlane, GridlineName & CountString & " = " & CDbl(Offset))
+		Try
+			oNewWorkPlane.Name = GridlineName & CountString
+		Catch
+		End Try
+		' Increment counter
+		Counter += 1
+		MakePlane(oNewWorkPlane, oWorkPlanes, GridlineName, Counter, Title, False, Offset)
+		Return
+	Loop
+
+End Sub
+
+ 
+
+Sub Cleanup(ByVal oWorkPlanes As WorkPlanes)
+' Turn origin planes off
+For a = 1 To 3
+    oWorkPlanes.Item(a).Visible = False
+Next
+
+End Sub
+
+' ********************** End of iLogic code **********************

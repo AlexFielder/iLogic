@@ -1,0 +1,55 @@
+﻿AddReference "System.Core"
+AddReference "System.Linq"
+Imports System.LINQ
+Imports System.Collections.Generic
+'doesn't run in iLogic - WHAT A SURPRISE!?!?!?
+Private Sub Main()
+            Dim sw As New Stopwatch()
+            sw.Start()
+            Dim rootFolder As String = IO.Path.GetDirectoryName(ThisApplication.ActiveDocument.FullFileName)
+            Dim selectedfile As String = String.Empty
+            Dim filedlg As Inventor.FileDialog = Nothing
+            ThisApplication.CreateFileDialog(filedlg)
+            filedlg.Filter = "txt files (*.txt)|*.txt|Other files (*.*)|*.*"
+            filedlg.InitialDirectory = rootFolder
+            filedlg.CancelError = True
+            filedlg.MultiSelectEnabled = False
+            Try
+                filedlg.ShowOpen()
+                selectedfile = filedlg.FileName
+            Catch ex As Exception
+                Return
+            End Try
+
+            Dim filelisttoreplace As New List(Of String)
+            Dim filelisttosaveas As New List(Of String)
+            Dim filereader As IO.StreamReader = Nothing
+            filereader = My.Computer.FileSystem.OpenTextFileReader(selectedfile)
+            Do While filereader.Peek >= 0
+                filelisttoreplace.Add(filereader.ReadLine)
+            Loop
+
+            For Each filename As String In filelisttoreplace
+                filelisttosaveas.Add(IO.Path.GetDirectoryName(filename) & "\" &
+                                     IO.Path.GetFileNameWithoutExtension(filename) & ".dwg")
+
+            Next
+
+            If TypeOf ThisApplication.ActiveDocument Is DrawingDocument Then
+                For Each dwgfile As String In filelisttosaveas
+                    Dim dwgdoc As DrawingDocument = ThisApplication.ActiveDocument
+                    dwgdoc.SaveAsInventorDWG(dwgfile, False)
+'                    Dim filedescr As FileDescriptor = dwgdoc.ReferencedFileDescriptors(1)
+'                    Dim filetoreplace As String = (
+'                        From f As String In filelisttoreplace
+'                        Where IO.Path.GetFileNameWithoutExtension(f) = IO.Path.GetFileNameWithoutExtension(dwgdoc.FullFileName)).FirstOrDefault()
+'                    If Not filetoreplace Is Nothing Then
+'                        filedescr.ReplaceReference(filetoreplace)
+'                        dwgdoc.Save()
+'                    End If
+                Next
+            End If
+            sw.Stop()
+            MessageBox.Show("Operation took: " & sw.Elapsed.Seconds.ToString() & " seconds to complete.")
+        End Sub
+ 

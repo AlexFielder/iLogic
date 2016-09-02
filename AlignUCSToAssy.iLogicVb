@@ -1,0 +1,29 @@
+﻿Dim assyDoc As AssemblyDocument = ThisApplication.ActiveDocument
+Dim ss As SelectSet = assyDoc.SelectSet
+
+' assumes part occurrence is selected in assy
+Dim occur As ComponentOccurrence = ss(0)
+
+Dim partDef As PartComponentDefinition = occur.Definition
+
+' assumes ucs of interest is first ucs in the part
+Dim alignUcs As UserCoordinateSystem = partDef.UserCoordinateSystems(1)
+
+' create a proxy of the ucs in the context of the assembly
+Dim alignUcsProxy As UserCoordinateSystemProxy
+Call occur.CreateGeometryProxy(alignUcs, alignUcsProxy)
+
+' get the matrix describing the position and orientation of the proxy object
+Dim ucsAlignProxyTransform As Matrix = alignUcsProxy.Transformation
+
+' create a transient matrix
+Dim trans As Matrix = ThisApplication.TransientGeometry.CreateMatrix
+
+' copy the proxy matrix to the transient matrix
+trans = ucsAlignProxyTransform.Copy
+
+' invert the transient matrix to translate from the proxy back to the assembly coordinate system
+trans.Invert
+
+' transform the occurrence by applying the inverted matrix
+occur.Transformation = trans

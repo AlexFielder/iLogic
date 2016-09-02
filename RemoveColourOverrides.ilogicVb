@@ -1,0 +1,48 @@
+Sub Main()
+Dim oAsmCompDef As AssemblyComponentDefinition
+oAsmCompDef = ThisApplication.ActiveDocument.ComponentDefinition
+
+'set Master view rep active
+Dim oViewRep As DesignViewRepresentation
+oViewRep = oAsmCompDef.RepresentationsManager.DesignViewRepresentations.Item("Master")
+oViewRep.Activate
+
+'Define the open document
+Dim openDoc As Document
+openDoc = ThisDoc.Document
+
+'Look at all of the files referenced in the open document
+Dim docFile As Document
+
+For each docFile in openDoc.AllReferencedDocuments
+	RemoveColourOverrides(docFile)
+next
+iLogicVb.UpdateWhenDone = True
+End Sub
+Sub RemoveColourOverrides(ByVal DocFile as Inventor.Document)
+	If docfile.DocumentType = Inventor.DocumentTypeEnum.kPartDocumentObject Then
+		Dim oCompDef As Inventor.PartComponentDefinition
+		oCompDef = docFile.ComponentDefinition
+
+		'Iterate through all features
+		Dim oFeature As PartFeature
+		For Each oFeature In oCompDef.Features
+		'Set the render style to be "As Body"
+		oFeature.SetRenderStyle(37125)      
+		Next
+			 
+		'Iterate through all solids
+		For Each Solid In oCompDef.SurfaceBodies
+		'Set the render style to be "As Part"
+		Solid.SetRenderStyle(37121, True)      
+			'Iterate through all faces.
+			Dim oFace As Face
+			For Each oFace In Solid.Faces
+			' Set the render style to be "As Feature"
+			oFace.SetRenderStyle(37122)
+			Next      
+		Next 
+	Else
+		'Call RemoveColourOverrides(docFile)
+	End If
+End Sub

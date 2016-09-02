@@ -1,0 +1,58 @@
+﻿ 
+Public Sub Main()
+'Approximate3DSketchGeometry()
+SplitCurve2D()
+End Sub
+Public Sub SplitCurve2D()
+' Check to make sure a sketch is open.
+	If Not TypeOf ThisApplication.ActiveEditObject Is Sketch Then
+        MsgBox ("A sketch must be active.")
+        Exit Sub
+    End If
+
+    ' Set a reference to the active sketch.
+    Dim oSketch As PlanarSketch
+    oSketch = ThisApplication.ActiveEditObject
+    
+	Dim entity As SketchEntity
+    entity = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kSketchDefaultFilter, "Select 2d curve")
+    
+    ' Get the spline geometry from the entity.
+'    Dim splineCurve As BSplineCurve2d
+'    splineCurve = selectObj.Geometry
+    
+    ' Get the evaluator from the associate geometry. 
+    Dim curveEval As Curve2dEvaluator = entity.Geometry.Evaluator 
+    Dim minU As Double 
+    Dim maxU As Double  
+    curveEval.GetParamExtents(minU, maxU)  
+
+    ' Determine if the entity is open or closed (circle, 
+    ' ellipse, or closed spline) 
+    Dim curveIsClosed As Boolean = False 
+    If TypeOf entity Is SketchCircle Or _ 
+       TypeOf entity Is SketchEllipse Or _ 
+       TypeOf entity Is SketchSpline Or _ 
+       TypeOf entity Is SketchOffsetSpline Then 
+        If TypeOf entity Is SketchSpline Or _ 
+           TypeOf entity Is SketchOffsetSpline Then 
+            If entity.Closed Then 
+                curveIsClosed = True 
+            End If 
+        Else 
+            curveIsClosed = True 
+        End If 
+    End If
+	
+
+	Dim tg As TransientGeometry = ThisApplication.TransientGeometry  
+    ' Determine if start point is at the min or max parameter. 
+    Dim startPoint As SketchPoint = Nothing 
+    Dim endPoint As SketchPoint = Nothing 
+
+	startPoint = entity.StartSketchPoint 
+	endPoint = entity.EndSketchPoint
+	Dim oLine As SketchLine
+	oline = oSketch.SketchLines.AddByTwoPoints(startPoint,endPoint)
+
+End Sub

@@ -1,0 +1,28 @@
+﻿AddReference "System.Core"
+AddReference "PlatformDrawings.dll" 'relies upon the dll building to: "..\..\..\..\..\..\..\Program Files\Autodesk\Inventor 2015\Bin\iLogicAdd\"
+Imports PlatformDrawings
+Imports System
+Imports System.IO
+Sub Main()
+	Dim XTPD As New PlatformDrawings.ExternalVBClass
+	XTPD.InventorApplication = ThisApplication
+	If ThisApplication.ActiveDocument.DocumentType <> kAssemblyDocumentObject Then
+		MessageBox.Show("Please run this rule from the assembly file.", "iLogic")
+		Exit Sub
+	End If
+	
+	'define the active document as an assembly file
+	Dim oAsmDoc As AssemblyDocument
+	oAsmDoc = ThisApplication.ActiveDocument
+	
+	Dim ProjectCode As String = iProperties.Value("Project", "Project")
+	'MessageBox.Show("getting startfolder! for: " & oAsmDoc.File.FullFileName)
+	'XTPD.StartFolder = System.IO.Path.GetDirectoryName(ThisApplication.ActiveDocument.FullDocumentName)
+	XTPD.StartFolder = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(oAsmDoc.File.FullFileName))
+    XTPD.ProjectCode = ProjectCode
+	XTPD.AssyDoc = oAsmDoc
+	'MessageBox.Show("Preparing to run PlatformDrawings.ExternalVBClass!")
+	
+	Call XTPD.BeginPlatformDrawings()
+	InventorVb.DocumentUpdate()
+End Sub

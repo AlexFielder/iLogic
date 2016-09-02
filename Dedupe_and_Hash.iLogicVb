@@ -1,0 +1,75 @@
+﻿Option Explicit
+AddReference "C:\Program Files (x86)\Reference Assemblies\Microsoft\WindowsPowerShell\3.0\System.Management.Automation.dll"
+AddReference "System.Core"
+Imports System.Management.Automation
+Imports System.Management.Automation.Runspaces
+Imports System.Collections.ObjectModel
+Imports System.IO
+Imports System.Text
+Imports System.linq
+
+Sub Main()
+	'default folder
+	Dim oDesignProjectMgr As DesignProjectManager = ThisApplication.DesignProjectManager
+	Dim oProject As DesignProject = oDesignProjectMgr.DesignProjects.ItemByName(oDesignProjectMgr.ActiveDesignProject.FullFileName)
+	Dim FolderName As String = oProject.WorkspacePath()
+	'Dim FolderName As String  = Left$(doc.FullFileName, InStrRev(doc.FullFileName, "\") )	
+	Dim selectedfile1 As String = String.Empty
+	Dim selectedfile2 As String = String.Empty
+	Dim oFileDlg As inventor.FileDialog = Nothing
+	InventorVb.Application.CreateFileDialog(oFileDlg)
+	oFileDlg.Filter = "All files (*.*)|*.*"
+	oFileDlg.InitialDirectory = FolderName
+	oFileDlg.CancelError = True
+	oFileDlg.MultiSelectEnabled = False
+	
+	Try
+		oFileDlg.ShowOpen()
+		selectedfile1 = oFileDlg.FileName
+	Catch
+		Return
+	End Try
+	Try
+		If Not selectedfile1 = String.Empty Then
+			oFileDlg.ShowOpen()
+			selectedfile2 = oFileDlg.FileName
+		End If
+	Catch
+		Return
+	End Try
+	Dim Result As String = RunScript(selectedfile1, selectedfile2)
+	MessageBox.Show("The Hash comparison result was: " & Result)
+End Sub
+
+Private Function RunScript(ByVal file1 As String, file2 As String) As String
+
+        'Throw New notimplementedexception
+        ' create Powershell runspace 
+        Dim MyRunSpace As Runspace = RunspaceFactory.CreateRunspace()
+        ' open it 
+        MyRunSpace.Open()
+        ' create a pipeline and feed it the script text 
+        Dim scripttext As String = "get-filehash '" & file1 & "' -Algorithm MD5"
+        Dim MyPipeline As Pipeline = MyRunSpace.CreatePipeline()
+        MyPipeline.Commands.AddScript(scripttext)
+        Dim Results As Collection(Of PSObject) = MyPipeline.Invoke()
+        Dim record As PSObject = Results.Item(0)
+        'MessageBox.Show(Results.Item(0).ToString())
+        Dim hash1 As PSMemberInfo = Results(0).Properties("Hash")
+        Results.Clear()
+        MyPipeline = MyRunSpace.CreatePipeline()
+        'file two
+        scripttext = "get-filehash '" & file2 & "' -Algorithm MD5"
+        MyPipeline.Commands.AddScript(scripttext)
+        Results = MyPipeline.Invoke()
+        Dim hash2 As PSMemberInfo = Results(0).Properties("Hash")
+        If Not hash1.Value = hash2.Value Then
+            Return "No file hash match!"
+        Else
+            Return "Files hashes match!"
+        End If
+        MyRunSpace.Close()
+
+    End Function
+
+	

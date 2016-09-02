@@ -1,0 +1,25 @@
+﻿'''Changes the format of sketch symbol Text values to UPPERCASE if the user selects yes, Titlecase if the user selects no and does nothing if the user selects cancel.
+Sub Main() 
+Dim oDoc As DrawingDocument = ThisDoc.Document
+oModel = ThisDoc.ModelDocument
+
+Dim Result As DialogResult = MessageBox.Show("Turn all sketch symbol leaders on?","Sketch symbol leaders toggle",MessageBoxButtons.YesNoCancel)
+Dim viewlabelresult As Boolean = False
+If Result = dialogresult.yes Then
+	viewlabelresult = True
+ElseIf Result = dialogresult.cancel Then
+	viewlabelresult = False
+Else
+Exit Sub
+End If
+Dim oSheets As Sheets
+Dim oSheet As Sheet
+Dim oSketchedSymbol As SketchedSymbol
+oSheets = oDoc.Sheets
+For Each oSheet In oSheets
+	For Each oSketchedSymbol in oSheet.SketchedSymbols
+		'oSketchedSymbol.leadervisible = viewlabelresult
+		
+	Next
+Next
+End Sub

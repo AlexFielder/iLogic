@@ -1,0 +1,55 @@
+﻿' Keep track of selected entities
+  
+
+Sub Main()
+	SelectObjects()
+	GroundObjects()
+End Sub
+
+Sub SelectObjects()
+    Dim oSet As HighlightSet
+
+    ' Check to make sure the active document is an assembly.
+    If ThisApplication.ActiveDocumentType <> 
+    DocumentTypeEnum.kAssemblyDocumentObject Then	
+      MsgBox("An Assembly document must be open.")
+      Exit Sub
+    End If
+	
+    ' Initialize the entity collection
+    ' If you want to keep track of the previously 
+    ' selected entitites then only initialize this variable
+    ' if it has not been initialized before
+    If oSelectedEnts Is Nothing Then
+      oSelectedEnts = ThisApplication.TransientObjects.CreateObjectCollection()
+    End If  
+
+    oDoc = ThisDoc.Document
+    oSet = oDoc.CreateHighlightSet
+
+    ' Show the previously selected entities
+    For Each ent In oSelectedEnts
+      oSet.AddItem(ent)
+    Next
+	
+    While True
+      Dim oOcc As Object
+      oOCc = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAssemblyOccurrenceFilter,"Select an occurrence") 
+		
+      ' If nothing gets selected then we're done	
+      If IsNothing(oOcc) Then Exit While
+		
+      oSet.AddItem(oOcc)
+      oSelectedEnts.Add(oOcc)
+    End While
+	
+    oSet.Clear()
+End Sub
+
+Public Sub GroundObjects()
+	For Each oOcc as Object In oSelectedEnts
+		oOcc.Select()
+		ThisApplication.CommandManager.ControlDefinitions.Item("AssemblyBonusTools_GroundAndRootComponentCmd").Execute
+	Next
+End Sub
+Shared oSelectedEnts As ObjectCollection  

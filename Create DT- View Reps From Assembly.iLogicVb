@@ -1,0 +1,72 @@
+﻿Imports Inventor.ViewOrientationTypeEnum
+Imports Inventor.DrawingViewStyleEnum
+Imports System.IO
+
+Private Sub Main
+CreateDrawingsFromAssembly(ThisDoc.Document)
+End Sub
+Private Sub CreateDrawingsFromAssembly(ByVal oDoc as Inventor.Document)
+'	Dim oDrawingDoc as DrawingDocument    
+'	Dim oPartDoc as Document
+'	Dim oSheet As sheet
+'	Dim oBaseView As DrawingView
+'	Dim oView1 as DrawingView
+'	Dim oView2 as DrawingView
+'	Dim oView3 as DrawingView
+'	Dim oView4 as DrawingView 
+'
+'	ViewScale = 1/10
+
+	dwgQuery=MsgBox("Would you like to Create 'DT-#####' view reps from this Assembly?", vbYesNo,"Drawing Selection")
+	
+	If dwgQuery = vbYes Then
+		Dim oAssy As Inventor.AssemblyDocument
+		Dim oAssyCompDef As AssemblyComponentDefinition
+		oAssyCompDef = oDoc.ComponentDefinition
+		Dim oViewRep As DesignViewRepresentation
+    	Dim oComp As Inventor.ComponentOccurrence
+    	Dim oSubDoc As Inventor.Document
+
+    	Dim NodeName() As String
+	    Dim InstNum As String
+
+		If oDoc.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then
+			oAssy = CType(oDoc, AssemblyDocument)
+			For Each oComp In oAssy.ComponentDefinition.Occurrences
+				oSubDoc = CType(oComp.Definition.Document, Document)
+				'MessageBox.Show(System.IO.Path.GetFileName(oSubDoc.FullFileName),"path example")
+				'MessageBox.Show(Left(System.IO.Path.GetFileName(oSubDoc.FullFileName),3), "doc prefix")
+
+				If Left(System.IO.Path.GetFileName(oSubDoc.FullFileName),3) = "DT-" Then
+					Dim viewName As String
+					viewName = Left(System.IO.Path.GetFileName(oSubDoc.FullFileName), _ 
+					Len(System.IO.Path.GetFileName(oSubDoc.FullFileName)) -4)
+					Try
+						'activate a writeable view rep
+						oAssyCompDef.RepresentationsManager.DesignViewRepresentations.Item(viewName).activate
+					Catch
+						'else add a new View Rep
+						oViewRep = oAssyCompDef.RepresentationsManager.DesignViewRepresentations.Add(viewName)
+						oViewRep.Activate
+					End Try
+					'look at all of the components in the assembly
+					Dim oCompDef As Inventor.ComponentDefinition = oDoc.ComponentDefinition
+					'define the first level components collection
+					Dim oCompOcc As Inventor.ComponentOccurrence 
+					'Turn off the visibility of parts in the top level assembly that don't contain the specified text string (StrInput1)
+					For Each oCompOcc in oCompDef.Occurrences
+						If oCompOcc.Suppressed = False Then
+							If oCompOcc.Name.Contains(viewName) Then
+								oCompOcc.Visible = True
+							Else
+								oCompOcc.Visible = False
+							End If
+						End If
+					Next
+					oViewRep.Locked = True
+					ThisApplication.ActiveView.Fit
+				End If
+			Next
+		End If
+	End If
+End Sub

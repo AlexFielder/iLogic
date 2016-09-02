@@ -1,0 +1,139 @@
+﻿
+Sub Main
+            'From https://www.cadlinecommunity.co.uk/hc/en-us/articles/207693215
+            Dim oDoc As DrawingDocument = Nothing
+            Dim InvApp As Inventor.Application = ThisApplication
+            Dim CompList As New List(Of ComponentDefinition)
+            ' Set a reference to the active drawing document
+            Try
+            oDoc = InvApp.ActiveDocument
+            Catch
+                MsgBox("This rule can only be run in a drawing document!", 64, "Cadline")
+                Return
+            End Try
+            
+            ' Get Active sheet
+            Dim oSheet As Sheet = oDoc.ActiveSheet
+            
+            InvApp.StatusBarText = "Updating parts list filter for current sheet....."
+
+            ' Get all balloons on active sheet
+            Dim oBalloons As Balloons = oSheet.Balloons
+
+            If oBalloons.Count = 0 Then
+                MsgBox("There are no balloons to filter with on this sheet!", 64, "Cadline")
+                Return
+            End If
+
+            Dim oBalloon As Balloon
+
+            For Each oBalloon In oBalloons
+
+                Dim oBalloonValueSet As BalloonValueSet
+                For Each oBalloonValueSet In oBalloon.BalloonValueSets
+
+                    Dim oDrawingBOMRow As DrawingBOMRow = oBalloonValueSet.ReferencedRow
+
+                    If Not oDrawingBOMRow.Custom Then
+
+                        Dim oBOMRow As BOMRow = oDrawingBOMRow.BOMRow
+
+                        Dim oCompDefs As ComponentDefinitionsEnumerator = oBOMRow.ComponentDefinitions
+
+                        If oDrawingBOMRow.Virtual Then
+                        ' The referenced item is a virtual component.
+                        Else
+
+                            Dim oCompDef As ComponentDefinition
+                            For Each oCompDef In oCompDefs
+                                If Not CompList.Contains(oCompDef) Then
+                                    CompList.Add(oCompDef)
+                                End If
+                            Next
+
+                        End If
+                    End If
+                Next
+            Next
+            
+            Call PartListQuery(InvApp, CompList)
+
+        End Sub
+
+        Public Sub PartListQuery(ByVal InvApp As Inventor.Application, ByVal CompList As List(Of ComponentDefinition))
+
+            ' Create list for rows to make visible
+            Dim ListVis As New List(Of Integer)
+            Dim oDrawDoc As DrawingDocument = Nothing
+
+            ' Set a reference to the drawing document.
+            ' This assumes a drawing document is active.
+            Try
+            oDrawDoc = InvApp.ActiveDocument
+            Catch
+                MsgBox("This rule can only be run in a drawing document!", 64, "Cadline")
+                Return
+            End Try
+
+            Dim oPartList As PartsList
+            Dim oPartLists As PartsLists = oDrawDoc.ActiveSheet.PartsLists
+
+            If oPartLists.Count = 0 Then
+				MsgBox("There is no parts list to filter on this sheet!",64,"Cadline")
+                Errored = True
+                Return
+            End If
+
+            Try
+
+                For Each oPartList In oPartLists
+
+                    ' Clear the list of rows to make visible
+                    ListVis.Clear()
+
+                    ' Iterate through the contents of the parts list.
+                    Dim i As Integer
+                    For i = 1 To oPartList.PartsListRows.Count
+
+                        ' Get the current row.
+                        Dim oRow As PartsListRow = oPartList.PartsListRows.Item(i)
+
+                        If Not oRow.Custom Then
+
+                            'MsgBox("Looking at parts list row " & i)
+
+                            Dim oRowEnum As ObjectsEnumerator = oRow.ReferencedRows
+                            'oRowEnum.Cast(Of DrawingBOMRow)()
+
+                            For Each oDrawingBOMRow As DrawingBOMRow In oRowEnum
+
+                                For Each oCompDef As ComponentDefinition In oDrawingBOMRow.BOMRow.ComponentDefinitions
+                                    If CompList.Contains(oCompDef) Then
+                                        ' This row should be visible
+                                        ListVis.Add(i)
+                                    End If
+                                Next
+
+                            Next
+                        Else ' It is a custom (manually added) row
+                            ListVis.Add(i)
+                        End If
+                    Next
+
+                    For a As Integer = 1 To oPartList.PartsListRows.Count
+
+                        If ListVis.Contains(a) Then
+                            oPartList.PartsListRows.Item(a).Visible = True
+                        Else
+                            oPartList.PartsListRows.Item(a).Visible = False
+'https://www.cadlinecommunity.co.uk/hc/en-us/articles/207693215
+                        End If
+
+                    Next
+                Next
+            Catch ex As Exception
+                MsgBox("Unknown error encountered! " & vbLf & vbLf & _
+                       ex.Message.ToString, , Cadline)
+            End Try
+
+        End Sub

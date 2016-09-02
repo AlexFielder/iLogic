@@ -1,0 +1,199 @@
+﻿Imports Inventor
+Imports System.IO
+Public Sub Main
+If TypeOf ThisDoc.Document Is PartDocument Then
+PartFeatureCount(ThisDoc)
+Else
+RunFeatureCount(ThisDoc.Document)
+End If
+MessageBox.Show("Done!")
+End Sub
+
+Public Sub RunFeatureCount(ByVal oDoc as Inventor.Document)
+	Dim oAssy As inventor.AssemblyDocument
+	Dim oSubDoc as Inventor.Document
+	If oDoc.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then
+		oAssy = CType(oDoc,AssemblyDocument)
+		AssemblyFeatureCount(oAssy)
+		For Each oComp In oAssy.ReferencedDocuments
+			'oSubDoc = CType(oComp.Definition.Document,Document)
+			'MessageBox.Show(oSubDoc.File.FullFileName)
+			If oComp.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then
+				'run FeatureCount and then call RunFeatureCount to recurse the assembly structure
+				'iLogicVb.RunExternalRule("FEATURECOUNT")
+				FeatureCount(oComp)
+				RunFeatureCount(oComp)
+			Else
+				'run FeatureCount
+				'iLogicVb.RunExternalRule("FEATURECOUNT")
+				FeatureCount(oComp)
+			End If
+		Next
+	ElseIf oDoc.DocumentType = Inventor.DocumentTypeEnum.kPartDocumentObject Then
+		FeatureCount(oDoc)
+	End If
+End Sub
+
+Sub FeatureCount(ByVal oDoc as Inventor.Document)
+	
+	Try
+	Dim SaveRequired As Boolean = False
+	
+	'uncomment for debugging purposes!
+	'MessageBox.Show(DocName)
+		If TypeOf oDoc Is PartDocument Then
+			If Not oDoc.File.FullFileName.Contains("Content") and Not oDoc.File.fullfilename.contains("FACILITY") and Not oDoc.File.fullfilename.contains("Imported Components") Then 'skip CC and FACILITY files
+				Dim PartDocName As String = System.IO.Path.GetFileNameWithoutExtension(oDoc.DisplayName) & ":1"
+				Dim oFeats as PartFeatures = oDoc.ComponentDefinition.Features
+				Dim oParams as Parameters = oDoc.ComponentDefinition.Parameters
+				Try
+					If Not iProperties.Value(PartDocName,"Custom", "FEATURECOUNT") = oFeats.Count Then 'or update it
+						iProperties.Value(PartDocName,"Custom", "FEATURECOUNT") = oFeats.Count
+						SaveRequired = True
+					End If
+					'MessageBox.Show("Feature Count for this part is: " & oFeats.Count, "FEATURECOUNT")
+					If Not iProperties.Value(PartDocName,"Custom","PARAMETERCOUNT") = oParams.Count Then 'or update it
+						iProperties.Value(PartDocName,"Custom","PARAMETERCOUNT") = oParams.Count
+						SaveRequired = True
+					End If
+					'MessageBox.Show("Parameter Count for " & oDoc.File.fullfilename &" is: " & oParams.Count, "PARAMETERCOUNT")
+					If SaveRequired Then
+						'oDoc.Save 'try to save the file.
+					End If
+				Catch
+					iProperties.Value(PartDocName,"Custom", "FEATURECOUNT") = oFeats.Count
+					iProperties.Value(PartDocName,"Custom","PARAMETERCOUNT") = oParams.Count
+					'oDoc.Save 'try to save the file.
+					Exit Sub
+				End Try
+			End If
+		ElseIf TypeOf oDoc Is AssemblyDocument Then
+			If Not oDoc.File.FullFileName.Contains("Content") and Not oDoc.File.fullfilename.contains("FACILITY") and Not oDoc.File.fullfilename.contains("Imported Components") Then
+				Dim DocName As String = System.IO.Path.GetFileNameWithoutExtension(oDoc.DisplayName) & ":1"
+				Dim oFeats as Features = oDoc.ComponentDefinition.Features
+				Dim Occs as ComponentOccurrences = oDoc.ComponentDefinition.Occurrences			
+				Dim oParams as Parameters = oDoc.ComponentDefinition.Parameters
+				'Dim oConstraints as Constraints = oDoc.ComponentDefinition.Constraints
+				Try
+					If Not iProperties.Value(DocName,"Custom", "FEATURECOUNT") = oFeats.Count Then
+						iProperties.Value(DocName,"Custom", "FEATURECOUNT") = oFeats.Count
+						SaveRequired = True
+					End If
+					'MessageBox.Show("Feature Count for this assembly is: " & oFeats.Count, "FEATURECOUNT")
+					If Not iProperties.Value(DocName, "Custom", "OCCURRENCECOUNT") = Occs.Count Then
+						iProperties.Value(DocName, "Custom", "OCCURRENCECOUNT") = Occs.Count
+						SaveRequired = True
+					End If
+					'MessageBox.Show("Occurrence Count for " & oDoc.File.fullfilename & " is: " & Occs.Count, "OCCURRENCECOUNT")
+					If Not iProperties.Value(DocName, "Custom","PARAMETERCOUNT") = oParams.Count Then
+						iProperties.Value(DocName, "Custom", "PARAMETERCOUNT") = oParams.Count
+						SaveRequired = True
+					End If
+					'MessageBox.Show("Parameter Count for this part is: " & oDoc.ComponentDefinition.Constraints.Count, "PARAMETERCOUNT")
+					If Not iProperties.Value(DocName, "Custom","CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count Then
+						iProperties.Value(DocName,"Custom", "CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count
+						SaveRequired = True
+					End If
+					'MessageBox.Show("Constraint Count for Assembly " & DocName & " is: " & oDoc.ComponentDefinition.Constraints.Count, "CONSTRAINTCOUNT")
+					If SaveRequired Then
+						'oDoc.Save 'try to save the file.
+					End If
+				Catch
+					'creates any missing iProperties.
+					iProperties.Value(DocName,"Custom", "FEATURECOUNT") = oFeats.Count
+					iProperties.Value(DocName, "Custom", "OCCURRENCECOUNT") = Occs.Count
+					iProperties.Value(DocName, "Custom", "PARAMETERCOUNT") = oParams.Count
+					iProperties.Value(DocName,"Custom", "CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count
+					'oDoc.Save 'saves the assembly
+					Exit Sub
+				End Try
+			End If
+		End If
+	Catch ex as Exception
+		MessageBox.Show("The error is: " & ex.Message & VBCrlf & ex.StackTrace,oDoc.DisplayName)
+	End Try
+	
+End Sub
+	Dim SaveRequired As Boolean = False
+Sub PartFeatureCount(ByVal oDoc)
+	Try
+		If Not oDoc.File.FullFileName.Contains("Content") and Not oDoc.File.fullfilename.contains("FACILITY") and Not oDoc.File.fullfilename.contains("Imported Components") Then
+			Dim oFeats as PartFeatures = oDoc.Document.ComponentDefinition.Features
+			Dim oParams as Parameters = oDoc.Document.ComponentDefinition.Parameters
+			Try
+				'may need to save the file when we're done, hence the boolean check
+				If Not iProperties.Value("Custom", "FEATURECOUNT") = oFeats.Count Then
+					iProperties.Value("Custom", "FEATURECOUNT") = oFeats.Count
+					SaveRequired = True
+				End If
+				'MessageBox.Show("Feature Count for this part is: " & oFeats.Count, "FEATURECOUNT")
+		
+				If Not iProperties.Value("Custom","PARAMETERCOUNT") = oParams.Count Then
+					iProperties.Value("Custom","PARAMETERCOUNT") = oParams.Count
+					SaveRequired = True
+				End If
+				'MessageBox.Show("Parameter Count for " & oDoc.Document.File.fullfilename &" is: " & oParams.Count, "PARAMETERCOUNT")
+				If SaveRequired Then
+					'oDoc.Save 'try to save the file.
+				End If
+			Catch
+				'definitely need to save the file!
+				iProperties.Value("Custom", "FEATURECOUNT") = oFeats.Count
+				iProperties.Value("Custom","PARAMETERCOUNT") = oParams.Count
+				'oDoc.Save 'try to save the file.
+				'oDoc.Close 'try to close the file - on a vaulted file this will fire the check-in dialogue.
+			End Try
+		End If
+	Catch ex as Exception
+		MessageBox.Show("The error is: " & ex.Message & VBCrlf & ex.StackTrace)
+	End Try
+	
+End Sub
+
+Sub AssemblyFeatureCount(ByVal oDoc)
+	Try
+		Dim SaveRequired As Boolean = False
+		'Dim DocName As String = oDoc.DisplayName
+		If Not oDoc.File.FullFileName.Contains("Content") and Not oDoc.File.fullfilename.contains("FACILITY") and Not oDoc.File.fullfilename.contains("Imported Components") Then
+			Dim oFeats as Features = oDoc.ComponentDefinition.Features
+			Dim Occs as ComponentOccurrences = oDoc.ComponentDefinition.Occurrences			
+			Dim oParams as Parameters = oDoc.ComponentDefinition.Parameters
+			'Dim oConstraints as Constraints = oDoc.ComponentDefinition.Constraints
+			Try
+				If Not iProperties.Value("Custom", "FEATURECOUNT") = oFeats.Count Then
+					iProperties.Value("Custom", "FEATURECOUNT") = oFeats.Count
+					SaveRequired = True
+				End If
+				'MessageBox.Show("Feature Count for this assembly is: " & oFeats.Count, "FEATURECOUNT")
+				If Not iProperties.Value("Custom", "OCCURRENCECOUNT") = Occs.Count Then
+					iProperties.Value("Custom", "OCCURRENCECOUNT") = Occs.Count
+					SaveRequired = True
+				End If
+				'MessageBox.Show("Occurrence Count for " & oDoc.File.fullfilename & " is: " & Occs.Count, "OCCURRENCECOUNT")
+				If Not iProperties.Value("Custom","PARAMETERCOUNT") = oParams.Count Then
+					iProperties.Value("Custom", "PARAMETERCOUNT") = oParams.Count
+					SaveRequired = True
+				End If
+				'MessageBox.Show("Parameter Count for this part is: " & oDoc.ComponentDefinition.Constraints.Count, "PARAMETERCOUNT")
+				If Not iProperties.Value("Custom","CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count Then
+					iProperties.Value("Custom", "CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count
+					SaveRequired = True
+				End If
+				'MessageBox.Show("Constraint Count for Assembly " & DocName & " is: " & oDoc.ComponentDefinition.Constraints.Count, "CONSTRAINTCOUNT")
+				If SaveRequired Then
+					'oDoc.Save 'try to save the file.
+				End If
+			Catch
+				'creates any missing iProperties.
+				iProperties.Value("Custom", "FEATURECOUNT") = oFeats.Count
+				iProperties.Value("Custom", "OCCURRENCECOUNT") = Occs.Count
+				iProperties.Value("Custom", "PARAMETERCOUNT") = oParams.Count
+				iProperties.Value("Custom", "CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count
+				'oDoc.Save 'saves the assembly
+				Exit Sub
+			End Try
+		End If
+	Catch ex as Exception
+		MessageBox.Show("The error is: " & ex.Message & VBCrlf & ex.StackTrace)
+	End Try
+End Sub

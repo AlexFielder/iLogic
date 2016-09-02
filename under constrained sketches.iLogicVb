@@ -1,0 +1,153 @@
+﻿Imports Inventor.ConstraintStatusEnum
+Imports Inventor.GeometryMoveableStatusEnum
+
+Public Sub Main()
+UnderConstrainedSketches()
+'CheckSketchConstraints()
+End Sub
+
+Public Sub CheckSketchConstraints(oSketch As Sketch)
+    
+	oSketch.Edit
+	' Check to make sure a sketch is open.
+	If Not TypeOf ThisApplication.ActiveEditObject Is Sketch Then
+        MsgBox ("A sketch must be active.")
+        Exit Sub
+    End If
+
+    ' Set a reference to the active sketch.
+    'Dim oSketch As Sketch
+    'oSketch = ThisApplication.ActiveEditObject
+    
+    Dim oSketchObjects As ObjectCollection
+    oSketchObjects = ThisApplication.TransientObjects.CreateObjectCollection
+    
+    ' Get all entities in the sketch
+    Dim oSketchEntity As SketchEntity
+    For Each oSketchEntity In oSketch.SketchEntities
+        If Not oSketchEntity.[_GeometryMoveableStatus] = kFixedGeometryMoveableStatus Then
+            If Not oSketchEntity.ConstraintStatus = kFullyConstrainedConstraintStatus Then
+                oSketchObjects.Add(oSketchEntity)
+            End If
+        End If
+    Next
+    
+    If oSketchObjects.Count > 0 Then
+        ' the sketch has unconstrained objects and is broken?
+        MsgBox ("this sketch needs some constraints!")
+    Else
+        'MsgBox ("Nothing to see here, move along!")
+    End If
+	oSketchobjects = Nothing
+	oSketch.exitedit
+	oSketch = Nothing
+End Sub
+
+Public Sub UnderconstrainedSketches()
+
+Dim oPartDoc As PartDocument
+oPartDoc = ThisApplication.ActiveDocument
+
+'kFullyConstrainedConstraintStatus = 51713 
+'kUnderConstrainedConstraintStatus = 51714 
+'kOverConstrainedConstraintStatus = 51715 
+'kUnknownConstraintStatus = 51716 
+
+'i & jfor counter
+Dim i As Long
+Dim j As Long
+i = 0
+j = 0
+
+'iterate through each sketch in the part
+Dim oSketch As PlanarSketch
+For Each oSketch In oPartDoc.ComponentDefinition.Sketches
+
+	Select Case oSketch.ConstraintStatus
+	
+	Case 51713 'kFullyConstrainedConstraintStatus
+	'do nothing
+	Case 51715 'kOverConstrainedConstraintStatus
+		MessageBox.Show(oSketch.Name & " is over-constrained." , _
+			"ilogic",MessageBoxButtons.OK,MessageBoxIcon.Exclamation)
+	Case 51714 'kUnderConstrainedConstraintStatus
+		'increment count by 1 for each undersconstrained sketch found
+		i = i + 1
+
+		'create a selection set
+		Dim oSS As SelectSet
+		oSS = ThisApplication.ActiveDocument.SelectSet
+		'make sure nothing is selected
+		oSS.Clear
+		'select the current sketch
+		oSS.Select(oSketch)
+	
+		'find the sketch in the browser
+		Dim oControlDef As ControlDefinition
+		oControlDef = ThisApplication.CommandManager.ControlDefinitions.Item("AppFindInBrowserCtxCmd")
+		oControlDef.Execute
+
+		'display message
+		'MessageBox.Show(oSketch.Name & " is not fully constrained." , _
+		'"ilogic",MessageBoxButtons.OK,MessageBoxIcon.Exclamation)
+	
+		oSS.Clear
+	Case 51716 'kUnknownConstraintStatus
+		'increment count by 1 for each undersconstrained sketch found
+		j = j + 1
+
+		'create a selection set
+		Dim oSS As SelectSet
+		oSS = ThisApplication.ActiveDocument.SelectSet
+		'make sure nothing is selected
+		oSS.Clear
+		'select the current sketch
+		oSS.Select(oSketch)
+	
+		'find the sketch in the browser
+		Dim oControlDef As ControlDefinition
+		oControlDef = ThisApplication.CommandManager.ControlDefinitions.Item("AppFindInBrowserCtxCmd")
+		oControlDef.Execute
+		
+		'display message
+		'MessageBox.Show(oSketch.Name & " is not fully constrained." , _
+		'"ilogic",MessageBoxButtons.OK,MessageBoxIcon.Exclamation)
+		CheckSketchConstraints(oSketch)
+		oSS.Clear
+	End Select
+Next oSketch
+
+'display count message
+If i = 1 Then
+	MessageBox.Show("A total of "&  i & " sketch is not fully constrained.", "ilogic", _
+	MessageBoxButtons.OK,MessageBoxIcon.Exclamation)
+Else If i > 1 Then
+	MessageBox.Show("A total of "&  i & " sketches are not fully constrained.", "ilogic", _
+	MessageBoxButtons.OK,MessageBoxIcon.Exclamation)
+Else If i < 1 Then
+'do nothing
+End If
+
+If j = 1 Then
+	MessageBox.Show("A total of "&  j & " sketch with 'Unknown Constraint Status'.", "ilogic", _
+	MessageBoxButtons.OK,MessageBoxIcon.Exclamation)
+Else If j > 1 Then
+	MessageBox.Show("A total of "&  j & " sketches with 'Unknown Constraint Status'.", "ilogic", _
+	MessageBoxButtons.OK,MessageBoxIcon.Exclamation)
+End If
+
+'--collapse all browser nodes back
+'Set a reference to the top node of the active browser
+Dim oTopNode As BrowserNode
+oTopNode = oPartDoc.BrowserPanes.ActivePane.TopNode
+
+Dim oNode As BrowserNode
+
+For Each oNode In oTopNode.BrowserNodes
+	' If the node is visible and expanded, collapse it.
+	If oNode.Visible = True And oNode.Expanded = True Then
+	oNode.Expanded = False
+	End If
+Next
+
+End Sub

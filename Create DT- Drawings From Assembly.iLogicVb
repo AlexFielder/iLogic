@@ -1,0 +1,163 @@
+﻿Imports Inventor.ViewOrientationTypeEnum
+Imports Inventor.DrawingViewStyleEnum
+Imports System.IO
+
+Public Sub Main
+
+createDrawingsFromAssembly()
+'CreateDrawingsFromAssembly(ThisDoc.Document)
+End Sub
+Public Sub createDrawingsFromAssembly()
+    ' Set reference to active document.
+    ' This assumes the active document is an assembly
+    Dim oDoc As Inventor.Document = ThisApplication.ActiveDocument
+    
+	
+    ' Get assembly component definition
+    
+	If TypeOf ThisApplication.ActiveDocument is AssemblyDocument Then
+		dim oAssyDoc as AssemblyDocument = oDoc
+		Dim oCompDef As Inventor.ComponentDefinition
+		oCompDef = oAssyDoc.ComponentDefinition
+		Dim oSubDoc As Inventor.Document
+    	' Get all occurrences from component definition for Assembly document
+    	Dim oCompOcc As ComponentOccurrence
+    	For Each oCompOcc In oCompDef.Occurrences
+        	' Check if it's child occurrence (leaf node)
+        	If oCompOcc.SubOccurrences.Count = 0 Then
+				'PART!
+				oSubDoc = CType(oCompOcc.Definition.Document, Document)
+				BeginCreateDrawing(oSubDoc)
+        	Else
+				'ASSEMBLY!
+            	oSubDoc = CType(oCompOcc.Definition.Document, Document)
+				BeginCreateDrawing(oSubDoc)
+            	Call processAllSubOcc(oCompOcc) ' subassembly
+        	End If
+    	Next
+	Else If TypeOf ThisApplication.ActiveDocument is PartDocument Then
+		dim partDoc as PartDocument = oDoc
+		BeginCreateDrawing(partDoc)
+    End If
+	MessageBox.Show("Done Creating Drawings!","You lucky thing you!")
+End Sub
+
+Public Function GetRootFolder(ByVal path As String) As String
+Dim filepath As String = path
+Dim directoryName As String 
+Dim i As Integer = 0
+
+While i < 2
+'While filepath <> Nothing
+    directoryName = System.IO.Path.GetDirectoryName(filepath)
+	'MessageBox.Show(directoryName, "GetRootFolder")
+
+    'Console.WriteLine("GetDirectoryName('{0}') returns '{1}'", filepath, directoryName)
+    filepath = directoryName
+    If i = 1
+       filepath = directoryName + "\"  ' this will preserve the previous path
+    End If
+    i = i + 1
+End While
+Return filepath
+End Function
+' This function is called for processing sub assembly.  It is called recursively
+' to iterate through the entire assembly tree.
+Private Sub processAllSubOcc(ByVal oCompOcc As ComponentOccurrence)
+   
+    Dim oSubCompOcc As ComponentOccurrence
+    For Each oSubCompOcc In oCompOcc.SubOccurrences
+        ' Check if it's child occurrence (leaf node)
+        If oSubCompOcc.SubOccurrences.Count = 0 Then
+            'PART!
+			oSubDoc = CType(oSubCompOcc.Definition.Document, Document)
+			BeginCreateDrawing(oSubDoc)
+        Else
+            oSubDoc = CType(oSubCompOcc.Definition.Document, Document)
+			BeginCreateDrawing(oSubDoc)
+            Call processAllSubOcc(oSubCompOcc)
+        End If
+    Next
+End Sub
+
+Private Sub BeginCreateDrawing(ByVal oDoc as Inventor.Document)
+	'Dim projectRootFolder= GetRootFolder(oDoc.FullFileName)
+	Dim projectRootFolder= System.IO.Path.GetDirectoryName(oDoc.FullFileName)
+	Dim tmpfile As String = System.IO.Path.GetFileNameWithoutExtension(oDoc.FullFileName)
+	Dim tmpDrawingName As String = projectRootFolder & "\Drgs\" & tmpfile & ".dwg"
+	'Dim tmpDrawingName As String = projectRootFolder & "Drgs\" & tmpfile & ".dwg"
+	'MessageBox.Show(tmpDrawingName, "tmpDrawingName")
+	If Not projectRootFolder.Contains("Content Center Files") Then
+    	If Not System.IO.File.Exists(tmpDrawingName) = True Then
+			'make a new drawing!
+			'MessageBox.Show("No existing drawing found, creating one now!", "Go Gadget go!")
+			CreateDrawing(oDoc,tmpDrawingName)
+		Else
+			Dim tmpDrawDoc As DrawingDocument
+			UpdateStatusBar("Opening existing drawing: " & tmpDrawingName) 
+			tmpDrawDoc = ThisApplication.Documents.Open(tmpDrawingName, True)
+			'MessageBox.Show("Existing Drawing found: "& tmpDrawingName, "Title")
+		End If
+	End If
+
+End Sub
+Private Sub CreateDrawing(ByVal oDoc as Inventor.Document,ByVal DrawingName As String)
+	UpdateStatusBar(DrawingName) 
+	Dim oBaseView As DrawingView
+	Dim oView1 as DrawingView
+	Dim oView2 as DrawingView
+	Dim oView3 as DrawingView
+	Dim oView4 as DrawingView 
+
+	Dim ViewScale As Double = 1/10
+	Dim NodeName() As String
+	Dim InstNum As String
+
+	'Define dwg Template File Location
+	Dim oDrawingDoc as DrawingDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kDrawingDocumentObject, "C:\Users\Public\Documents\Autodesk\Inventor 2017\Templates\APS Standard.dwg", True)
+	Dim oSheet As sheet = oDrawingDoc.Sheets.Item(1)
+
+	'Define 2d view bottom left corner points for four views
+	oPoint1 = ThisApplication.TransientGeometry.CreatePoint2d(11, 11) 'BASE
+	oPoint2 = ThisApplication.TransientGeometry.CreatePoint2d(28, 11) 'RIGHT
+	oPoint3 = ThisApplication.TransientGeometry.CreatePoint2d(11, 20) 'TOP
+	oPoint4 = ThisApplication.TransientGeometry.CreatePoint2d(28, 20) 'ISOMETRIC
+	'ISOMETRIC?
+	'view styles can be: 
+	'DrawingViewStyleEnum.kHiddenLineRemovedDrawingViewStyle
+	'DrawingViewStyleEnum.kHiddenLineDrawingViewStyle
+	'DrawingViewStyleEnum.kShadedDrawingViewStyle
+	'DrawingViewStyleEnum.kShadedHiddenLineDrawingViewStyle
+	'DrawingViewStyleEnum.kFromBaseDrawingViewStyle
+	'
+	
+	oBaseView = oSheet.DrawingViews.AddBaseView(oDoc,oPoint1, ViewScale,kFrontViewOrientation, DrawingViewStyleEnum.kHiddenLineRemovedDrawingViewStyle)', KTANGENTEDGESON)
+
+	oView2 = oSheet.DrawingViews.AddProjectedView(oBaseView,oPoint2, DrawingViewStyleEnum.kFromBaseDrawingViewStyle)
+	oView3 = oSheet.DrawingViews.AddProjectedView(oBaseView,oPoint3, DrawingViewStyleEnum.kFromBaseDrawingViewStyle)
+	oView4 = oSheet.DrawingViews.AddProjectedView(oBaseView,oPoint4, DrawingViewStyleEnum.kFromBaseDrawingViewStyle)
+	oDrawingDoc.SaveAs(DrawingName,False)
+	'synchronize drawing properties to the model it's based upon:
+	'these next lines don't work because the code needs to be run from the drawing itself!
+	'iLogicVb.RunExternalRule("C:\VAULT WORKING FOLDER\Designs\Synchronize iProperties between parts and drawings.iLogicVb")
+	'oDrawingDoc.Save()
+End Sub
+
+''' <summary>
+''' updates the statusbar with a string value.
+''' </summary>
+''' <param name="Message"></param>
+''' <remarks></remarks>
+Private Sub UpdateStatusBar(ByVal Message As String)
+	ThisApplication.StatusBarText = Message
+End Sub
+
+''' <summary>
+''' Updates the statusbar with a percentage value
+''' </summary>
+''' <param name="percent"></param>
+''' <param name="Message"></param>
+''' <remarks></remarks>
+Private Sub UpdateStatusBar(ByVal percent As Double, ByVal Message As String)
+	ThisApplication.StatusBarText = Message + " (" + percent.ToString("P1") + ")"
+End Sub

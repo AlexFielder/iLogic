@@ -1,0 +1,130 @@
+﻿'Add cutting list sizes to all part files in an assembly
+'Test for assembly document
+Dim Grain as String
+Dim oName As String
+Dim Lamadd As Integer
+
+oDoc = ThisDoc.Document 'get the document type
+If oDoc.DocumentType = Inventor.DocumentTypeEnum.kPartDocumentObject   Then 
+	If InStr(1,iProperties.Material,"Laminate") Then Lamadd = 20 Else Lamadd = 0
+	'get bounding box sizes
+	'[
+	oLength = Round(Measure.ExtentsLength, 1)
+	oWidth = Round(Measure.ExtentsWidth, 1)
+	oThick = Round(Measure.ExtentsHeight, 1)
+	']
+	
+	'sort sizes by size
+	'[
+	If oWidth < oThick Then
+		temp = oWidth
+		oWidth = oThick
+		oThick = temp
+	End If
+	
+	If oLength < oWidth Then
+		temp = oLength
+		oLength = oWidth
+		oWidth = temp
+	End If
+	
+	If oWidth < oThick Then
+		temp = oWidth
+		oWidth = oThick
+		oThick = temp
+	End If
+	
+	'Adjust For Laminate
+	oLength = oLength  + Lamadd
+	oWidth = oWidth + Lamadd
+	']
+	
+	'get machining info from user and write to part
+	'[
+	If iProperties.Value("Custom", "Operations") = "" Then
+		Grain = UCase(InputBox("Sizes are;" & Chr(10) & "1 Length = " & oLength & " (Inc " & Lamadd & ")" & Chr(10) & "2 Width = " & oWidth & " (Inc " & Lamadd & ")" & Chr(10) & "3 Thick = " & oThick & Chr(10) & "Select Grain (NA, LG Or SG)" , "Select Grain", "NA"))
+		Select Case Grain
+			Case "SG"
+				temp = oLength
+				oLength = oWidth
+				oWidth = temp
+				iProperties.Value("Custom", "Operations") = "SG, "
+			Case "LG"
+				iProperties.Value("Custom", "Operations") = "LG, "	
+			Case "NA"
+				iProperties.Value("Custom", "Operations") = " "	
+		End Select
+		
+		iProperties.Value("Custom", "Table") = "CL"
+		
+		booleanParam = InputRadioBox("CNC Part?", "Yes", "No", booleanParam, Title := "Enter Operations")
+		If booleanParam Then iProperties.Value("Custom", "Operations") = iProperties.Value("Custom", "Operations")& "CNC, "
+		iProperties.Value("Custom", "CNC") = booleanParam
+		
+		temp = UCase(InputBox("Enter Operations", "Add Machining Information", "NA"))
+		If Not temp = "NA" Then iProperties.Value("Custom", "Operations") = iProperties.Value("Custom", "Operations") & temp
+	Else 
+		MessageBox.Show("Sizes are;" & Chr(10) & "1 Length = " & oLength & " (Inc " & Lamadd & ")" & Chr(10) & "2 Width = " & oWidth & " (Inc " & Lamadd & ")" & Chr(10) & "3 Thick = " & oThick, "Values Updated")
+	End If
+	']
+	
+	'write sizes to parameters
+	'[
+	oMyParameter=ThisApplication.ActiveDocument.ComponentDefinition.Parameters.UserParameters
+	Try 
+		Parameter("Length") = oLength
+	Catch
+		oParameter=oMyParameter.AddByExpression("Length",oLength , "mm")
+		oParameter.ExposedAsProperty = True
+		oFormat=oParameter.CustomPropertyFormat 
+		oFormat.PropertyType=Inventor.CustomPropertyTypeEnum.kNumberPropertyType
+		oFormat.Precision=Inventor.CustomPropertyPrecisionEnum.kZeroDecimalPlacePrecision
+		
+	End Try
+	
+	Try 
+		Parameter("Width") = oWidth
+	Catch
+		oParameter=oMyParameter.AddByExpression("Width", oWidth, "mm")
+		oParameter.ExposedAsProperty = True
+		oFormat=oParameter.CustomPropertyFormat 
+		oFormat.PropertyType=Inventor.CustomPropertyTypeEnum.kNumberPropertyType
+		oFormat.Precision=Inventor.CustomPropertyPrecisionEnum.kZeroDecimalPlacePrecision
+
+	End Try
+	
+	Try 
+		Parameter("Thick") = oThick
+	Catch	
+		oParameter=oMyParameter.AddByExpression("Thick", oThick, "mm")
+		oParameter.ExposedAsProperty = True 
+		oFormat=oParameter.CustomPropertyFormat 
+		oFormat.PropertyType=Inventor.CustomPropertyTypeEnum.kNumberPropertyType
+		oFormat.Precision=Inventor.CustomPropertyPrecisionEnum.kZeroDecimalPlacePrecision
+
+	End Try
+	']
+
+	'Sort out part/ stock name to avidcad standard
+	If Len(iProperties.Value("Project", "Part Number")) > 11 Then
+		oName = iProperties.Value("Project", "Part Number")
+		iProperties.Value("Project", "Part Number") = Left(oName,11)
+		iProperties.Value("Project", "Stock Number") = Right(oName,Len(oName)-12)
+		iProperties.Value("Custom", "CLN") = Right(iProperties.Value("Project", "Part Number"),3)
+	End If
+	If Left(iProperties.Value("Custom", "CLN"),2)="00" Then 
+			iProperties.Value("Custom", "CLN") = Right(iProperties.Value("Custom", "CLN"),1)
+	End If
+	If Left(iProperties.Value("Custom", "CLN"),1)="0" Then 
+		iProperties.Value("Custom", "CLN") = Right(iProperties.Value("Custom", "CLN"),2)
+	End If		
+
+Else
+	'Quit if wrong type
+	MessageBox.Show("This is not an Part!", "Error")
+
+End If
+
+iLogicVb.UpdateWhenDone = True
+
+

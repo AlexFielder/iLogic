@@ -1,0 +1,16 @@
+﻿Option Explicit
+
+''' <summary>
+''' Copied from this post: 
+''' http://forums.autodesk.com/t5/inventor-general-discussion/how-To-copy-sheet-within-idw/m-p/2897684/highlight/True#M393400
+''' </summary>
+''' <remarks></remarks>
+Sub Main()
+    Dim oDrawingDocument1 As DrawingDocument = ThisApplication.ActiveDocument
+    Dim oDrawingDocument2 As DrawingDocument = ThisApplication.Documents.Add(kDrawingDocumentObject, , False)
+    Dim oSheet As Sheet = oDrawingDocument1.ActiveSheet
+	oSheet.CopyTo(oDrawingDocument2)
+    oSheet = oDrawingDocument2.Sheets.Item(oDrawingDocument2.Sheets.Count)
+    oSheet.CopyTo(oDrawingDocument1)
+    oDrawingDocument2.Close (True)
+End Sub 

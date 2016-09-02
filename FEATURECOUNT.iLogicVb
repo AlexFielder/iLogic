@@ -1,0 +1,29 @@
+﻿If TypeOf ThisDoc.Document Is PartDocument Then
+	If Not ThisDoc.Document.File.FullFileName.Contains("Content") Then 'skip CC and FACILITY files
+		If Not ThisDoc.Document.File.fullfilename.contains("FACILITY") Then
+			Dim oFeats as PartFeatures = ThisDoc.Document.ComponentDefinition.Features
+			iProperties.Value("Custom", "FEATURECOUNT") = oFeats.Count
+			'MessageBox.Show("Feature Count for this part is: " & oFeats.Count, "FEATURECOUNT")
+			Dim oParams as Parameters = ThisDoc.Document.ComponentDefinition.Parameters
+			iProperties.Value("Custom","PARAMETERCOUNT") = oParams.Count
+			MessageBox.Show("Parameter Count for " & ThisDoc.Document.File.fullfilename &" is: " & oParams.Count, "PARAMETERCOUNT")
+		End If
+	End If
+ElseIf TypeOf ThisDoc.Document Is AssemblyDocument Then
+	If Not ThisDoc.Document.File.FullFileName.Contains("Content") Then 'skip CC and FACILITY files
+		If Not ThisDoc.Document.file.fullfilename.contains("FACILITY") Then
+			Dim oFeats as Features = ThisDoc.Document.ComponentDefinition.Features
+			iProperties.Value("Custom", "FEATURECOUNT") = oFeats.Count
+			'MessageBox.Show("Feature Count for this assembly is: " & oFeats.Count, "FEATURECOUNT")
+			Dim Occs as ComponentOccurrences = ThisDoc.Document.ComponentDefinition.Occurrences
+			iProperties.Value("Custom", "OCCURRENCECOUNT") = Occs.Count
+			MessageBox.Show("Occurrence Count for " & ThisDoc.Document.File.fullfilename & " is: " & Occs.Count, "OCCURRENCECOUNT")
+			Dim oParams as Parameters = ThisDoc.Document.ComponentDefinition.Parameters
+			iProperties.Value("Custom","PARAMETERCOUNT") = oParams.Count
+			'MessageBox.Show("Parameter Count for this part is: " & oParams.Count, "PARAMETERCOUNT")
+		End If
+	End If
+End If
+
+
+ 

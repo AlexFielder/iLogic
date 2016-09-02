@@ -1,0 +1,78 @@
+﻿'''Prints the selected sheets to multi-page pdf or single sheet pdf file(s).
+Sub Main()
+Dim oDocument As drawingdocument = ThisApplication.ActiveDocument
+Dim oSheets As Sheets
+Dim oSheet As Sheet
+Dim DrawingNumber As String = String.empty
+Dim DrawingTitle As String = String.empty
+Dim oPar As UserParameter
+Dim shtmaxnum as Integer = Convert.ToInt32(Parameter("Custom_End_Sheet"))
+'MessageBox.Show(shtmaxnum)
+For i = 1 To shtmaxnum
+oDocument.Sheets(i).Activate
+'MessageBox.Show(oDocument.Sheets(i).Name)
+oTitleBlock=oDocument.Sheets(i).TitleBlock
+    oTextBoxes=oTitleBlock.Definition.Sketch.TextBoxes
+    For Each oTextBox In oTitleBlock.Definition.Sketch.TextBoxes
+		If otextbox.Text <>"" Then
+			Select oTextBox.Text
+				Case "Drawing Number":
+					DrawingNumber = oTitleBlock.GetResultText(oTextBox)
+				Case "TITLE":
+					DrawingTitle = oTitleBlock.GetResultText(oTextBox)
+			End Select
+		End If
+	Next
+	If Not DrawingTitle = String.empty And Not drawingNumber = String.empty Then
+		PrintSheet(osheet,DrawingNumber,DrawingTitle)
+	End If
+Next i
+MessageBox.Show("Done!")
+End Sub
+
+Sub PrintSheet(ByVal sht As Sheet,ByVal DrawingNum as String, ByVal DrawingTitle As String)
+oPath = ThisDoc.Path
+PN = iProperties.Value("Project", "Part Number")
+
+'path_and_namePDF = ThisDoc.Pathandname(False)
+oFileName = ThisDoc.FileName(False) 'without extension
+oPDFAddIn = ThisApplication.ApplicationAddIns.ItemById("{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}")
+oDocument = ThisApplication.ActiveDocument
+oContext = ThisApplication.TransientObjects.CreateTranslationContext
+oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
+oOptions = ThisApplication.TransientObjects.CreateNameValueMap
+oDataMedium = ThisApplication.TransientObjects.CreateDataMedium
+If oPDFAddIn.HasSaveCopyAsOptions(oDataMedium, oContext, oOptions) Then
+oOptions.Value("All_Color_AS_Black") = 1
+oOptions.Value("Remove_Line_Weights") = 1
+oOptions.Value("Vector_Resolution") = 400
+oOptions.Value("Sheet_Range") = Inventor.PrintRangeEnum.kPrintCurrentSheet
+'oOptions.Value("Custom_Begin_Sheet") = 1
+'oOptions.Value("Custom_End_Sheet") = 4
+End If
+
+'Set the destination file name 
+REM oPath = "N:\INVENTOR PDF FILES\"
+REM oPath = InputBox("Replace Path","New Path")
+ 
+oDataMedium.FileName = oPath & "\" & DrawingNum & " - " & DrawingTitle & ".pdf"
+'Publish document 
+ 'Confirmation message
+ 'MessageBox.Show("PDF SAVED TO: " & oDataMedium.FileName, "PDF Saved", MessageBoxButtons.OK)
+ 
+
+
+On Error Goto handlePDFLock
+'Publish document.
+Call oPDFAddIn.SaveCopyAs(oDocument, oContext, oOptions, oDataMedium)
+'--------------------------------------------------------------------------------------------------------------------
+Exit Sub
+handlePDFLock: 
+MessageBox.Show("PDF could not be saved, most likely someone else has it open", "No PDF for you " & ThisApplication.GeneralOptions.UserName & "!")
+Resume Next
+
+handleXLSLock: 
+MessageBox.Show("No XLS", "iLogic")
+Resume Next
+
+End Sub

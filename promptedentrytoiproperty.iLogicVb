@@ -1,0 +1,32 @@
+On Error Resume Next
+'https://www.cadlinecommunity.co.uk/hc/en-us/articles/203292761
+Dim oDoc As DrawingDocument
+oDoc = ThisApplication.ActiveDocument
+Dim oSheet As Sheet
+Dim oPromptEntry
+
+Dim oCurrentSheet
+oCurrentSheet = oDoc.ActiveSheet.Name
+
+i = 1
+For Each oSheet In oDoc.Sheets
+  'i = i+1
+  ThisApplication.ActiveDocument.Sheets.Item(i).Activate
+       oTitleBlock=oSheet.TitleBlock
+    oTextBoxes=oTitleBlock.Definition.Sketch.TextBoxes
+    For Each oTextBox In oTitleBlock.Definition.Sketch.TextBoxes
+    Select oTextBox.Text
+        Case "DRAWING NUMBER"
+            oPromptEntry  =  oTitleBlock.GetResultText(oTextBox)
+            iProperties.Value("Project", "Part Number")=oPromptEntry
+
+    End Select
+    Next
+Next
+
+ThisApplication.ActiveDocument.Sheets.Item(oCurrentSheet).Activate
+
+ddoc = IO.Path.GetFileName(ThisDrawing.ModelDocument.FullFileName)
+'iProperties.Value(ddoc, "Project", "Part Number") = iProperties.Value("Project", "Part Number")
+iProperties.Value(ddoc, "Custom", "Drawing No") = iProperties.Value("Project", "Part Number")
+iLogicVb.UpdateWhenDone = True

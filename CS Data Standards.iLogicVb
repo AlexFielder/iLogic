@@ -1,0 +1,126 @@
+﻿'this is a comment
+
+Sub Main()
+	
+	If TypeOf ThisApplication.activeDocument Is AssemblyDocument Or TypeOf ThisApplication.activeDocument Is PartDocument Then
+		Call OpenExcel("\\PEBBLES\Drawings\Component Drawings\Post NAV Drawings\Drawing List.xlsx")	
+	End If
+
+	If TypeOf ThisApplication.activeDocument Is AssemblyDocument Then
+		If disableBOMRowMerge Then
+			Dim ThisBOM As BOM = ThisApplication.activeDocument.componentdefinition.BOM
+			ThisBOM.SetPartNumberMergeSettings(False)
+		End If
+		Dim thisAssy As assemblydocument =  ThisApplication.activeDocument
+		For Each subdoc as Inventor.Document In thisAssy.ReferencedDocuments
+			If TypeOf subdoc Is PartDocument Then
+				updatestatusbar(subdoc.FullFileName)
+				For Each product As CSProduct In CSProductList
+					Dim docname As String = System.io.Path.getfilenamewithoutextension(subdoc.Displayname) & ":1"
+					Dim partno As String = iProperties.Value(docname, "Project", "Part Number")
+					If partno.contains(product.DrawingNumber) Then
+						AssigniProperties(subdoc,product)
+						Exit For
+					End If
+				Next
+			End If
+		Next
+	ElseIf TypeOf ThisApplication.activeDocument Is PartDocument Then
+		Dim ThisPart As partdocument = ThisApplication.activeDocument
+		For Each product As CSProduct In CSProductList
+			Dim partno As String = iProperties.Value("Project", "Part Number")
+			
+			If partno.contains(product.DrawingNumber) Then
+				AssigniProperties(product)
+				Exit For
+			End If
+		Next
+	End If
+
+'___Use windows voice command____________
+Dim objSPVoice,colVoices
+objSPVoice = CreateObject("SAPI.SpVoice")
+objSPVoice.Speak ("i Logic Rules complete")
+
+End Sub
+
+Public CSProductList As list(Of CSProduct)
+Public MaxExcelRow As Integer = 800
+Public disableBOMRowMerge As Boolean = True
+
+Sub OpenExcel(ByVal Filename As String)
+
+	'MessageBox.Show(Filename, "Title")
+	updatestatusbar("Working with Excel, hold tight!")
+	GoExcel.Open(Filename, "Components")
+	
+	CSProductList = New list(Of CSProduct)
+	Dim percent As Double = Nothing
+	For cellrow As Integer=4 To MaxExcelRow
+		Dim columnLetter As String = "A"
+		percent = (CDbl(cellrow) / MaxExcelRow)
+		updatestatusbar(percent, "Percentage complete during get of Excel Data is:")
+		If GoExcel.CellValue(columnLetter & CStr(cellrow)) = "" Then
+			Continue For
+		End If
+
+		Dim product As CSProduct
+		product = New CSProduct
+		product.drawingnumber = GoExcel.CellValue(columnLetter & CStr(cellrow))
+		columnLetter="C"
+		product.description = GoExcel.CellValue(columnLetter & CStr(cellrow))
+		columnLetter="E"
+		product.itemcode = GoExcel.CellValue(columnLetter & CStr(cellrow))
+		CSProductList.add(product)
+	Next
+	
+	GoExcel.Close()
+	updatestatusbar("list count= "& csproductlist.count)
+	'MessageBox.Show("list count= "& csproductlist.count, "Title")
+
+End Sub
+
+Sub AssigniProperties (ByVal ThisDoc as document, ByVal product As CSProduct) 
+	'MsgBox(ThisDoc.FullFileName)
+	updatestatusbar(ThisDoc.FullFileName)
+	Dim docname As String = System.io.Path.getfilenamewithoutextension(ThisDoc.Displayname) & ":1"
+	iProperties.Value(docname, "Project", "Part Number") = product.itemCode & "-" & product.DrawingNumber
+	iProperties.Value(docname, "Project", "Description") = product.Description
+End Sub
+
+
+Sub AssigniProperties (ByVal product As CSProduct) 
+	'MsgBox(ThisDoc.FullFileName)
+	updatestatusbar(ThisApplication.activeDocument.FullFileName)
+	iProperties.Value("Project", "Part Number") = product.itemCode & "-" & product.DrawingNumber
+	iProperties.Value("Project", "Description") = product.Description
+End Sub
+
+
+
+
+Sub updatestatusbar(ByVal message As String)
+	ThisApplication.statusbartext = message
+End Sub
+
+Sub updatestatusbar(ByVal percent As Double, ByVal message As String)
+	ThisApplication.statusbartext = message + " (" & percent.tostring("P1") + ")"
+End Sub
+'This is our Product Class
+Class CSProduct
+	
+	Public DrawingNumber As String
+	
+	Public Description As String
+	
+	Public ItemCode As String
+	
+	Public Sub init (m_DrawingNumber As String ,
+					m_description As String,
+					m_itemcode As String)
+					
+	DrawingNumber = m_DrawingNumber
+	Description = m_description
+	ItemCode = m_itemCode
+	End Sub
+End Class
