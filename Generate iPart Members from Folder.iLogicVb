@@ -1,0 +1,97 @@
+﻿AddReference "System.Core"
+AddReference "System.Linq"
+
+Imports Inventor
+Imports System.IO
+Imports System.Core
+Imports System.Linq
+Imports System.Windows.Forms
+Imports System.Collections.Generic
+
+Public Sub Main()
+    'user feedback tools start
+    Dim sw As New Stopwatch()
+    sw.Start()
+
+    Dim IncludeSubFolders As Boolean = True
+    ProcessPartsinFolder(IncludeSubFolders)
+    sw.Stop()
+    Dim timeElapsed As Timespan = sw.elapsed
+    messagebox.show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                                        timeElapsed.Hours,
+                                                        timeElapsed.Minutes,
+                                                        timeElapsed.Seconds,
+                                                        timeElapsed.Milliseconds / 10))
+
+End Sub
+
+Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
+    Dim folderbrowser As New System.Windows.Forms.FolderBrowserDialog()
+
+    folderbrowser.RootFolder = System.Environment.SpecialFolder.MyComputer
+    folderbrowser.Description = "Select Folder to look for iParts"
+    folderbrowser.ShowDialog()
+    Dim foldername As String = folderbrowser.selectedpath
+    If Not foldername = String.Empty Then
+        'now we can get/create a list of part files
+        Dim directory As New System.IO.DirectoryInfo(foldername)
+        Dim partlisttoprocess As list(Of fileinfo) = GetFilesByExtensions(directory, ".ipt")
+
+        Dim progressint As Integer = 1
+        Dim percent As Double = Nothing
+
+        If Not partlisttoprocess = Nothing Then
+            For Each partfile As fileinfo In partlisttoprocess
+
+                percent = (CDbl(progressint) / partlisttoprocess.count)
+                progressint += 1
+
+                Dim partdocument As partdocument = thisapplication.documents.open(partfile.fullname)
+                If partdocument.componentdefinition.isiPartFactory Then
+                    updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(partdocument.File.fullfilename))
+                    'updatestatusbar(partdocument.FullFileName)
+                    GenerateiPartFactoryMembers(subdoc)
+                End If
+            Next
+        End If
+
+    End If
+End Sub
+
+Public Function GetFilesByExtensions(dir As DirectoryInfo, ParamArray extensions As String()) As list(Of FileInfo)
+    If extensions Is Nothing Then
+        Throw New ArgumentNullException("extensions")
+    End If
+    Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories) '.Where(Function(s As FileInfo) s.FullName.EndsWith(My.Settings.TemplateSearchString001) OrElse s.FullName.EndsWith(My.Settings.TemplateSearchString002))
+    'Return files
+    Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension))
+End Function
+
+''' <summary>
+''' Generates iPart members stored within the iPart factory file.
+''' </summary>
+''' <param name="partdoc"></param>
+Public Sub GenerateiPartFactoryMembers(ByVal partdoc As PartDocument)
+    Dim oDoc As PartDocument = partdoc
+    Dim oDef As PartComponentDefinition = oDoc.ComponentDefinition
+    Dim initRowIndex As Integer
+    Dim oFactory As iPartFactory = oDef.iPartFactory
+    ' Edit row 1 & 2 of table
+    'oFactory.TableRows.Item(1).Item(3).Value = 2322
+    'oFactory.TableRows.Item(2).Item(3).Value = 4444
+    ' Iterate All Rows of iPart
+    Dim oRow As iPartTableRow
+    For Each oRow In oFactory.TableRows
+        ' Generate the member and file, (overwrites member file or creates new file)
+        oFactory.CreateMember(oRow)
+    Next
+    iLogicVb.UpdateWhenDone = True
+End Sub
+
+Sub updatestatusbar(ByVal message As String)
+    thisApplication.statusbartext = message
+End Sub
+
+Sub updatestatusbar(ByVal percent As Double, ByVal message As String)
+    ThisApplication.statusbartext = message + " (" & percent.ToString("P1") + ")"
+End Sub
