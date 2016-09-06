@@ -1,12 +1,57 @@
-﻿Imports Inventor
+﻿AddReference "System.Core"
+AddReference "System.Linq"
+
+Imports Inventor
 Imports System.IO
+Imports System.Linq
+
 Public Sub Main()
-    If TypeOf ThisDoc.Document Is PartDocument Then
-        SketchBlockCapture(ThisDoc.Document)
-    Else
-        RunSketchBlockCapture(ThisDoc.Document)
-    End If
-    MessageBox.Show("Done!")
+    'user feedback:
+    Dim sw As New Stopwatch()
+    sw.Start()
+    Dim progressint As Integer = 1
+
+    Dim percent As Double = Nothing
+
+    Dim partlist As list(Of Document) = (From a As document In thisapplication.activedocument.allreferenceddocuments
+                                         Where TypeOf a Is partdocument
+                                         Select a).ToList()
+    Dim totalnumreferenceddocuments As Integer = partlist.count
+    For Each subdoc As document In partlist
+        percent = (CDbl(progressint) / totalnumreferenceddocuments)
+        progressint += 1
+        If TypeOf subdoc Is PartDocument Then
+            If Not subdoc.File.FullFileName.Contains("Content") Then 'skip CC and FACILITY files
+                If Not subdoc.File.fullfilename.contains("FACILITY") Then
+                    updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(subdoc.File.fullfilename))
+                    Dim oSketchBlocks As SketchBlockDefinitions = subdoc.ComponentDefinition.SketchBlockDefinitions
+                    If oSketchBlocks.Count > 0 Then
+                        SetorCreateCustomiProperty(subdoc, "SKETCHBLOCKPRESENT", True)
+                        'iProperties.Value("Custom", "SKETCHBLOCKPRESENT") = True
+                        SetorCreateCustomiProperty(subdoc, "SKETCHBLOCKCOUNT", oSketchBlocks.Count.ToString())
+                        'iProperties.Value("Custom", "NUMSKETCHBLOCKS") = oSketchBlocks.Count
+                    End If
+                End If
+            End If
+            'no need to bother with sub assemblies since we are using the "AllReferencedDocuments" collection but we'll leave it here anyway.
+        ElseIf TypeOf subdoc Is AssemblyDocument Then
+
+        End If
+    Next
+    'If TypeOf ThisDoc.Document Is PartDocument Then
+    '    SketchBlockCapture(ThisDoc.Document)
+    'Else
+    '    RunSketchBlockCapture(ThisDoc.Document)
+    'End If
+    ' MessageBox.Show("Done!")
+    sw.Stop()
+    Dim timeElapsed As Timespan = sw.elapsed
+    messagebox.show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                                        timeElapsed.Hours,
+                                                        timeElapsed.Minutes,
+                                                        timeElapsed.Seconds,
+                                                        timeElapsed.Milliseconds / 10))
+    'MessageBox.Show("Operation took: " & GetTime(sw.Elapsed.Seconds) & " to complete.")
 End Sub
 
 Public Sub RunSketchBlockCapture(ByVal oDoc As Inventor.Document)
@@ -210,6 +255,23 @@ Sub updatestatusbar(ByVal percent As Double, ByVal message As String)
     ThisApplication.statusbartext = message + " (" & percent.ToString("P1") + ")"
 End Sub
 
+Public Function GetTime(Time As Integer) As String
+    Dim Hrs As Integer  'number of hours   '
+    Dim Min As Integer  'number of Minutes '
+    Dim Sec As Integer  'number of Sec     '
+
+    'Seconds'
+    Sec = Time Mod 60
+
+    'Minutes'
+    Min = ((Time - Sec) / 60) Mod 60
+
+    'Hours'
+    Hrs = ((Time - (Sec + (Min * 60))) / 3600) Mod 60
+
+    Return Format(Hrs, "00") & ":" & Format(Min, "00") & ":" & Format(Sec, "00")
+End Function
+
 'Sub Main()
 '    For Each subdoc As Document In ThisApplication.ActiveDocument.AllReferencedDocuments
 '        If TypeOf subdoc Is PartDocument Then
@@ -228,3 +290,39 @@ End Sub
 '        End If
 '    Next
 'End Sub
+''' <summary>
+''' This method should set or get any custom iProperty value
+''' </summary>
+''' <param name="Doc">the document to edit</param>
+''' <param name="PropertyName">the iProperty name to retrieve or update</param>
+''' <param name="PropertyValue">the optional value to assign - if empty we are retrieving a value</param>
+''' <returns></returns>
+Friend Shared Function SetorCreateCustomiProperty(ByVal Doc As Inventor.Document, ByVal PropertyName As String, Optional ByVal PropertyValue As Object = Nothing) As Object
+    ' Get the custom property set. 
+    Dim customPropSet As Inventor.PropertySet
+    Dim customproperty As Object = Nothing
+
+    customPropSet = Doc.PropertySets.Item("Inventor User Defined Properties")
+
+    ' Get the existing property, if it exists. 
+    Dim prop As Inventor.Property = Nothing
+    Dim propExists As Boolean = True
+    Try
+        prop = customPropSet.Item(PropertyName)
+    Catch ex As Exception
+        propExists = False
+    End Try
+    If Not PropertyValue Is Nothing Then
+        ' Check to see if the property was successfully obtained. 
+        If Not propExists Then
+            ' Failed to get the existing property so create a new one. 
+            prop = customPropSet.Add(PropertyValue, PropertyName)
+        Else
+            ' Change the value of the existing property. 
+            prop.Value = PropertyValue
+        End If
+    Else
+        customproperty = prop.Value
+    End If
+    Return customproperty
+End Function
