@@ -60,6 +60,7 @@
     <None Include="All Sketches Off In Part.iLogicVb" />
     <None Include="Balloon Filtering iLogic.iLogicVb" />
     <None Include="Batch PDFs from Drawings.iLogicVb" />
+    <None Include="CaptureSketchBlockLocations.iLogicVb" />
     <None Include="ChangeLayerofOccurrences.iLogicVb" />
     <None Include="Check Sketch Constraints.iLogicVb" />
     <None Include="CheckForCURequired.iLogicVb" />
@@ -136,7 +137,9 @@
     <None Include="UpdatedCurrentlyOpenDocuments.iLogicVb" />
     <None Include="Workplane Grid Creator.iLogicVb" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- modified by AF to attempt a change to a VisualBasic template structure -->
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <!-- <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" /> -->
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

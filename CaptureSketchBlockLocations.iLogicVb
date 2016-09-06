@@ -1,0 +1,18 @@
+﻿Sub Main()
+    For Each subdoc As Document In ThisApplication.ActiveDocument.AllReferencedDocuments
+        If TypeOf subdoc Is PartDocument Then
+            If Not ThisDoc.Document.File.FullFileName.Contains("Content") Then 'skip CC and FACILITY files
+                If Not ThisDoc.Document.File.fullfilename.contains("FACILITY") Then
+                    Dim oSketchBlocks As SketchBlockDefinitions = ThisDoc.Document.ComponentDefinition.SketchBlockDefinitions
+                    If oSketchBlocks.Count > 0 Then
+                        iProperties.Value("Custom", "SKETCHBLOCKPRESENT") = True
+                        iProperties.Value("Custom", "NUMSKETCHBLOCKS") = oSketchBlocks.Count
+                    End If
+                End If
+            End If
+            'no need to bother with sub assemblies since we are using the "AllReferencedDocuments" collection but we'll leave it here anyway.
+        ElseIf TypeOf subdoc Is AssemblyDocument Then
+
+        End If
+    Next
+End Sub
