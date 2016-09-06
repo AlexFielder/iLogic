@@ -35,12 +35,12 @@ Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
     If Not foldername = String.Empty Then
         'now we can get/create a list of part files
         Dim directory As New System.IO.DirectoryInfo(foldername)
-        Dim partlisttoprocess As list(Of fileinfo) = GetFilesByExtensions(directory, ".ipt")
+        Dim partlisttoprocess As System.Collections.Generic.IEnumerable(Of fileinfo) = GetFilesByExtensions(directory, ".ipt")
 
         Dim progressint As Integer = 1
         Dim percent As Double = Nothing
 
-        If Not partlisttoprocess = Nothing Then
+        If Not partlisttoprocess Is Nothing Then
             For Each partfile As fileinfo In partlisttoprocess
 
                 percent = (CDbl(progressint) / partlisttoprocess.count)
@@ -50,7 +50,10 @@ Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
                 If partdocument.componentdefinition.isiPartFactory Then
                     updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(partdocument.File.fullfilename))
                     'updatestatusbar(partdocument.FullFileName)
-                    GenerateiPartFactoryMembers(subdoc)
+                    GenerateiPartFactoryMembers(partdocument)
+                    partdocument.close()
+                Else
+                    partdocument.close()
                 End If
             Next
         End If
@@ -58,7 +61,7 @@ Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
     End If
 End Sub
 
-Public Function GetFilesByExtensions(dir As DirectoryInfo, ParamArray extensions As String()) As list(Of FileInfo)
+Public Function GetFilesByExtensions(dir As DirectoryInfo, ParamArray extensions As String()) As System.Collections.Generic.IEnumerable(Of FileInfo)
     If extensions Is Nothing Then
         Throw New ArgumentNullException("extensions")
     End If
