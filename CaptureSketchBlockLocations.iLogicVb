@@ -2,7 +2,7 @@
 Imports System.IO
 Public Sub Main()
     If TypeOf ThisDoc.Document Is PartDocument Then
-        PartFeatureCount(ThisDoc)
+        SketchBlockCapture(ThisDoc.Document)
     Else
         RunSketchBlockCapture(ThisDoc.Document)
     End If
@@ -15,7 +15,7 @@ Public Sub RunSketchBlockCapture(ByVal oDoc As Inventor.Document)
     If oDoc.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then
         oAssy = CType(oDoc, AssemblyDocument)
         'AssemblyFeatureCount(oAssy)
-        For Each oComp In oAssy.ReferencedDocuments
+        For Each oComp As document In oAssy.ReferencedDocuments
             'oSubDoc = CType(oComp.Definition.Document,Document)
             'MessageBox.Show(oSubDoc.File.FullFileName)
             If oComp.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then
@@ -113,7 +113,7 @@ Sub SketchBlockCapture(ByVal oDoc As Inventor.Document)
             'End If
         End If
     Catch ex As Exception
-        MessageBox.Show("The error is: " & ex.Message & VBCrlf & ex.StackTrace, oDoc.DisplayName)
+        'MessageBox.Show("The error is: " & ex.Message & VBCrlf & ex.StackTrace, oDoc.DisplayName)
     End Try
 
 End Sub
@@ -201,6 +201,14 @@ Sub AssemblyFeatureCount(ByVal oDoc)
     End Try
 End Sub
 
+
+Sub updatestatusbar(ByVal message As String)
+    thisApplication.statusbartext = message
+End Sub
+
+Sub updatestatusbar(ByVal percent As Double, ByVal message As String)
+    ThisApplication.statusbartext = message + " (" & percent.ToString("P1") + ")"
+End Sub
 
 'Sub Main()
 '    For Each subdoc As Document In ThisApplication.ActiveDocument.AllReferencedDocuments
