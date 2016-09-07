@@ -1,14 +1,28 @@
-﻿Dim oDoc As PartDocument = ThisDoc.Document
-Dim oDef As PartComponentDefinition = oDoc.ComponentDefinition
-Dim initRowIndex As Integer
-Dim oFactory As iPartFactory = oDef.iPartFactory
-' Edit row 1 & 2 of table
-'oFactory.TableRows.Item(1).Item(3).Value = 2322
-'oFactory.TableRows.Item(2).Item(3).Value = 4444
-' Iterate All Rows of iPart
-Dim oRow As iPartTableRow
-For Each oRow In oFactory.TableRows
-' Generate the member and file, (overwrites member file or creates new file)
-oFactory.CreateMember(oRow)
-Next
-iLogicVb.UpdateWhenDone = True
+﻿Public Sub main()
+    Dim sw As New Stopwatch()
+    sw.Start()
+
+
+    Dim oDoc As PartDocument = ThisDoc.Document
+    Dim oDef As PartComponentDefinition = oDoc.ComponentDefinition
+    Dim initRowIndex As Integer
+    Dim oFactory As iPartFactory = oDef.iPartFactory
+    ' Edit row 1 & 2 of table
+    'oFactory.TableRows.Item(1).Item(3).Value = 2322
+    'oFactory.TableRows.Item(2).Item(3).Value = 4444
+    ' Iterate All Rows of iPart
+    Dim oRow As iPartTableRow
+    For Each oRow In oFactory.TableRows
+        ' Generate the member and file, (overwrites member file or creates new file)
+        oFactory.CreateMember(oRow)
+    Next
+    iLogicVb.UpdateWhenDone = True
+
+    sw.Stop()
+    Dim timeElapsed As Timespan = sw.elapsed
+    messagebox.show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                                        timeElapsed.Hours,
+                                                        timeElapsed.Minutes,
+                                                        timeElapsed.Seconds,
+                                                        timeElapsed.Milliseconds / 10))
+End Sub

@@ -23,7 +23,7 @@ Public Class Class1
         Dim r As Range = ws.UsedRange
         '''
 
-        NewFilesArray = GoExcel.CellValues("C:\LEGACY VAULT WORKING FOLDER\Designs\2011 Designs\AWE\SPMT\Models\DT-985350-000.xlsx")
+        NewFilesArray = GoExcel.CellValues("C:\VAULT WORKING FOLDER\Designs\2011 Designs\AWESOME\Models\DT-999999-000.xlsx")
 
         For MyRow = 2 To 1000
             ' column A thru E

@@ -65,7 +65,7 @@ Public Function GetFilesByExtensions(dir As DirectoryInfo, ParamArray extensions
     If extensions Is Nothing Then
         Throw New ArgumentNullException("extensions")
     End If
-    Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories) '.Where(Function(s As FileInfo) s.FullName.EndsWith(My.Settings.TemplateSearchString001) OrElse s.FullName.EndsWith(My.Settings.TemplateSearchString002))
+    Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) OrElse Not (s.FullName.contains("OldVersions")))
     'Return files
     Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension))
 End Function
