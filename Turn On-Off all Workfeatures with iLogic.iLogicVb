@@ -1,53 +1,86 @@
 ﻿Sub Main()
-If ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
-ToggleParts()
-ElseIf ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kAssemblyDocumentObject Then
-ToggleAssemblies()
-End If
+    If ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
+        ToggleParts(ThisApplication.ActiveDocument)
+    ElseIf ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kAssemblyDocumentObject Then
+        Dim wfBoolean As Boolean = InputRadioBox("Turn all Work Features & Sketches On/Off", "On", "Off", False, "iLogic")
+        ToggleAssemblies(ThisApplication.ActiveDocument, wfboolean)
+    End If
 End Sub
 
-Sub ToggleAssemblies()
-'define the active assembly
-Dim oAssyDoc As AssemblyDocument
-oAssyDoc = ThisApplication.ActiveDocument 
+Sub ToggleAssemblies(oAssyDoc As AssemblyDocument, Optional ByVal wfBoolean As Boolean = False)
+    'get user input as True or False
+    Dim Assyboolean As Boolean = Nothing
+    If wfBoolean = Nothing Then
+        Assyboolean = InputRadioBox("Turn all Work Features On/Off", "On", "Off", False, "iLogic")
+    Else
+        Assyboolean = wfBoolean
+    End If
 
-'get user input as True or False
-wfBoolean = InputRadioBox("Turn all Work Features On/Off", "On", "Off", False, "iLogic")
+    'Check all referenced docs
+    Dim oDoc As Inventor.Document
+    For Each oDoc In oAssyDoc.AllReferencedDocuments
+        If TypeOf oDoc Is partdocument Then
+            ToggleParts(oDoc, Assyboolean)
+        Else
+            'set work plane visibility
+            For Each oWorkPlane In oDoc.ComponentDefinition.WorkPlanes
+                oWorkPlane.Visible = Assyboolean
+            Next
 
-'Check all referenced docs
-Dim oDoc As Inventor.Document
-For Each oDoc In oAssyDoc.AllReferencedDocuments
-    'set work plane visibility
-    For Each oWorkPlane In oDoc.ComponentDefinition.WorkPlanes
-    oWorkPlane.Visible = wfBoolean
+            'set work axis visibility
+            For Each oWorkAxis In oDoc.ComponentDefinition.WorkAxes
+                oWorkAxis.Visible = Assyboolean
+            Next
+
+            'set work point visibility
+            For Each oWorkPoint In oDoc.ComponentDefinition.WorkPoints
+                oWorkPoint.Visible = Assyboolean
+            Next
+            ToggleAssemblies(oDoc, Assyboolean)
+        End If
+
+
+
     Next
-    'set work axis visibility
-    For Each oWorkAxis In oDoc.ComponentDefinition.WorkAxes
-    oWorkAxis.Visible = wfBoolean
-    Next
-    'set work point visibility
-    For Each oWorkPoint In oDoc.ComponentDefinition.WorkPoints
-    oWorkPoint.Visible = wfBoolean
-    Next
-Next
-'update the files
-InventorVb.DocumentUpdate()
+    'update the files
+    InventorVb.DocumentUpdate()
 End Sub
 
-Sub ToggleParts()
-Dim PartDoc as PartDocument = ThisApplication.ActiveDocument
-'get user input as True or False
-wfBoolean = InputRadioBox("Turn all Work Features On/Off", "On", "Off", False, "iLogic")
+Sub ToggleParts(oDoc As document, Optional ByVal wfBoolean As Boolean = False)
+    Dim PartDoc As PartDocument = oDoc
+    ''get user input as True or False
+    Dim partboolean As Boolean = Nothing
+    If wfBoolean = Nothing Then
+        partboolean = InputRadioBox("Turn all Work Features On/Off", "On", "Off", False, "iLogic")
+    Else
+        partboolean = wfBoolean
+    End If
     For Each oWorkPlane In PartDoc.ComponentDefinition.WorkPlanes
-    oWorkPlane.Visible = wfBoolean
+        oWorkPlane.Visible = partboolean
     Next
     'set work axis visibility
     For Each oWorkAxis In PartDoc.ComponentDefinition.WorkAxes
-    oWorkAxis.Visible = wfBoolean
+        oWorkAxis.Visible = partboolean
     Next
     'set work point visibility
     For Each oWorkPoint In PartDoc.ComponentDefinition.WorkPoints
-    oWorkPoint.Visible = wfBoolean
+        oWorkPoint.Visible = partboolean
     Next
-InventorVb.DocumentUpdate()
+    togglePartSketches(oDoc, partboolean)
+    InventorVb.DocumentUpdate()
+End Sub
+
+Sub togglePartSketches(doc As document, wfBoolean As Boolean)
+    For Each o2DSketch As Sketch In doc.ComponentDefinition.Sketches
+        o2DSketch.Visible = wfBoolean
+    Next
+
+    For Each o3DSketch As Sketch3D In doc.ComponentDefinition.Sketches3D
+        o3DSketch.Visible = wfBoolean
+    Next
+
+    'wfBoolean = InputRadioBox("Toggle Sketch Dimension display On/Off", "On", "Off", False, "iLogic")
+    For Each o2DSketch As Sketch In doc.ComponentDefinition.Sketches
+        o2DSketch.DimensionsVisible = wfBoolean
+    Next
 End Sub
