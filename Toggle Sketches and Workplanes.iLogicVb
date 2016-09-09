@@ -1,29 +1,33 @@
 ﻿Option Explicit On
-'catch and skip errors
-On Error Resume Next
-'define the active assembly
-Dim PartDoc As Inventor.Document
-PartDoc = ThisApplication.ActiveDocument 
 
-'get user input as True or False
-Dim wfBoolean As Boolean = InputRadioBox("Toggle Sketches On/Off", "On", "Off", False, "iLogic")
+Sub main()
+    'catch and skip errors
+    On Error Resume Next
+    'define the active assembly
+    Dim PartDoc As Inventor.Document
+    PartDoc = ThisApplication.ActiveDocument
 
-For Each o2DSketch As Sketch In PartDoc.ComponentDefinition.Sketches
-	o2DSketch.Visible = wfBoolean
-Next
+    'get user input as True or False
+    Dim wfBoolean As Boolean = InputRadioBox("Toggle Sketches On/Off", "On", "Off", False, "iLogic")
 
-For Each o3DSketch As Sketch3D In PartDoc.ComponentDefinition.Sketches3D
-	o3DSketch.Visible = wfBoolean
-Next
+    For Each o2DSketch As Sketch In PartDoc.ComponentDefinition.Sketches
+        o2DSketch.Visible = wfBoolean
+    Next
 
-wfBoolean = InputRadioBox("Toggle Sketch Dimension display On/Off", "On", "Off", False, "iLogic")
-For Each o2DSketch As Sketch In PartDoc.ComponentDefinition.Sketches
-	o2DSketch.DimensionsVisible = wfBoolean
-Next
+    For Each o3DSketch As Sketch3D In PartDoc.ComponentDefinition.Sketches3D
+        o3DSketch.Visible = wfBoolean
+    Next
 
-wfBoolean = InputRadioBox("Toggle Workplanes On/Off", "On", "Off", False, "iLogic")
-For Each wp As WorkPlane In PartDoc.ComponentDefinition.WorkPlanes
-	wp.Visible = wfBoolean
-Next
-ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
-InventorVb.DocumentUpdate()
+    wfBoolean = InputRadioBox("Toggle Sketch Dimension display On/Off", "On", "Off", False, "iLogic")
+    For Each o2DSketch As Sketch In PartDoc.ComponentDefinition.Sketches
+        o2DSketch.DimensionsVisible = wfBoolean
+    Next
+
+    wfBoolean = InputRadioBox("Toggle Workplanes On/Off", "On", "Off", False, "iLogic")
+    For Each wp As WorkPlane In PartDoc.ComponentDefinition.WorkPlanes
+        wp.Visible = wfBoolean
+    Next
+    ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
+    InventorVb.DocumentUpdate()
+
+End Sub
