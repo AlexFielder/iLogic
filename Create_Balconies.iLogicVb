@@ -10,101 +10,267 @@ Imports System.Collections.Generic
 Imports System.Text.RegularExpressions
 
 
+#Region "Create Balconies"
 ''' <summary>
-''' This is the main iLogic subroutine.
-''' It needs to be the first Sub in the file or Inventor will shit the bed.
+''' Starts the create balconies tool.
 ''' </summary>
-''' <remarks></remarks>
-Sub Main()
-	Dim StartTime As DateTime
+''' <param name="Context"></param>
+Private Sub Main(Context As NameValueMap)
+    Dim StartTime As DateTime = Now()
     Dim ElapsedTime As TimeSpan
+    ToggleWorkfeaturesAndSketches(False)
+    'check for invisible bodies since Inventor will ignore them by default.
+    Dim invisiblebodies As Boolean = False
+    Do While invisiblebodies = False
+        For i As Integer = 1 To g_inventorApplication.ActiveDocument.ComponentDefinition.SurfaceBodies.Count
+            Dim surfacebody As SurfaceBody = g_inventorApplication.ActiveDocument.ComponentDefinition.SurfaceBodies.Item(i)
+            If surfacebody.Visible = False Then
+                invisiblebodies = True
+                Exit For
+            End If
+        Next
+        Exit Do
+    Loop
+    Dim result As DialogResult = Nothing
+    If invisiblebodies = True Then
+        result = MessageBox.Show("We found invisible bodies!" & vbCrLf & "Should we stop and check this is correct before continuing?", "Found Invisible Bodies", MessageBoxButtons.YesNo)
+    End If
+    If result = DialogResult.Yes Then
+        Exit Sub
+    End If
+    'check debug settings - provides ~10% speed boost if screen updating is disabled.
+    If My.Settings.BalconyCreationVisibleOnScreen Then
+        g_inventorApplication.ScreenUpdating = True
+        g_inventorApplication.UserInterfaceManager.UserInteractionDisabled = False
+    Else
+        g_inventorApplication.ScreenUpdating = False
+        g_inventorApplication.UserInterfaceManager.UserInteractionDisabled = True
+    End If
+    g_inventorApplication.SilentOperation = True
+    Dim ThisDoc As PartDocument = g_inventorApplication.ActiveDocument
+
+    'for test purposes ONLY!
+    If My.Settings.TestCollectionIteration Then
+        For dummyint As Integer = 1 To My.Settings.TestCollectionIterationInt
+            If My.Settings.TestUseForEach Then
+                For Each sBody As SurfaceBody In ThisDoc.ComponentDefinition.SurfaceBodies
+                    'do nothing but let us measure the time taken.
+                Next
+                GoTo ended
+            Else
+                For i As Integer = 1 To ThisDoc.ComponentDefinition.SurfaceBodies.Count
+                    'do nothing but let us measure the time taken.
+                Next
+                GoTo ended
+            End If
+        Next
+    End If
+
+    Dim RootFolder As String = System.IO.Path.GetDirectoryName(ThisDoc.FullFileName) & "\"
+    UpdateStatusBar("Parameter update after each parameter change is set to: " & UpdateAfterEachParameterChange.ToString)
+    'Excel objects
+    Dim xlApp As Excel.Application
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim range As Range
+
     Try
-        
-        StartTime = Now()
-        ThisApplication.ScreenUpdating = False
-        ThisApplication.UserInterfaceManager.UserInteractionDisabled = True
-        Dim ThisDoc As PartDocument = ThisApplication.ActiveDocument
-        Dim RootFolder As String = System.IO.Path.GetDirectoryName(ThisDoc.FullFileName) & "\"
-        'gets the Excel Data
-        Dim SheetName As String = "Sheet1"
-        Dim i As Integer = 2
-        Dim CellVal As String = "Test"
-        GoExcel.Open(System.IO.Path.GetFileNameWithoutExtension(ThisDoc.FullFileName) & ".xlsx", "Sheet1")
-        MessageBox.Show("Successfully opened: " & System.IO.Path.GetFileNameWithoutExtension(ThisDoc.FullFileName) & ".xlsx")
-        Dim BalconyList As List(Of clsBalcony) = New List(Of clsBalcony)
-        Do Until CellVal = ""
-            Dim columnLetter As String = "A"
-            CellVal = GoExcel.CellValue(columnLetter & CStr(i))
-            Dim balcony As clsBalcony
-            balcony = New clsBalcony
-            balcony.BayNumber = GoExcel.CellValue(columnLetter & CStr(i))
-            columnLetter = "B"
-            balcony.StackNumber = GoExcel.CellValue(columnLetter & CStr(i))
-            columnLetter = "C"
-            balcony.DimAFeatureFinCentres = GoExcel.CellValue(columnLetter & CStr(i))
-            columnLetter = "D"
-            balcony.DimBOverallBalconyLength = GoExcel.CellValue(columnLetter & CStr(i))
-            columnLetter = "E"
-            balcony.BalconyType = GoExcel.CellValue(columnLetter & CStr(i))
-            columnLetter = "F"
-            balcony.Bnumber = GoExcel.CellValue(columnLetter & CStr(i))
+        xlApp = GetOrCreateInstance("Excel.Application")
+        wb = xlApp.Workbooks.Open(RootFolder & System.IO.Path.GetFileNameWithoutExtension(ThisDoc.FullFileName) & ".xlsx")
+        'MessageBox.Show("Successfully opened: " & RootFolder & System.IO.Path.GetFileNameWithoutExtension(ThisDoc.FullFileName) & ".xlsx")
+        ws = wb.Worksheets(1)
+        range = ws.UsedRange
+    Catch ex As Exception
+        MessageBox.Show("Error info: " & vbNewLine & ex.ToString)
+        g_inventorApplication.ScreenUpdating = True
+        g_inventorApplication.UserInterfaceManager.UserInteractionDisabled = False
+        Exit Sub
+    End Try
 
-            balcony.PartNo = balcony.Bnumber & "-" & balcony.StackNumber
 
-            columnLetter = "A"
-            If CellVal = "" Then Exit Do
+    Try
+        Dim BalconyList As List(Of Balcony) = New List(Of Balcony)
+        Dim TmpBalconyList As List(Of Balcony) = New List(Of Balcony)
+        'need to start after the row headers
+        For ExcelRow As Integer = 2 To range.Rows.Count
+            Dim cellval As Excel.Range = range.Cells(ExcelRow, 1)
+            If cellval.Value2 = "Total" Then ' we reached the last row of the table!
+                Exit For
+            End If
+            'data collection
 
-            i = i + 1
-            BalconyList.Add(balcony)
-        Loop
-        GoExcel.Close()
+
+            Dim partnumber As String = range.Cells(ExcelRow, 6).Value2 & "-" & range.Cells(ExcelRow, 2).Value2
+            Dim BayNumber As String = range.Cells(ExcelRow, 1).Value2 'Column A
+            Dim StackNumber As String = range.Cells(ExcelRow, 2).Value2 'Column B
+            Dim DimAFeatureFinCentres As Double = range.Cells(ExcelRow, 3).Value2 'Column C
+            Dim DimBOverallBalconyLength As Double = range.Cells(ExcelRow, 4).Value2 'Column D
+            Dim BalconyType As String = range.Cells(ExcelRow, 5).Value2 'Column E
+            Dim Bnumber As String = range.Cells(ExcelRow, 6).Value2 'Column F
+            Dim SolidLeft As Boolean = IIf(range.Cells(ExcelRow, 7).Value2 = "SolidLeft", True, False) 'Column G
+            Dim SolidRight As Boolean = IIf(range.Cells(ExcelRow, 8).Value2 = "SolidRight", True, False) 'Column H
+            Dim IsMirrored As Boolean = IIf(SolidRight, True, False)
+            Dim GlassBoth As Boolean = IIf(range.Cells(ExcelRow, 9).Value2 = "GlassBoth", True, False) 'Column I
+            Dim NumGlassPanels As Double = Convert.ToDouble(range.Cells(ExcelRow, 10).Value2) 'Column J
+
+            Dim tmpbalcony As Balcony
+            tmpbalcony = New Balcony(partnumber,
+                                             BayNumber,
+                                             StackNumber,
+                                             DimAFeatureFinCentres,
+                                             DimBOverallBalconyLength,
+                                             BalconyType,
+                                             Bnumber,
+                                             SolidLeft,
+                                             SolidRight,
+                                             IsMirrored,
+                                             GlassBoth,
+                                             NumGlassPanels)
+
+            TmpBalconyList.Add(tmpbalcony)
+        Next
+
+        'need to iterate through the tmpbalcony list and differentiate between solidleft,solidright and glassboth instances.
+        'because we know we (currently) have glassboth versions for everything we can safely disable it.
+
+        For Each tmpbalcony As Balcony In TmpBalconyList
+            If tmpbalcony.SolidLeft Then
+                Dim leftbalcony As New Balcony(tmpbalcony.PartNo,
+                                             tmpbalcony.BayNum,
+                                             tmpbalcony.stackno,
+                                             tmpbalcony.DimAFeatureFinCentre,
+                                             tmpbalcony.DimBOverallBalconyLength,
+                                             tmpbalcony.BalconyTypeNum,
+                                             tmpbalcony.BayNo,
+                                             tmpbalcony.SolidLeft,
+                                             tmpbalcony.SolidRight,
+                                             tmpbalcony.IsMirrored,
+                                             tmpbalcony.Glassboth,
+                                             tmpbalcony.NumPanels)
+                leftbalcony.IsMirrored = False
+                leftbalcony.PartNo = leftbalcony.PartNo & "-L"
+                leftbalcony.Glassboth = False
+                BalconyList.Add(leftbalcony)
+            ElseIf tmpbalcony.SolidRight Then
+                Dim rightbalcony As New Balcony(tmpbalcony.PartNo,
+                                             tmpbalcony.BayNum,
+                                             tmpbalcony.stackno,
+                                             tmpbalcony.DimAFeatureFinCentre,
+                                             tmpbalcony.DimBOverallBalconyLength,
+                                             tmpbalcony.BalconyTypeNum,
+                                             tmpbalcony.BayNo,
+                                             tmpbalcony.SolidLeft,
+                                             tmpbalcony.SolidRight,
+                                             tmpbalcony.IsMirrored,
+                                             tmpbalcony.Glassboth,
+                                             tmpbalcony.NumPanels)
+                rightbalcony.IsMirrored = True
+                rightbalcony.PartNo = rightbalcony.PartNo & "-R"
+                rightbalcony.Glassboth = False
+                BalconyList.Add(rightbalcony)
+
+            End If
+            'add glassboth variant to balconylist
+            Dim glassbothbalcony As New Balcony(tmpbalcony.PartNo,
+                                             tmpbalcony.BayNum,
+                                             tmpbalcony.stackno,
+                                             tmpbalcony.DimAFeatureFinCentre,
+                                             tmpbalcony.DimBOverallBalconyLength,
+                                             tmpbalcony.BalconyTypeNum,
+                                             tmpbalcony.BayNo,
+                                             tmpbalcony.SolidLeft,
+                                             tmpbalcony.SolidRight,
+                                             tmpbalcony.IsMirrored,
+                                             tmpbalcony.Glassboth,
+                                             tmpbalcony.NumPanels)
+            glassbothbalcony.SolidRight = False
+            glassbothbalcony.SolidLeft = False
+            glassbothbalcony.IsMirrored = False
+            glassbothbalcony.PartNo = glassbothbalcony.PartNo & "-B"
+            glassbothbalcony.Glassboth = True
+            BalconyList.Add(glassbothbalcony)
+        Next
+
+        UpdateStatusBar("List of Balconies to create = " & BalconyList.Count & " Long")
+
         'uses the Excel data.
-        For Each balcony As clsBalcony In BalconyList
+        For Each balcony As Balcony In BalconyList
+            If Not My.Settings.BalconyCreationRunWithoutPrompts Then
+                result = MessageBox.Show("Skip this balcony: " & balcony.PartNo, "Skip or not?", MessageBoxButtons.YesNo)
+                If result = DialogResult.Yes Then
+                    Continue For
+                End If
+            End If
+            Dim GlassBothSides As Boolean = balcony.Glassboth
+            Dim BalconyIsMirrored As Boolean = balcony.IsMirrored
+
             'need to map relevant class objects to Inventor Parameters.
+            SetParameter(My.Settings.BalconyLengthParamName, balcony.DimBOverallBalconyLength)
 
-            Parameter("OverallBalconyLength") = balcony.DimBOverallBalconyLength
-
-            Select Case balcony.BalconyType
-                Case "T1"
-                    Parameter("NumArms") = 2
-                    Parameter("ArmSpacing") = 2400
-                Case "T2"
-                    Parameter("NumArms") = 3
-                    Parameter("ArmSpacing") = 1500
-                Case "T3"
-                    Parameter("NumArms") = 3
-                    Parameter("ArmSpacing") = 2050
+            Select Case balcony.BalconyTypeNum
+                Case My.Settings.BalconyT1Params(0) 'T1
+                    SetParameter(My.Settings.BalconyNumArmsParamName, My.Settings.BalconyT1Params(1))
+                    SetParameter(My.Settings.BalconyArmSpacingParamName, My.Settings.BalconyT1Params(2))
+                    SetParameter(My.Settings.BalconyC5ArmHoleParamName, GetParameter("T1ArmSpacing").Expression)
+                Case My.Settings.BalconyT2Params(0) 'T2
+                    SetParameter(My.Settings.BalconyNumArmsParamName, My.Settings.BalconyT2Params(1))
+                    SetParameter(My.Settings.BalconyArmSpacingParamName, My.Settings.BalconyT2Params(2))
+                    SetParameter(My.Settings.BalconyC5ArmHoleParamName, GetParameter("T2ArmSpacing").Expression)
+                Case My.Settings.BalconyT3Params(0) 'T3
+                    SetParameter(My.Settings.BalconyNumArmsParamName, My.Settings.BalconyT3Params(1))
+                    SetParameter(My.Settings.BalconyArmSpacingParamName, My.Settings.BalconyT3Params(2))
+                    SetParameter(My.Settings.BalconyC5ArmHoleParamName, GetParameter("T3ArmSpacing").Expression)
                 Case Else
                     'nothing
             End Select
 
             'Try
             Dim ResultsFolder As String = RootFolder & System.IO.Path.GetFileNameWithoutExtension(balcony.PartNo) & "\"
-            Dim NewFileName As String = ResultsFolder & "\" & balcony.PartNo & ".ipt"
+            Dim NewFileName As String = ResultsFolder & balcony.PartNo & ".ipt"
 
             'need to update here otherwise we will not see any errors in the updated parameter values.
-            InventorVb.DocumentUpdate()
+            'InventorVb.DocumentUpdate()
 
-            ThisApplication.StatusBarText = NewFileName
+            UpdateStatusBar(NewFileName)
+            'update necessary parameter values
+
+            'Also check if the glassonbothsides option is true and react accordingly.
+            If GlassBothSides Then
+                'this should take care of the feature suppression/unsuppression where required:
+                SetParameter("GlassBoth", "1")
+                'Need to zero some parameter values to prevent hole positions going awry
+                SetParameter(My.Settings.BalconySolidEndOffsetParamName, "0")
+                'Throw New NotImplementedException
+                'This method needs to include the ability to suppress/unsuppress key Part features OR Suppress/Unsupress components within the resultant assembly.
+                'it should also provide functionality to rename any parts and/or the parent Assembly for those part files to make them unique.
+            Else
+                'SetParameter(My.Settings.BalconySolidEndOffsetParamName, "0")
+                SetParameter("GlassBoth", "0")
+            End If
+
+            'force an update before we save to hopefully fix body placement errors
+            ThisDoc.Update2()
+            'then save the file
             ThisDoc.SaveAs(NewFileName, False)
             ' Catch
             'MessageBox.Show("If we're having trouble saving, the PartNo could be referencing a vaulted part " & vbCrLf & "Or you copied the spreadsheet and haven't fully updated every row!")
             'Exit Sub
             'End Try
-            Dim oErrorMgr As ErrorManager = ThisApplication.ErrorManager
+            Dim oErrorMgr As ErrorManager = g_inventorApplication.ErrorManager
 
             Dim oMessageSection As MessageSection = oErrorMgr.StartMessageSection
             'only continue if we have zero errors or warnings
             If Not oMessageSection.HasErrors Or Not oMessageSection.HasWarnings Then
-                MakeComponentsProgrammatically(ThisDoc, ResultsFolder)
+                MakeComponentsProgrammatically(ThisDoc, ResultsFolder, BalconyIsMirrored, GlassBothSides, balcony)
             End If
             ' End section by clearing all messages in section
-            oMessageSection.ClearMessages
-
-            Dim result As DialogResult = MessageBox.Show("Want to continue exporting files?", "Say Yes To continue, No to stop!", MessageBoxButtons.YesNoCancel)
-            If result = vbNo Then
-                MessageBox.Show("Processing stopped after completion of: " & System.IO.Path.GetFileNameWithoutExtension(ThisDoc.FullFileName))
-                Exit For
+            oMessageSection.ClearMessages()
+            If My.Settings.BalconyCreationStepByStepDebugging Then
+                result = MessageBox.Show("Want to continue exporting files?", "Say Yes To continue, No to stop!", MessageBoxButtons.YesNoCancel)
+                If result = vbNo Then
+                    MessageBox.Show("Processing stopped after completion of: " & System.IO.Path.GetFileNameWithoutExtension(ThisDoc.FullFileName))
+                    Exit For
+                End If
             End If
         Next
         'modify parameters to suit
@@ -112,91 +278,419 @@ Sub Main()
         'MessageBox.Show("Parameters Updated, Continuing")
         'ThisDoc.Document.SaveAs(originalfilename, False)
         'MessageBox.Show("Files Created, Finished")
-
-        ' ... rule code ...
+        BalconyList = Nothing
     Catch ex As Exception
         'if some error occurs then this code will be executed
-        ThisApplication.ScreenUpdating = True
-        ThisApplication.UserInterfaceManager.UserInteractionDisabled = False
-        Beep()
+        g_inventorApplication.ScreenUpdating = True
+        g_inventorApplication.UserInterfaceManager.UserInteractionDisabled = False
+        g_inventorApplication.SilentOperation = False
         MessageBox.Show("Error info: " & vbNewLine & ex.ToString)
     Finally
-        ThisApplication.ScreenUpdating = True
-        ThisApplication.UserInterfaceManager.UserInteractionDisabled = False
+        g_inventorApplication.ScreenUpdating = True
+        g_inventorApplication.UserInterfaceManager.UserInteractionDisabled = False
+        g_inventorApplication.SilentOperation = False
+        wb.Close(False)
+        xlApp.Quit()
+        If Not xlApp Is Nothing Then
+            xlApp.ReleaseInstance()
+            'xlApp = Nothing
+        End If
     End Try
-
+ended:
     ElapsedTime = Now().Subtract(StartTime)
 
-    MessageBox.Show("Operation took " & elapsedtime.TotalMinutes & " Minutes")
+    MessageBox.Show("Operation took " & ElapsedTime.TotalMinutes & " Minutes")
 End Sub
 
-' Run this inside a Multi-Solid part
-Sub MakeComponentsProgrammatically(ByVal ThisPart As PartDocument, ByVal ResultsFolder As String)
+Private UpdateAfterEachParameterChange As Boolean = False
+
+''' <summary>
+''' This is re-copied from the iLogic rule in the hope that it fixes whatever went wrong.
+''' Need to make sure that all workfeatures are visibility = false prior to running it.
+''' CURRENTLY THIS DOES NOT TAKE INTO ACCOUNT THE NAMING DIFFERENCE REQUIRED FOR THE GLASSONBOTHSIDES OPTION!
+''' </summary>
+''' <param name="ThisPart"></param>
+''' <param name="ResultsFolder"></param>
+Sub MakeComponentsProgrammatically(ByVal ThisPart As PartDocument, ByVal ResultsFolder As String, ByVal IsMirrored As Boolean, ByVal GlassOnBothSides As Boolean, ByVal thisbalcony As Balcony)
     ' Folder to place the new components:
     ' assembly and subcomponents
     'Dim ResultsFolder As String = System.IO.Path.GetDirectoryName(ThisPart.FullFileName) & "\" & System.IO.Path.GetFileNameWithoutExtension(ThisPart.DisplayName) & "\"
 
     Dim Thispartname As String = System.IO.Path.GetFileNameWithoutExtension(ThisPart.FullFileName)
-    ThisApplication.StatusBarText = ResultsFolder & " - " & Thispartname
+    g_inventorApplication.StatusBarText = ResultsFolder & " - " & Thispartname
     If Not System.IO.Directory.Exists(ResultsFolder) Then
         System.IO.Directory.CreateDirectory(ResultsFolder)
     End If
 
+
+
+    Dim balconyoffsetstr As String = GetParameter(My.Settings.BalconyB1OffsetParamName).ModelValue
+    Dim GlassBothOffsetStr As String = GetParameter(My.Settings.BalconyGlassBothOffsetParamName).ModelValue
+
+    Dim NumRightSpinesCount As String = String.Empty
+    Dim SpineSpacingDimension As String = String.Empty
+
+    Select Case thisbalcony.BalconyTypeNum
+        Case "T1"
+            NumRightSpinesCount = "3"
+                    'SpineSpacingDimension = GetParameter(My.Settings.T1BalconySpineFixingHoleParamName).Name
+        Case "T2"
+            NumRightSpinesCount = "4"
+                    'SpineSpacingDimension = GetParameter(My.Settings.T2BalconySpineFixingHoleParamName).Name
+        Case "T3"
+            NumRightSpinesCount = "4"
+            'SpineSpacingDimension = GetParameter(My.Settings.T3BalconySpineFixingHoleParamName).Name
+    End Select
     ' Create the assembly
-    Dim asm As AssemblyDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kAssemblyDocumentObject)
+    Dim assemblydocument As AssemblyDocument = g_inventorApplication.Documents.Add(DocumentTypeEnum.kAssemblyDocumentObject, g_inventorApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kAssemblyDocumentObject))
 
-    Call asm.SaveAs(ResultsFolder + System.IO.Path.GetFileNameWithoutExtension(ThisPart.DisplayName) + ".iam", False)
+    Call assemblydocument.SaveAs(ResultsFolder + System.IO.Path.GetFileNameWithoutExtension(ThisPart.DisplayName) + ".iam", False)
 
-    Dim solidbody As SurfaceBody
-    For Each solidbody In ThisPart.ComponentDefinition.SurfaceBodies
-        If solidbody.Name.StartsWith("Solid") Then
-            Continue For
-        End If
-        ' Create part for each body
-        Dim prt As PartDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject)
+    ' Update the part.
+    ThisPart.Update2()
+    'g_inventorApplication.ActiveDocument.Update()
+    AssembliesToDemote = New List(Of ObjectCollection)
+    Dim PanelACollection As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+    Dim PanelBCollection As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+    Dim PanelCCollection As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+    Dim PanelDCollection As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
 
-        ' Set iProperties >> Project >> Description
-        ' It's inside "Design Tracking Properties"
-        Dim p As Inventor.Property = prt.PropertySets("{32853F0F-3444-11D1-9E93-0060B03C1CA6}")("Description")
-        p.Expression = solidbody.Name
+    'base work axes
+    Dim XAxis As WorkAxis
+    Dim YAxis As WorkAxis
+    Dim Zaxis As WorkAxis
+    With assemblydocument.ComponentDefinition
+        XAxis = .WorkAxes(1)
+        YAxis = .WorkAxes(2)
+        Zaxis = .WorkAxes(3)
+    End With
 
-        Dim dpcs As DerivedPartComponents = prt.ComponentDefinition.ReferenceComponents.DerivedPartComponents
+    'the for i works fine until we allow Inventor to suppress features depending on certain parameter values.
+    'but the for each fails when retrieving the name from certain surfacebody objects.
+    'For Each surfacebody As SurfaceBody In ThisPart.ComponentDefinition.SurfaceBodies
 
-        Dim dpd As DerivedPartUniformScaleDef = dpcs.CreateUniformScaleDef(ThisPart.FullDocumentName)
+    BuildandPlaceSurfaceBodies(ThisPart, ResultsFolder, Thispartname, IsMirrored, assemblydocument, PanelACollection,
+                                       PanelBCollection, PanelCCollection, PanelDCollection, NumRightSpinesCount)
 
-        ' Exclude the other solid bodies
-        Dim dpe As DerivedPartEntity
-        For Each dpe In dpd.Solids
-            If Not dpe.ReferencedEntity Is solidbody Then
-                dpe.IncludeEntity = False
-            End If
+    AssembliesToDemote.Add(PanelACollection)
+    AssembliesToDemote.Add(PanelBCollection)
+    AssembliesToDemote.Add(PanelCCollection)
+    AssembliesToDemote.Add(PanelDCollection)
+
+    For Each objcoll As ObjectCollection In AssembliesToDemote
+        Dim AssyOccToPattern As ComponentOccurrence = Nothing
+        Dim newAssyName As String = String.Empty
+        For Each occ As ComponentOccurrence In objcoll
+            newAssyName = occ.Name
+            Exit For
         Next
-
-        Call dpcs.Add(dpd)
-
-        'DOES NOT WORK!!
-        ' Could have any name but we use the solid body's name
-        'if we can work out how to use the sketch blocks in this part they too need a material. which isn't one of these:
-        'If solidbody.name.contains("Panel") Then
-        '    SetMaterialToPart(prt, "Glass")
-        'Else
-        '    SetMaterialToPart(prt, "Aluminum 6061")
-        'End If
-        Dim newfilename As String = Regex.Replace(solidbody.Name, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ")
-
-        Call prt.SaveAs(ResultsFolder + Thispartname + "-" + newfilename + ".ipt", False)
-
-        ' Place an instance of it inside the assembly
-        Dim mx As Matrix = ThisApplication.TransientGeometry.CreateMatrix()
-        Call asm.ComponentDefinition.Occurrences.AddByComponentDefinition(prt.ComponentDefinition, mx)
-
-        ' Don't need it anymore
-        Call prt.Close
+        newAssyName = Regex.Replace(newAssyName, "(\w\d{1}-\d{4}-\w-\w*\s\w)(.*)", "$1")
+        Demote(newAssyName, objcoll, AssyOccToPattern, ResultsFolder)
+        If newAssyName.Contains("Panel B") And thisbalcony.NumPanels = 4 Then
+            Dim objCol As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+            'add the desired occurrence to be patterned
+            objCol.Add(AssyOccToPattern)
+            'uncomment when the one above works correctly!
+            Call assemblydocument.ComponentDefinition.OccurrencePatterns.AddRectangularPattern(objCol,
+                                                                                                       XAxis,
+                                                                                                       True,
+                                                                                                       balconyoffsetstr,
+                                                                                                       2)
+        ElseIf newAssyName.Contains("Panel D") And GlassOnBothSides Then
+            Dim objCol As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+            'add the desired occurrence to be patterned
+            objCol.Add(AssyOccToPattern)
+            'uncomment when the one above works correctly!
+            Call assemblydocument.ComponentDefinition.OccurrencePatterns.AddRectangularPattern(objCol,
+                                                                                                       XAxis,
+                                                                                                       False,
+                                                                                                       GlassBothOffsetStr,
+                                                                                                       2)
+        End If
     Next
 
-    Call asm.Close
+    Call assemblydocument.Close()
 End Sub
 
+''' <summary>
+''' Should allow us to turn sketch blocks into actual part files within an assembly in exactly the same was as BuildandPlaceSurfaceBodies does for solid bodies.
+''' </summary>
+''' <param name="ThisPart"></param>
+''' <param name="ResultsFolder"></param>
+''' <param name="Thispartname"></param>
+''' <param name="IsMirrored"></param>
+''' <param name="ThisAssembly"></param>
+Sub BuildAndPlaceSketchBlockParts(ByVal ThisPart As PartDocument,
+                                       ByVal ResultsFolder As String,
+                                       ByVal Thispartname As String,
+                                       ByVal IsMirrored As Boolean,
+                                       ByRef ThisAssembly As AssemblyDocument)
+
+    Dim SketchblockPartstoBuild As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+    Dim SketchblockAssystoBuild As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+
+    For i As Integer = 1 To ThisPart.ComponentDefinition.Sketches.Count
+        Dim sketch2d As PlanarSketch = ThisPart.ComponentDefinition.Sketches.Item(i)
+        If sketch2d.SketchBlocks.Count > 0 Then
+            For Each skblock As SketchBlock In sketch2d.SketchBlocks
+                If skblock.ChildBlocks.Count = 0 Then
+                    SketchblockPartstoBuild.Add(skblock)
+                Else
+                    SketchblockAssystoBuild.Add(skblock)
+                End If
+            Next
+        End If
+    Next
+    For Each skblockpart As SketchBlock In SketchblockPartstoBuild
+        'need to only build one part for each sketchblock and figure out how we can individually place them if they are used more than once.
+        Dim partdocument As PartDocument = g_inventorApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject, g_inventorApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kPartDocumentObject))
+    Next
+
+    For Each skblockassy As SketchBlock In SketchblockAssystoBuild
+        'need to only build one new assembly for any nested blocks and place the nested part files into it.
+        Dim assydocument As AssemblyDocument = g_inventorApplication.Documents.Add(DocumentTypeEnum.kAssemblyDocumentObject, g_inventorApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kAssemblyDocumentObject))
+        'then place the nested assembly wherever it is required within the parent assembly.
+    Next
+
+End Sub
+
+Sub BuildandPlaceSurfaceBodies(ByVal ThisPart As PartDocument,
+                                       ByVal ResultsFolder As String,
+                                       ByVal Thispartname As String,
+                                       ByVal IsMirrored As Boolean,
+                                       ByRef ThisAssembly As AssemblyDocument,
+                                       ByRef PanelACollection As ObjectCollection,
+                                       ByRef PanelBCollection As ObjectCollection,
+                                       ByRef PanelCCollection As ObjectCollection,
+                                       ByRef PanelDCollection As ObjectCollection,
+                                       ByVal NumRightSpinesCount As String)
+    Try
+
+
+        'base work axes
+        Dim XAxis As WorkAxis
+        Dim YAxis As WorkAxis
+        Dim Zaxis As WorkAxis
+        With ThisAssembly.ComponentDefinition
+            XAxis = .WorkAxes(1)
+            YAxis = .WorkAxes(2)
+            Zaxis = .WorkAxes(3)
+        End With
+
+
+
+
+        For i As Integer = 1 To ThisPart.ComponentDefinition.SurfaceBodies.Count
+            Dim surfacebody As SurfaceBody = ThisPart.ComponentDefinition.SurfaceBodies.Item(i)
+            Dim surfaceBodyName As String = surfacebody.Name
+            If surfaceBodyName.StartsWith("Solid") Then
+                Continue For
+            End If
+            ' Create part for each body
+            Dim partdocument As PartDocument = g_inventorApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject, g_inventorApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kPartDocumentObject))
+
+            ' Set iProperties >> Project >> Description
+            ' It's inside "Design Tracking Properties"
+            Dim p As Inventor.Property = partdocument.PropertySets("{32853F0F-3444-11D1-9E93-0060B03C1CA6}")("Description")
+            p.Expression = surfaceBodyName
+
+            Dim derivedpartcomponents As DerivedPartComponents = partdocument.ComponentDefinition.ReferenceComponents.DerivedPartComponents
+
+            Dim derivedpartuniformscaledefinition As DerivedPartUniformScaleDef = derivedpartcomponents.CreateUniformScaleDef(ThisPart.FullDocumentName)
+
+            ' Exclude the other solid bodies
+            Dim derivedpartentity As DerivedPartEntity
+            For Each derivedpartentity In derivedpartuniformscaledefinition.Solids
+                If Not derivedpartentity.ReferencedEntity Is surfacebody Then
+                    derivedpartentity.IncludeEntity = False
+                Else
+                    derivedpartentity.IncludeEntity = True
+                End If
+            Next
+            'include reference parameters otherwise we get errors (I think!?)
+            ' theory copied from here: http://adndevblog.typepad.com/manufacturing/2012/06/includeexclude-parameters-from-the-base-part-in-a-derived-part.html
+            Dim paramtoderive As DerivedPartEntity
+            For Each paramtoderive In derivedpartuniformscaledefinition.Parameters
+                'If TypeOf paramtoderive Is ParameterTypeEnum Then
+                'If paramtoderive.ParameterType = ParameterTypeEnum.kReferenceParameter Then
+                paramtoderive.IncludeEntity = True
+                'End If
+            Next
+
+            Call derivedpartcomponents.Add(derivedpartuniformscaledefinition)
+
+            'DOES Not WORK!! AF 2016-07-19
+            ' Could have any name but we use the solid body's name
+            'If we Then can work out how To use the sketch blocks In this part they too need a material. which isn't one of these:
+            If surfaceBodyName.Contains("Panel") Then
+                SetMaterialToPart(partdocument, My.Settings.BalconyPanelMaterialName)
+            Else
+                SetMaterialToPart(partdocument, My.Settings.BalconyAluMaterialName)
+            End If
+
+            Dim newfilename As String = Regex.Replace(surfaceBodyName, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ")
+
+            Call partdocument.SaveAs(ResultsFolder + Thispartname + "-" + newfilename + ".ipt", False)
+
+            'Check whether the part needs to be mirrored based on the IsMirrored variable
+            If IsMirrored Then
+                MirrorDerivedPart(partdocument, DerivedPartMirrorPlaneEnum.kDerivedPartMirrorPlaneYZ) 'default is currently YZ Plane
+            End If
+
+            ' Place an instance of it inside the assembly
+            Dim mx As Matrix = g_inventorApplication.TransientGeometry.CreateMatrix()
+            Dim oOcc1 As ComponentOccurrence = ThisAssembly.ComponentDefinition.Occurrences.AddByComponentDefinition(partdocument.ComponentDefinition, mx)
+
+            If surfaceBodyName = "C2" Then ' WORKING 2016-07-26 AF
+                Dim objCol As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+
+                'add the desired occurrence to be patterned
+                objCol.Add(oOcc1)
+                'Based on this:
+                ' http://adndevblog.typepad.com/manufacturing/2012/12/inventor-create-pattern-of-component-occurrences.html
+                Call ThisAssembly.ComponentDefinition.OccurrencePatterns.AddRectangularPattern(objCol,
+                                                                                                           YAxis,
+                                                                                                           True,
+                                                                                                           GetParameter(My.Settings.BalconyCSpacingParameterName).Expression,
+                                                                                                           My.Settings.BalconyChannelsCount)
+            ElseIf surfaceBodyName = "Fin" Then ' WORKING 2016-07-26 AF
+                Dim objCol As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+
+                'add the desired occurrence to be patterned
+                objCol.Add(oOcc1)
+                Call ThisAssembly.ComponentDefinition.OccurrencePatterns.AddRectangularPattern(objCol,
+                                                                                                           YAxis,
+                                                                                                           True,
+                                                                                                           GetParameter(My.Settings.BalconyCSpacingParameterName).Expression,
+                                                                                                           My.Settings.BalconyFinsCount)
+            ElseIf surfaceBodyName.Contains("Panel") Then ' then demote by panel name into sub-assemblies
+                If surfacebody.Name.StartsWith("PanelA") Then
+                    PanelACollection.Add(oOcc1)
+                ElseIf surfacebody.Name.StartsWith("PanelB") Then
+                    PanelBCollection.Add(oOcc1)
+                ElseIf surfacebody.Name.StartsWith("PanelC") Then
+                    PanelCCollection.Add(oOcc1)
+                ElseIf surfacebody.Name.StartsWith("PanelD") Then
+                    PanelDCollection.Add(oOcc1)
+                End If
+            ElseIf surfaceBodyName = "SpineConnectingPlateRight" Or surfaceBodyName = "SpineConnectingPlateLeft" Then ' WORKING 2016-07-26 AF
+                Dim objCol As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+                'add the desired occurrence to be patterned
+                objCol.Add(oOcc1)
+                Call ThisAssembly.ComponentDefinition.OccurrencePatterns.AddRectangularPattern(objCol,
+                                                                                                           YAxis,
+                                                                                                           True,
+                                                                                                           GetParameter(My.Settings.BalconyPanelDSpineFixingHoleParamName).Expression,
+                                                                                                           My.Settings.BalconyConnectingPlateCount)
+            ElseIf surfaceBodyName = "ShortSpineC" Then
+                Dim objCol As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+                'add the desired occurrence to be patterned
+                objCol.Add(oOcc1)
+                'uncomment when the one above works correctly!
+                Call ThisAssembly.ComponentDefinition.OccurrencePatterns.AddRectangularPattern(objCol,
+                                                                                                           XAxis,
+                                                                                                           False,
+                                                                                                           GetParameter(My.Settings.T1BalconySpineFixingHoleParamName).Expression,
+                                                                                                           2)
+            ElseIf surfaceBodyName = "ShortSpineLeft" Then
+                Dim objCol As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+                'add the desired occurrence to be patterned
+                objCol.Add(oOcc1)
+                'uncomment when the one above works correctly!
+                Call ThisAssembly.ComponentDefinition.OccurrencePatterns.AddRectangularPattern(objCol,
+                                                                                                           XAxis,
+                                                                                                           True,
+                                                                                                           GetParameter(My.Settings.T1BalconySpineFixingHoleParamName).Expression,
+                                                                                                           My.Settings.BalconyConnectingPlateCount)
+            ElseIf surfaceBodyName = "LongSpineB1" Then
+                'could in theory skip this and use a circular pattern provided the origin axis is centred to the mid-point of the spine?
+                MirrorPartInAssy(ThisAssembly, ThisAssembly.ComponentDefinition.WorkPlanes.Item(1), oOcc1) 'workplanes.item(1) = YZ
+            End If
+            ' Don't need it anymore
+            Call partdocument.Close()
+        Next
+    Catch ex As Exception
+        MessageBox.Show("Error info: " & vbNewLine & ex.ToString)
+    End Try
+End Sub
+
+
+''' <summary>
+''' ''' copied from here:
+''' http://adndevblog.typepad.com/manufacturing/2014/02/mirror-component-in-assembly.html
+''' </summary>
+''' <param name="oMirrorWP">One of our origin workplanes</param>
+Sub MirrorPartInAssy(ByVal oAssDoc As AssemblyDocument, ByVal oMirrorWP As WorkPlane, ByVal oOcc1 As ComponentOccurrence)
+
+    'Dim oAssDoc As AssemblyDocument = g_inventorApplication.ActiveDocument
+
+    'mirror plane 
+    'Dim oMirrorWP As WorkPlane = oAssDoc.SelectSet(1)
+
+    Dim oPlane As Plane = oMirrorWP.Plane
+
+    'get normal of the plane 
+    Dim oNormalX As Double
+    oNormalX = oPlane.Normal.X
+
+    Dim oNormalY As Double
+    oNormalY = oPlane.Normal.Y
+
+    Dim oNormalZ As Double
+    oNormalZ = oPlane.Normal.Z
+
+    'create the mirroring matrix 
+    Dim oMirrorMatrix As Matrix = g_inventorApplication.TransientGeometry.CreateMatrix()
+    Dim oMatrixData(15) As Double
+    oMatrixData(0) = 1 - 2 * oNormalX * oNormalX
+    oMatrixData(1) = -2 * oNormalX * oNormalY
+    oMatrixData(2) = -2 * oNormalX * oNormalZ
+    oMatrixData(3) = 0
+
+    oMatrixData(4) = -2 * oNormalX * oNormalY
+    oMatrixData(5) = 1 - 2 * oNormalY * oNormalY
+    oMatrixData(6) = -2 * oNormalZ * oNormalY
+    oMatrixData(7) = 0
+
+    oMatrixData(8) = -2 * oNormalX * oNormalZ
+    oMatrixData(9) = -2 * oNormalZ * oNormalY
+    oMatrixData(10) = 1 - 2 * oNormalZ * oNormalZ
+    oMatrixData(11) = 0
+
+    oMatrixData(12) = 0
+    oMatrixData(13) = 0
+    oMatrixData(14) = 0
+    oMatrixData(15) = 1
+
+    Call oMirrorMatrix.PutMatrixData(oMatrixData)
+
+    'get the first component 
+    'Dim oOcc As ComponentOccurrence = oAssDoc.ComponentDefinition.Occurrences(1)
+
+    'multiply with the transformation of the parent component 
+    oMirrorMatrix.PostMultiplyBy(oOcc1.Transformation)
+
+    Dim oParentPartPath As String
+    oParentPartPath = oOcc1.Definition.Document.FullFileName
+
+    ' Create a new part file to derive the  part in. 
+    Dim oPartDoc As PartDocument = g_inventorApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject, g_inventorApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kPartDocumentObject))
+
+    ' Create a derived definition for the  part. 
+    Dim oDerivedPartDef As DerivedPartTransformDef = oPartDoc.ComponentDefinition.ReferenceComponents.DerivedPartComponents.CreateTransformDef(oParentPartPath)
+
+    ' Create the derived part. 
+    Call oPartDoc.ComponentDefinition.ReferenceComponents.DerivedPartComponents.Add(oDerivedPartDef)
+    'save the derived part. 
+
+    Dim mirroredpartname As String = IO.Path.GetDirectoryName(oParentPartPath) & "\" & IO.Path.GetFileNameWithoutExtension(oParentPartPath) & "_MIR.ipt"
+    Call oPartDoc.SaveAs(mirroredpartname, False)
+    'add the derived part as a component 
+    Call oAssDoc.ComponentDefinition.Occurrences.Add(oPartDoc.FullFileName, oMirrorMatrix)
+    oPartDoc.Close()
+    'activate the assembly document 
+    oAssDoc.Activate()
+End Sub
 
 ''' <summary>
 ''' Sets the material of any part document we pass to it.
@@ -211,84 +705,278 @@ Private Sub SetMaterialToPart(ByVal ThisDerivedPart As PartDocument, ByVal name 
     'Name = "Copper"
     '    Name = "Steel"
 
-    Dim localAsset As Asset = ThisDerivedPart.Assets.Item(name)
-    'If Err Then
-    '    On Error GoTo 0
-    ' Failed to get the appearance
-    ' in the document, so import it.
+    Dim localAsset As Asset = Nothing
+    'If localAsset Is Nothing Then
+    Dim assetLib As AssetLibrary = g_inventorApplication.AssetLibraries.Item("Inventor Material Library")
+    '    Set assetLib = ThisApplication.AssetLibraries _
+    '.Item("AD121259-C03E-4A1D-92D8-59A22B4807AD")
 
-    ' Get an asset library by name.
-    ' Either the displayed name (which
-    ' can changed based on the current language)
-    ' or the internal name
-    ' (which is always the same) can be used.
-    Dim assetLib As AssetLibrary = ThisApplication.AssetLibraries.Item("Autodesk Material Library")
-        '    Set assetLib = ThisApplication.AssetLibraries _
-        '.Item("AD121259-C03E-4A1D-92D8-59A22B4807AD")
-
-        ' Get an asset in the library
-        Dim libAsset As Asset = assetLib.MaterialAssets.Item(name)
-        ' Copy the asset locally.
-        localAsset = libAsset.CopyTo(ThisDerivedPart)
+    ' Get an asset in the library
+    Dim libAsset As Asset = assetLib.MaterialAssets.Item(name)
+    ' Copy the asset locally.
+    localAsset = libAsset.CopyTo(ThisDerivedPart)
     'End If
-    'On Error GoTo 0
 
     'set material to the part
     ThisDerivedPart.ActiveMaterial = localAsset
 
     ' Select the top browser node of the model pane.
     ' This is a workaround to refresh materials info in the UI.
-    Call ThisDerivedPart.BrowserPanes.ActivePane.TopNode.DoSelect
+    Call ThisDerivedPart.BrowserPanes.ActivePane.TopNode.DoSelect()
 
 End Sub
 
-Public Sub SetParameter()
-    ' Get the Parameters object. Assumes a part or assembly document is active.
-    Dim oParameters As Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
 
-    ' Get the parameter named "Length".
-    Dim oLengthParam As Parameter = oParameters.Item("Length")
+''' <summary>
+''' Copied from the API Documentation and modified to suit.
+''' </summary>
+Public Sub Demote(ByVal NewAssemblyName As String, ByVal OccurrenceCollectionToDemote As ObjectCollection, ByRef newSubAssyOccurrence As ComponentOccurrence, ByVal ResultsFolderName As String)
+    ' Get the active assembly document
+    Dim oDoc As AssemblyDocument = g_inventorApplication.ActiveDocument
 
-    ' Change the equation of the parameter.
-    oLengthParam.Expression = "3.5 in"
+    Dim oDef As AssemblyComponentDefinition = oDoc.ComponentDefinition
 
-    ' Update the document.
-    ThisApplication.ActiveDocument.Update
+    ' Get the occurrence to be demoted
+    Dim oOcc As ComponentOccurrence = oDef.Occurrences.Item(1)
+
+    ' Create a new sub-assembly to demote the occurrence into
+    Dim oNewSubAssy As AssemblyDocument = g_inventorApplication.Documents.Add(DocumentTypeEnum.kAssemblyDocumentObject,
+                                                                                      g_inventorApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kAssemblyDocumentObject),
+                                                                                      False)
+
+    Dim oMat As Matrix = g_inventorApplication.TransientGeometry.CreateMatrix
+
+    ' Create an instance of the new sub-assembly
+    Dim oSubAssyOcc As ComponentOccurrence = oDef.Occurrences.AddByComponentDefinition(oNewSubAssy.ComponentDefinition, oMat)
+
+    ' Get the model browser
+    Dim oPane As BrowserPane = oDoc.BrowserPanes.Item("Model")
+
+    ' Get the browser node that corresponds to the new sub-assembly occurrence
+    Dim oSubAssyNode As BrowserNode = oPane.GetBrowserNodeFromObject(oSubAssyOcc)
+
+    ' Get the last visible child node under the sub-assembly occurrence
+    Dim oTargetNode As BrowserNode = Nothing
+    Dim i As Long
+    For i = oSubAssyNode.BrowserNodes.Count To 1 Step -1
+        If oSubAssyNode.BrowserNodes.Item(i).Visible Then
+            oTargetNode = oSubAssyNode.BrowserNodes.Item(i)
+            Exit For
+        End If
+    Next
+    For Each occ As ComponentOccurrence In OccurrenceCollectionToDemote
+        ' Get the browser node that corresponds to the occurrence to be demoted
+        Dim oSourceNode As BrowserNode = oPane.GetBrowserNodeFromObject(occ)
+
+        ' Demote the occurrence
+        Call oPane.Reorder(oTargetNode, False, oSourceNode)
+    Next
+    oNewSubAssy.SaveAs(ResultsFolderName + NewAssemblyName + ".iam", False)
+    'return the new occurrence to the parent method so we can (hopefully) skip trying to find it!
+    newSubAssyOccurrence = oSubAssyOcc
 End Sub
+
+
+Sub MirrorDerivedPart(ByVal oPartDoc As Document, ByVal MirroringPlane As DerivedPartMirrorPlaneEnum)
+    'Dim oPartDoc As Document = g_inventorApplication.ActiveDocument
+    If oPartDoc.DocumentType <> DocumentTypeEnum.kPartDocumentObject Then Exit Sub
+
+    Dim oReferenceComps As ReferenceComponents = oPartDoc.ComponentDefinition.ReferenceComponents
+
+    Dim oDerivedPartComponent As DerivedPartComponent = oReferenceComps.DerivedPartComponents(1)
+
+    Dim oDerivedPartDefinition As DerivedPartDefinition = oDerivedPartComponent.Definition
+
+    If (TypeOf oDerivedPartDefinition Is DerivedPartUniformScaleDef) Then
+        Dim oDerPartUScaleDef As DerivedPartUniformScaleDef = oDerivedPartDefinition
+
+        If (oDerPartUScaleDef.MirrorPlane = DerivedPartMirrorPlaneEnum.kDerivedPartNoMirrorPlane) Then
+            Debug.Print("not mirrored - mirroring now")
+            oDerPartUScaleDef.MirrorPlane = MirroringPlane
+            'oDerPartUScaleDef.MirrorPlane = DerivedPartMirrorPlaneEnum.kDerivedPartMirrorPlaneXY
+            oDerivedPartComponent.Definition = oDerPartUScaleDef
+        Else
+            Debug.Print("mirrored un-mirrowing now")
+            oDerPartUScaleDef.MirrorPlane = DerivedPartMirrorPlaneEnum.kDerivedPartNoMirrorPlane
+            oDerivedPartComponent.Definition = oDerPartUScaleDef
+        End If
+    End If
+
+End Sub
+#End Region
 
 
 ''' <summary>
 ''' the Label class which makes passing of variables easy-peasy.
 ''' </summary>
 ''' <remarks></remarks>
-Class clsBalcony
-    Public PartNo As String
+Public Class Balcony
+    Private partnumber As String
+    Public Property PartNo() As String
+        Get
+            Return partnumber
+        End Get
+        Set(ByVal value As String)
+            partnumber = value
+        End Set
+    End Property
 
-    Public BayNumber As String
+    'Public ReadOnly PartNo As String
+    Private baynumber As String
+    Public Property BayNo() As String
+        Get
+            Return baynumber
+        End Get
+        Set(ByVal value As String)
+            baynumber = value
+        End Set
+    End Property
 
-    Public StackNumber As String 'can be empty!
+    'Public ReadOnly BayNumber As String
+    Private stacknumber As String
+    Public Property stackno() As String
+        Get
+            Return stacknumber
+        End Get
+        Set(ByVal value As String)
+            stacknumber = value
+        End Set
+    End Property
+    'Public ReadOnly StackNumber As String 'can be empty!
+    Private balconytype As String
+    Public Property BalconyTypeNum() As String
+        Get
+            Return balconytype
+        End Get
+        Set(ByVal value As String)
+            balconytype = value
+        End Set
+    End Property
 
-    Public BalconyType As String
+    'Public ReadOnly BalconyType As String
+    Private BNumber As String
+    Public Property BayNum() As String
+        Get
+            Return BNumber
+        End Get
+        Set(ByVal value As String)
+            BNumber = value
+        End Set
+    End Property
+    'Public ReadOnly Bnumber As String
+    Private DimensionA As Double
+    Public Property DimAFeatureFinCentre() As Double
+        Get
+            Return DimensionA
+        End Get
+        Set(ByVal value As Double)
+            DimensionA = value
+        End Set
+    End Property
+    'Public ReadOnly DimAFeatureFinCentres As Double
+    Private DimensionB As Double
+    Public Property DimBOverallBalconyLength() As Double
+        Get
+            Return DimensionB
+        End Get
+        Set(ByVal value As Double)
+            DimensionB = value
+        End Set
+    End Property
+    'Public ReadOnly DimBOverallBalconyLength As Double
+    Private SolidLeftPanel As Boolean
+    Public Property SolidLeft() As Boolean
+        Get
+            Return SolidLeftPanel
+        End Get
+        Set(ByVal value As Boolean)
+            SolidLeftPanel = value
+        End Set
+    End Property
+    'Public ReadOnly SolidLeft As Boolean
+    Private SolidRightPabel As Boolean
+    Public Property SolidRight() As Boolean
+        Get
+            Return SolidRightPabel
+        End Get
+        Set(ByVal value As Boolean)
+            SolidRightPabel = value
+        End Set
+    End Property
+    'Public ReadOnly SolidRight As Boolean
+    Private IsMirroredBool As Boolean
+    Public Property IsMirrored() As Boolean
+        Get
+            Return IsMirroredBool
+        End Get
+        Set(ByVal value As Boolean)
+            IsMirroredBool = value
+        End Set
+    End Property
+    'Public ReadOnly IsMirrored As Boolean
+    Private GlassBothBool As Boolean
+    Public Property Glassboth() As Boolean
+        Get
+            Return GlassBothBool
+        End Get
+        Set(ByVal value As Boolean)
+            GlassBothBool = value
+        End Set
+    End Property
+    'Public ReadOnly GlassBoth As Boolean
+    Private NumGlassPanels As Double
+    Private dimAFeatureFinCentres As Double
+    Private v As Object
 
-    Public Bnumber As String
-
-    Public DimAFeatureFinCentres As Double
-
-    Public DimBOverallBalconyLength As Double
-
-    Public Sub Init(m_partno As String,
-                    m_BayNumber As Double,
-                    m_StackNumber As String,
-                    m_DimAFeatureFinCentres As Double,
-                    m_DimBOverallBalconyLength As Double,
-                    m_BalconyType As String,
-                    m_Bnumber As String)
-        PartNo = m_partno
-        BayNumber = m_BayNumber
-        Bnumber = m_Bnumber
-        StackNumber = m_StackNumber
-        BalconyType = m_BalconyType
-        DimAFeatureFinCentres = m_DimAFeatureFinCentres
-        DimBOverallBalconyLength = m_DimBOverallBalconyLength
+    Public Sub New(partnumber As String, bayNumber As String, stackNumber As String, dimAFeatureFinCentres As Double, dimBOverallBalconyLength As Double, balconyType As String, bnumber As String, solidLeft As Boolean, solidRight As Boolean, ismirrored As Boolean, glassBoth As Boolean, numGlassPanels As Double)
+        PartNo = partnumber
+        BayNo = bayNumber
+        stackno = stackNumber
+        DimAFeatureFinCentre = dimAFeatureFinCentres
+        Me.DimBOverallBalconyLength = dimBOverallBalconyLength
+        BalconyTypeNum = balconyType
+        BayNo = bnumber
+        Me.SolidLeft = solidLeft
+        Me.SolidRight = solidRight
+        Me.IsMirrored = ismirrored
+        Me.Glassboth = glassBoth
+        Me.NumGlassPanels = numGlassPanels
     End Sub
+
+    Public Property NumPanels() As Double
+        Get
+            Return NumGlassPanels
+        End Get
+        Set(ByVal value As Double)
+            NumGlassPanels = value
+        End Set
+    End Property
+    'Public ReadOnly NumGlassPanels As Double
+
+    'Public Sub New(m_partno As String,
+    '                    m_BayNumber As Double,
+    '                    m_StackNumber As String,
+    '                    m_DimAFeatureFinCentres As Double,
+    '                    m_DimBOverallBalconyLength As Double,
+    '                    m_BalconyType As String,
+    '                    m_Bnumber As String,
+    '                m_solidleft As Boolean,
+    '                m_solidright As Boolean,
+    '                m_ismirrored As Boolean,
+    '                m_glassboth As Boolean,
+    '                m_numglasspanels As Double)
+    '    PartNo = m_partno
+    '    baynumber = m_BayNumber
+    '    BNumber = m_Bnumber
+    '    stacknumber = m_StackNumber
+    '    balconytype = m_BalconyType
+    '    DimAFeatureFinCentres = m_DimAFeatureFinCentres
+    '    DimBOverallBalconyLength = m_DimBOverallBalconyLength
+    '    SolidLeft = m_solidleft
+    '    SolidRight = m_solidright
+    '    IsMirroredBool = m_ismirrored
+    '    GlassBoth = m_glassboth
+    '    NumGlassPanels = m_numglasspanels
+    'End Sub
+
 End Class
