@@ -1,0 +1,123 @@
+﻿'http://modthemachine.typepad.com/my_weblog/2009/04/positioning-assembly-occurrences.html 2016-08-12 AF"
+
+''' <summary>
+''' Prior to running this tool something must be selected inside of the assembly modelling window.
+''' </summary>
+Public Sub Main()
+    Dim assemblydoc As AssemblyDocument = ThisApplication.ActiveDocument
+
+    ' Get the occurrences in the select set. 
+    Dim occurrenceList As New Collection
+    Dim entity As Object
+    For Each entity In assemblydoc.SelectSet
+        If TypeOf entity Is ComponentOccurrence Then
+            occurrenceList.Add(entity)
+        End If
+    Next
+
+    If occurrenceList.Count < 1 Then
+        MsgBox("At least one occurrence must be selected.")
+        Exit Sub
+    End If
+
+    ' This assumes the first selected occurrence is the "base" 
+    ' and will constrain the base workplanes of all the other parts 
+    ' to the base workplanes of the first part. If there are 
+    ' constraints on the other they end up being over constrained.
+
+    ' Get the planes from the base part and create proxies for them. 
+    Dim baseOccurrence As ComponentOccurrence = occurrenceList.Item(1)
+
+    Dim BaseXY As WorkPlane = Nothing
+    Dim BaseYZ As WorkPlane = Nothing
+    Dim BaseXZ As WorkPlane = Nothing
+    Call GetPlanesFromAssembly(assemblydoc.ComponentDefinition, BaseXY, BaseYZ, BaseXZ)
+
+    Dim constraints As AssemblyConstraints = assemblydoc.ComponentDefinition.Constraints
+
+    'need to enclose this next part inside a transaction so we have the option of rolling back the changes in one go, otherwise
+    'the Undo history doesn't always go far enough!
+    Dim GroundAndRootTr As Transaction = ThisApplication.TransactionManager.StartTransaction(assemblydoc, "Ground and Root Group")
+
+    Try
+        ' Iterate through the other occurrences 
+        Dim i As Integer
+        For i = 1 To occurrenceList.Count
+            Dim thisOcc As ComponentOccurrence = occurrenceList.Item(i)
+
+            ' Move it to the base occurrence so that if the base is 
+            ' not fully constrained it shouldn't move when the flush 
+            ' constraints are added. 
+            thisOcc.Transformation = baseOccurrence.Transformation
+
+            ' Get the planes from the occurrence 
+            Dim occPlaneXY As WorkPlane = Nothing
+            Dim occPlaneYZ As WorkPlane = Nothing
+            Dim occPlaneXZ As WorkPlane = Nothing
+            Call GetPlanesFromPart(thisOcc, occPlaneXY, occPlaneYZ, occPlaneXZ)
+
+            ' Add the flush constraints. 
+            Call constraints.AddFlushConstraint(BaseXY, occPlaneXY, 0)
+            Call constraints.AddFlushConstraint(BaseYZ, occPlaneYZ, 0)
+            Call constraints.AddFlushConstraint(BaseXZ, occPlaneXZ, 0)
+        Next
+
+    Catch ex As Exception
+        MsgBox("Unrecoverable error occurred during the operation" & vbCrLf & ex.Message)
+        GroundAndRootTr.Abort()
+        Exit Sub
+    Finally
+        GroundAndRootTr.End()
+    End Try
+End Sub
+
+''' <summary>
+''' Utility function used by the AlignOccurrencesWithConstraints macro. 
+''' Given an assembly component definition it returns the base work planes that are in 
+''' the part or assembly the occurrence references.  It gets the 
+''' proxies for the planes since it needs the work planes in the 
+''' context of the assembly and not in the part or assembly document 
+''' where they actually exist. 
+''' </summary>
+''' <param name="compDefinition"></param>
+''' <param name="baseXY"></param>
+''' <param name="baseYZ"></param>
+''' <param name="baseXZ"></param>
+Private Shared Sub GetPlanesFromAssembly(ByVal compDefinition As AssemblyComponentDefinition, ByRef baseXY As WorkPlane, ByRef baseYZ As WorkPlane, ByRef baseXZ As WorkPlane)
+    baseXY = compDefinition.WorkPlanes.Item(3)
+    baseYZ = compDefinition.WorkPlanes.Item(1)
+    baseXZ = compDefinition.WorkPlanes.Item(2)
+End Sub
+
+
+
+''' <summary>
+''' Utility function used by the AlignOccurrencesWithConstraints macro. 
+''' Given an occurrence it returns the base work planes that are in 
+''' the part or assembly the occurrence references.  It gets the 
+''' proxies for the planes since it needs the work planes in the 
+''' context of the assembly and not in the part or assembly document 
+''' where they actually exist. 
+''' </summary>
+''' <param name="Occurrence"></param>
+''' <param name="BaseXY"></param>
+''' <param name="BaseYZ"></param>
+''' <param name="BaseXZ"></param>
+Private Shared Sub GetPlanesFromPart(ByVal Occurrence As ComponentOccurrence,
+                      ByRef BaseXY As WorkPlane,
+                      ByRef BaseYZ As WorkPlane,
+                      ByRef BaseXZ As WorkPlane)
+    ' Get the work planes from the definition of the occurrence. 
+    ' These will be in the context of the part or subassembly, not  
+    ' the top-level assembly, which is what we need to return. 
+    BaseXY = Occurrence.Definition.WorkPlanes.Item(3)
+    BaseYZ = Occurrence.Definition.WorkPlanes.Item(1)
+    BaseXZ = Occurrence.Definition.WorkPlanes.Item(2)
+
+    ' Create proxies for these planes.  This will act as the work 
+    ' plane in the context of the top-level assembly. 
+    Call Occurrence.CreateGeometryProxy(BaseXY, BaseXY)
+    Call Occurrence.CreateGeometryProxy(BaseYZ, BaseYZ)
+    Call Occurrence.CreateGeometryProxy(BaseXZ, BaseXZ)
+End Sub
+

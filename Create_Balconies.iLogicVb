@@ -112,20 +112,38 @@ Private Sub Main(Context As NameValueMap)
             Dim IsMirrored As Boolean = IIf(SolidRight, True, False)
             Dim GlassBoth As Boolean = IIf(range.Cells(ExcelRow, 9).Value2 = "GlassBoth", True, False) 'Column I
             Dim NumGlassPanels As Double = Convert.ToDouble(range.Cells(ExcelRow, 10).Value2) 'Column J
+            Dim ElecFeedFromBuildingDim As Double = Convert.ToDouble(range.Cells(ExcelRow, 11).Value2) 'Column K
+            Dim FirstDeckingHoleDim As Double = Convert.ToDouble(range.Cells(ExcelRow, 12).Value2) 'Column L
+            Dim LightingPositionBoardNum As Integer = Convert.ToInt32(range.Cells(ExcelRow, 13).value2) 'Column M
 
-            Dim tmpbalcony As Balcony
-            tmpbalcony = New Balcony(partnumber,
-                                             BayNumber,
-                                             StackNumber,
-                                             DimAFeatureFinCentres,
-                                             DimBOverallBalconyLength,
-                                             BalconyType,
-                                             Bnumber,
-                                             SolidLeft,
-                                             SolidRight,
-                                             IsMirrored,
-                                             GlassBoth,
-                                             NumGlassPanels)
+            Dim tmpbalcony As New Balcony() With {
+                        .PartNo = partnumber,
+                        .BayNo = BayNumber,
+                        .BayNum = BayNumber,
+                        .DimBOverallBalconyLength = DimBOverallBalconyLength,
+                        .DimAFeatureFinCentre = DimAFeatureFinCentres,
+                        .ElectricalFeedFromBuildingDim = ElecFeedFromBuildingDim,
+                        .Glassboth = GlassBoth,
+                        .IsMirrored = IsMirrored,
+                        .FirstDeckingHoleFromCassetteEdgeDim = FirstDeckingHoleDim,
+                        .NumPanels = NumGlassPanels,
+                        .SolidLeft = SolidLeft,
+                        .SolidRight = SolidRight,
+                        .stackno = StackNumber,
+                        .LightingPositionBoardNumFromOuterEdge = LightingPositionBoardNum,
+                        .BalconyTypeNum = BalconyType}
+            'tmpbalcony = New Balcony(partnumber,
+            '                         BayNumber,
+            '                         StackNumber,
+            '                         DimAFeatureFinCentres,
+            '                         DimBOverallBalconyLength,
+            '                         BalconyType,
+            '                         Bnumber,
+            '                         SolidLeft,
+            '                         SolidRight,
+            '                         IsMirrored,
+            '                         GlassBoth,
+            '                         NumGlassPanels)
 
             TmpBalconyList.Add(tmpbalcony)
         Next
@@ -135,35 +153,43 @@ Private Sub Main(Context As NameValueMap)
 
         For Each tmpbalcony As Balcony In TmpBalconyList
             If tmpbalcony.SolidLeft Then
-                Dim leftbalcony As New Balcony(tmpbalcony.PartNo,
-                                             tmpbalcony.BayNum,
-                                             tmpbalcony.stackno,
-                                             tmpbalcony.DimAFeatureFinCentre,
-                                             tmpbalcony.DimBOverallBalconyLength,
-                                             tmpbalcony.BalconyTypeNum,
-                                             tmpbalcony.BayNo,
-                                             tmpbalcony.SolidLeft,
-                                             tmpbalcony.SolidRight,
-                                             tmpbalcony.IsMirrored,
-                                             tmpbalcony.Glassboth,
-                                             tmpbalcony.NumPanels)
+                Dim leftbalcony As New Balcony() With {
+                            .PartNo = tmpbalcony.PartNo,
+                            .BayNum = tmpbalcony.BayNum,
+                            .stackno = tmpbalcony.stackno,
+                            .DimAFeatureFinCentre = tmpbalcony.DimAFeatureFinCentre,
+                            .DimBOverallBalconyLength = tmpbalcony.DimBOverallBalconyLength,
+                            .BalconyTypeNum = tmpbalcony.BalconyTypeNum,
+                            .BayNo = tmpbalcony.BayNo,
+                            .SolidLeft = tmpbalcony.SolidLeft,
+                            .SolidRight = tmpbalcony.SolidRight,
+                            .IsMirrored = tmpbalcony.IsMirrored,
+                            .Glassboth = tmpbalcony.Glassboth,
+                            .NumPanels = tmpbalcony.NumPanels,
+                            .FirstDeckingHoleFromCassetteEdgeDim = tmpbalcony.FirstDeckingHoleFromCassetteEdgeDim,
+                            .LightingPositionBoardNumFromOuterEdge = tmpbalcony.LightingPositionBoardNumFromOuterEdge,
+                            .ElectricalFeedFromBuildingDim = tmpbalcony.ElectricalFeedFromBuildingDim}
                 leftbalcony.IsMirrored = False
                 leftbalcony.PartNo = leftbalcony.PartNo & "-L"
                 leftbalcony.Glassboth = False
                 BalconyList.Add(leftbalcony)
             ElseIf tmpbalcony.SolidRight Then
-                Dim rightbalcony As New Balcony(tmpbalcony.PartNo,
-                                             tmpbalcony.BayNum,
-                                             tmpbalcony.stackno,
-                                             tmpbalcony.DimAFeatureFinCentre,
-                                             tmpbalcony.DimBOverallBalconyLength,
-                                             tmpbalcony.BalconyTypeNum,
-                                             tmpbalcony.BayNo,
-                                             tmpbalcony.SolidLeft,
-                                             tmpbalcony.SolidRight,
-                                             tmpbalcony.IsMirrored,
-                                             tmpbalcony.Glassboth,
-                                             tmpbalcony.NumPanels)
+                Dim rightbalcony As New Balcony() With {
+                            .PartNo = tmpbalcony.PartNo,
+                            .BayNum = tmpbalcony.BayNum,
+                            .stackno = tmpbalcony.stackno,
+                            .DimAFeatureFinCentre = tmpbalcony.DimAFeatureFinCentre,
+                            .DimBOverallBalconyLength = tmpbalcony.DimBOverallBalconyLength,
+                            .BalconyTypeNum = tmpbalcony.BalconyTypeNum,
+                            .BayNo = tmpbalcony.BayNo,
+                            .SolidLeft = tmpbalcony.SolidLeft,
+                            .SolidRight = tmpbalcony.SolidRight,
+                            .IsMirrored = tmpbalcony.IsMirrored,
+                            .Glassboth = tmpbalcony.Glassboth,
+                            .NumPanels = tmpbalcony.NumPanels,
+                            .FirstDeckingHoleFromCassetteEdgeDim = tmpbalcony.FirstDeckingHoleFromCassetteEdgeDim,
+                            .LightingPositionBoardNumFromOuterEdge = tmpbalcony.LightingPositionBoardNumFromOuterEdge,
+                            .ElectricalFeedFromBuildingDim = tmpbalcony.ElectricalFeedFromBuildingDim}
                 rightbalcony.IsMirrored = True
                 rightbalcony.PartNo = rightbalcony.PartNo & "-R"
                 rightbalcony.Glassboth = False
@@ -171,18 +197,22 @@ Private Sub Main(Context As NameValueMap)
 
             End If
             'add glassboth variant to balconylist
-            Dim glassbothbalcony As New Balcony(tmpbalcony.PartNo,
-                                             tmpbalcony.BayNum,
-                                             tmpbalcony.stackno,
-                                             tmpbalcony.DimAFeatureFinCentre,
-                                             tmpbalcony.DimBOverallBalconyLength,
-                                             tmpbalcony.BalconyTypeNum,
-                                             tmpbalcony.BayNo,
-                                             tmpbalcony.SolidLeft,
-                                             tmpbalcony.SolidRight,
-                                             tmpbalcony.IsMirrored,
-                                             tmpbalcony.Glassboth,
-                                             tmpbalcony.NumPanels)
+            Dim glassbothbalcony As New Balcony() With {
+                            .PartNo = tmpbalcony.PartNo,
+                            .BayNum = tmpbalcony.BayNum,
+                            .stackno = tmpbalcony.stackno,
+                            .DimAFeatureFinCentre = tmpbalcony.DimAFeatureFinCentre,
+                            .DimBOverallBalconyLength = tmpbalcony.DimBOverallBalconyLength,
+                            .BalconyTypeNum = tmpbalcony.BalconyTypeNum,
+                            .BayNo = tmpbalcony.BayNo,
+                            .SolidLeft = tmpbalcony.SolidLeft,
+                            .SolidRight = tmpbalcony.SolidRight,
+                            .IsMirrored = tmpbalcony.IsMirrored,
+                            .Glassboth = tmpbalcony.Glassboth,
+                            .NumPanels = tmpbalcony.NumPanels,
+                            .FirstDeckingHoleFromCassetteEdgeDim = tmpbalcony.FirstDeckingHoleFromCassetteEdgeDim,
+                            .LightingPositionBoardNumFromOuterEdge = tmpbalcony.LightingPositionBoardNumFromOuterEdge,
+                            .ElectricalFeedFromBuildingDim = tmpbalcony.ElectricalFeedFromBuildingDim}
             glassbothbalcony.SolidRight = False
             glassbothbalcony.SolidLeft = False
             glassbothbalcony.IsMirrored = False
@@ -194,7 +224,19 @@ Private Sub Main(Context As NameValueMap)
         UpdateStatusBar("List of Balconies to create = " & BalconyList.Count & " Long")
 
         'uses the Excel data.
+        Dim OddsorEvens As Integer = 1
+
         For Each balcony As Balcony In BalconyList
+            'this allows us to run the automation silently on different machines with no risk of clashing files.
+            If Not My.Settings.BalconyCreationProcessOddsOnly Then
+                If OddsorEvens Mod 2 = 0 Then
+                    'even
+                    OddsorEvens += 1
+                    Continue For
+                Else
+                    OddsorEvens += 1
+                End If
+            End If
             If Not My.Settings.BalconyCreationRunWithoutPrompts Then
                 result = MessageBox.Show("Skip this balcony: " & balcony.PartNo, "Skip or not?", MessageBoxButtons.YesNo)
                 If result = DialogResult.Yes Then
@@ -206,20 +248,38 @@ Private Sub Main(Context As NameValueMap)
 
             'need to map relevant class objects to Inventor Parameters.
             SetParameter(My.Settings.BalconyLengthParamName, balcony.DimBOverallBalconyLength)
+            'setting the newly identified parameters that drive our decking slot positions, lighting positions and electrical feed positions.
+            SetParameter(My.Settings.BalconyFirstDeckingHoleFromCassetteEdgeParamName, balcony.FirstDeckingHoleFromCassetteEdgeDim)
+            SetParameter(My.Settings.BalconyLightingPositionBoardNumFromOuterEdgeParamName, balcony.LightingPositionBoardNumFromOuterEdge)
+
+            ' need to reverse the dimension here if solidright so that it is from the other end.
+            If balcony.SolidRight Then
+                SetParameter(My.Settings.BalconyElectricalFeedFromBuildingParamName,
+                                     GetParameter("OverallCassetteLength").Expression &
+                                     " - " &
+                                     balcony.ElectricalFeedFromBuildingDim.ToString() & " mm")
+            Else
+                SetParameter(My.Settings.BalconyElectricalFeedFromBuildingParamName, balcony.ElectricalFeedFromBuildingDim)
+            End If
+
+
 
             Select Case balcony.BalconyTypeNum
                 Case My.Settings.BalconyT1Params(0) 'T1
                     SetParameter(My.Settings.BalconyNumArmsParamName, My.Settings.BalconyT1Params(1))
                     SetParameter(My.Settings.BalconyArmSpacingParamName, My.Settings.BalconyT1Params(2))
                     SetParameter(My.Settings.BalconyC5ArmHoleParamName, GetParameter("T1ArmSpacing").Expression)
+
                 Case My.Settings.BalconyT2Params(0) 'T2
                     SetParameter(My.Settings.BalconyNumArmsParamName, My.Settings.BalconyT2Params(1))
                     SetParameter(My.Settings.BalconyArmSpacingParamName, My.Settings.BalconyT2Params(2))
                     SetParameter(My.Settings.BalconyC5ArmHoleParamName, GetParameter("T2ArmSpacing").Expression)
+
                 Case My.Settings.BalconyT3Params(0) 'T3
                     SetParameter(My.Settings.BalconyNumArmsParamName, My.Settings.BalconyT3Params(1))
                     SetParameter(My.Settings.BalconyArmSpacingParamName, My.Settings.BalconyT3Params(2))
                     SetParameter(My.Settings.BalconyC5ArmHoleParamName, GetParameter("T3ArmSpacing").Expression)
+
                 Case Else
                     'nothing
             End Select
@@ -261,7 +321,9 @@ Private Sub Main(Context As NameValueMap)
             Dim oMessageSection As MessageSection = oErrorMgr.StartMessageSection
             'only continue if we have zero errors or warnings
             If Not oMessageSection.HasErrors Or Not oMessageSection.HasWarnings Then
-                MakeComponentsProgrammatically(ThisDoc, ResultsFolder, BalconyIsMirrored, GlassBothSides, balcony)
+                If Not My.Settings.BalconySkipComponentCreation Then
+                    MakeComponentsProgrammatically(ThisDoc, ResultsFolder, BalconyIsMirrored, GlassBothSides, balcony)
+                End If
             End If
             ' End section by clearing all messages in section
             oMessageSection.ClearMessages()
@@ -477,13 +539,22 @@ Sub BuildandPlaceSurfaceBodies(ByVal ThisPart As PartDocument,
             Zaxis = .WorkAxes(3)
         End With
 
+        'base work planes
 
+        Dim XYPlane As WorkPlane = Nothing
+        Dim YZPlane As WorkPlane = Nothing
+        Dim XZPlane As WorkPlane = Nothing
+        With ThisAssembly.ComponentDefinition
+            XYPlane = .WorkPlanes.Item("XY Plane")
+            YZPlane = .WorkPlanes.Item("YZ Plane")
+            XZPlane = .WorkPlanes.Item("XZ Plane")
+        End With
 
 
         For i As Integer = 1 To ThisPart.ComponentDefinition.SurfaceBodies.Count
             Dim surfacebody As SurfaceBody = ThisPart.ComponentDefinition.SurfaceBodies.Item(i)
             Dim surfaceBodyName As String = surfacebody.Name
-            If surfaceBodyName.StartsWith("Solid") Then
+            If surfaceBodyName.StartsWith("Solid") Or surfaceBodyName.Contains("Source") Then
                 Continue For
             End If
             ' Create part for each body
@@ -587,24 +658,37 @@ Sub BuildandPlaceSurfaceBodies(ByVal ThisPart As PartDocument,
                 'add the desired occurrence to be patterned
                 objCol.Add(oOcc1)
                 'uncomment when the one above works correctly!
-                Call ThisAssembly.ComponentDefinition.OccurrencePatterns.AddRectangularPattern(objCol,
+
+                Dim rectangpattern As RectangularOccurrencePattern = ThisAssembly.ComponentDefinition.OccurrencePatterns.AddRectangularPattern(objCol,
                                                                                                            XAxis,
                                                                                                            False,
-                                                                                                           GetParameter(My.Settings.T1BalconySpineFixingHoleParamName).Expression,
+                                                                                                           GetParameter(My.Settings.T1BalconyShortSpineXSpacingParamName).Expression,
                                                                                                            2)
-            ElseIf surfaceBodyName = "ShortSpineLeft" Then
+                Dim PatternToMirror As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+                'not really sure how this is supposed to work, pending replies to this thread:
+                'http://forums.autodesk.com/t5/inventor-customization/how-to-mirror-a-pattern-in-an-assembly/td-p/6552326
+                'PatternToMirror.Add(rectangpattern)
+                'Dim mirroredpattern As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
+                'For Each patternedoccurrence As OccurrencePatternElement In rectangpattern.OccurrencePatternElements
+                'mirroredpattern.Add(patternedoccurrence.Occurrences)
+                'MirrorPartInAssy(ThisAssembly, YZPlane, patternedoccurrence.Occurrences.Item(1))
+                'Next
+
+
+
+            ElseIf surfaceBodyName = "ShortSpineLeft" Or surfaceBodyName = "ShortSpineRight" Then
                 Dim objCol As ObjectCollection = g_inventorApplication.TransientObjects.CreateObjectCollection
                 'add the desired occurrence to be patterned
                 objCol.Add(oOcc1)
                 'uncomment when the one above works correctly!
                 Call ThisAssembly.ComponentDefinition.OccurrencePatterns.AddRectangularPattern(objCol,
-                                                                                                           XAxis,
+                                                                                                           YAxis,
                                                                                                            True,
                                                                                                            GetParameter(My.Settings.T1BalconySpineFixingHoleParamName).Expression,
                                                                                                            My.Settings.BalconyConnectingPlateCount)
             ElseIf surfaceBodyName = "LongSpineB1" Then
                 'could in theory skip this and use a circular pattern provided the origin axis is centred to the mid-point of the spine?
-                MirrorPartInAssy(ThisAssembly, ThisAssembly.ComponentDefinition.WorkPlanes.Item(1), oOcc1) 'workplanes.item(1) = YZ
+                MirrorPartInAssy(ThisAssembly, YZPlane, oOcc1) 'workplanes.item(1) = YZ
             End If
             ' Don't need it anymore
             Call partdocument.Close()
@@ -805,7 +889,6 @@ Sub MirrorDerivedPart(ByVal oPartDoc As Document, ByVal MirroringPlane As Derive
 End Sub
 #End Region
 
-
 ''' <summary>
 ''' the Label class which makes passing of variables easy-peasy.
 ''' </summary>
@@ -923,25 +1006,57 @@ Public Class Balcony
             GlassBothBool = value
         End Set
     End Property
+
+    Private ElecFeedFromBuilding As Double
+    Public Property ElectricalFeedFromBuildingDim As Double
+        Get
+            Return ElecFeedFromBuilding
+        End Get
+        Set(ByVal value As Double)
+            ElecFeedFromBuilding = value
+        End Set
+    End Property
+
+    Private lightingPositionBoardNum As Int32
+    Public Property LightingPositionBoardNumFromOuterEdge() As Int32
+        Get
+            Return lightingPositionBoardNum
+        End Get
+        Set(ByVal value As Int32)
+            lightingPositionBoardNum = value
+        End Set
+    End Property
+
+    Private lightpositionfromFasciaEdge As Double
+    Public Property FirstDeckingHoleFromCassetteEdgeDim() As Double
+        Get
+            Return lightpositionfromFasciaEdge
+        End Get
+        Set(ByVal value As Double)
+            lightpositionfromFasciaEdge = value
+        End Set
+    End Property
+
+
     'Public ReadOnly GlassBoth As Boolean
     Private NumGlassPanels As Double
     Private dimAFeatureFinCentres As Double
     Private v As Object
 
-    Public Sub New(partnumber As String, bayNumber As String, stackNumber As String, dimAFeatureFinCentres As Double, dimBOverallBalconyLength As Double, balconyType As String, bnumber As String, solidLeft As Boolean, solidRight As Boolean, ismirrored As Boolean, glassBoth As Boolean, numGlassPanels As Double)
-        PartNo = partnumber
-        BayNo = bayNumber
-        stackno = stackNumber
-        DimAFeatureFinCentre = dimAFeatureFinCentres
-        Me.DimBOverallBalconyLength = dimBOverallBalconyLength
-        BalconyTypeNum = balconyType
-        BayNo = bnumber
-        Me.SolidLeft = solidLeft
-        Me.SolidRight = solidRight
-        Me.IsMirrored = ismirrored
-        Me.Glassboth = glassBoth
-        Me.NumGlassPanels = numGlassPanels
-    End Sub
+    'Public Sub New(partnumber As String, bayNumber As String, stackNumber As String, dimAFeatureFinCentres As Double, dimBOverallBalconyLength As Double, balconyType As String, bnumber As String, solidLeft As Boolean, solidRight As Boolean, ismirrored As Boolean, glassBoth As Boolean, numGlassPanels As Double)
+    '    PartNo = partnumber
+    '    BayNo = bayNumber
+    '    stackno = stackNumber
+    '    DimAFeatureFinCentre = dimAFeatureFinCentres
+    '    Me.DimBOverallBalconyLength = dimBOverallBalconyLength
+    '    BalconyTypeNum = balconyType
+    '    BayNo = bnumber
+    '    Me.SolidLeft = solidLeft
+    '    Me.SolidRight = solidRight
+    '    Me.IsMirrored = ismirrored
+    '    Me.Glassboth = glassBoth
+    '    Me.NumGlassPanels = numGlassPanels
+    'End Sub
 
     Public Property NumPanels() As Double
         Get

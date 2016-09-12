@@ -1,0 +1,31 @@
+﻿Public Class PartsandAssemblies
+
+    Friend Shared Function GetParameterCount(thisAssy As AssemblyDocument) As String
+        Dim oParams As Inventor.Parameters = thisAssy.ComponentDefinition.Parameters
+        Return oParams.count
+    End Function
+
+    Friend Shared Function GetFeatureCount(subAssy As AssemblyDocument) As String
+        Dim oFeats As Features = subAssy.ComponentDefinition.Features
+        Return oFeats.Count
+    End Function
+
+    Friend Shared Function GetOccurrenceCount(thisAssy As AssemblyDocument) As String
+        Dim Occs As ComponentOccurrences = thisAssy.ComponentDefinition.Occurrences
+        Return Occs.Count
+    End Function
+
+    Friend Shared Function GetConstraintCount(thisAssy As AssemblyDocument) As String
+        Return thisAssy.ComponentDefinition.Constraints.Count
+    End Function
+
+    Friend Shared Function GetParameterCount(thispart As PartDocument) As String
+        Dim oParams As Inventor.Parameters = thispart.ComponentDefinition.Parameters
+        Return oParams.Count
+    End Function
+
+    Friend Shared Function GetFeatureCount(thispart As PartDocument) As String
+        Dim oFeats As PartFeatures = thispart.ComponentDefinition.Features
+        Return oFeats.Count
+    End Function
+End Class
