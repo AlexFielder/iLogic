@@ -142,6 +142,7 @@
     <None Include="Turn View Labels on.iLogicVb" />
     <None Include="under constrained sketches.iLogicVb" />
     <None Include="UpdatedCurrentlyOpenDocuments.iLogicVb" />
+    <None Include="Useful Classes\iProperties.iLogicVb" />
     <None Include="Workplane Grid Creator.iLogicVb" />
   </ItemGroup>
   <!-- modified by AF to attempt a change to a VisualBasic template structure -->
