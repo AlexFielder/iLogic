@@ -47,7 +47,7 @@ Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
     Dim foldername As String = folderbrowser.selectedpath
     If Not foldername = String.Empty Then
         'now we can get/create a list of part files
-        Dim rulename As String = SelectRuleToProcessPartsWith("C:\Users\alex.fielder\Dropbox\iLogic\")
+        Dim rulename As String = SelectRuleToProcessPartsWith(getDropBoxFolderPath() & "\iLogic\")
         If Not rulename = String.Empty Then
             Dim directory As New System.IO.DirectoryInfo(foldername)
             Dim partlisttoprocess As System.Collections.Generic.IEnumerable(Of fileinfo) = GetFilesByExtensions(directory, ".ipt")
@@ -114,7 +114,8 @@ Public Function GetFilesByExtensions(dir As DirectoryInfo, ParamArray extensions
     If extensions Is Nothing Then
         Throw New ArgumentNullException("extensions")
     End If
-    Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) OrElse Not (s.FullName.contains("OldVersions")))
+    Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) And Not (s.FullName.contains("OldVersions")))
+    'Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) OrElse Not (s.FullName.contains("OldVersions")))
     'Return files
     Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension))
 End Function
@@ -155,4 +156,26 @@ Private Shared Function getOneDriveFolderPath() As String
     Dim path3 = TryCast(value3, String)
     If path3 IsNot Nothing AndAlso System.IO.Directory.Exists(path3) Then Return path3
     Return Nothing
+End Function
+
+Private Shared Function getDropBoxFolderPath() As String
+    Dim infoPath = "Dropbox\info.json"
+    'Dim Appdata As String = Environment.SpecialFolder.LocalApplicationData
+    Dim jsonPath As String = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), infoPath)
+    'Dim jsonPath = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), infoPath)
+    'debug only
+    messagebox.show(jsonPath)
+    If Not System.IO.File.Exists(jsonPath) Then
+        jsonPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), infoPath)
+        'jsonPath = Path.Combine(Environment.GetEnvironmentVariable("AppData"), infoPath)
+    End If
+    'debug only
+    messagebox.show(jsonPath)
+
+    If Not System.IO.File.Exists(jsonPath) Then
+        Throw New Exception("Dropbox could not be found!")
+    End If
+
+    Dim dropboxPath As String = System.IO.File.ReadAllText(jsonPath).Split(""""c)(5).Replace("\\", "\")
+    Return dropboxPath
 End Function
