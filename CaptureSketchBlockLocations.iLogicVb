@@ -6,56 +6,72 @@ Imports System.IO
 Imports System.Linq
 
 Public Sub Main()
-    'user feedback:
-    Dim sw As New Stopwatch()
-    sw.Start()
-    Dim progressint As Integer = 1
+    If Not RuleArguments.Exists("Filename") Then
 
-    Dim percent As Double = Nothing
 
-    Dim partlist As list(Of Document) = (From a As document In thisapplication.activedocument.allreferenceddocuments
-                                         Where TypeOf a Is partdocument
-                                         Select a).ToList()
-    Dim totalnumreferenceddocuments As Integer = partlist.count
-    For Each subdoc As document In partlist
-        percent = (CDbl(progressint) / totalnumreferenceddocuments)
-        progressint += 1
-        If TypeOf subdoc Is PartDocument Then
-            If Not subdoc.File.FullFileName.Contains("Content") Then 'skip CC and FACILITY files
-                If Not subdoc.File.fullfilename.contains("FACILITY") Then
-                    updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(subdoc.File.fullfilename))
-                    Dim oSketchBlocks As SketchBlockDefinitions = subdoc.ComponentDefinition.SketchBlockDefinitions
-                    If oSketchBlocks.Count > 0 Then
-                        SetorCreateCustomiProperty(subdoc, "SKETCHBLOCKPRESENT", True)
-                        'iProperties.Value("Custom", "SKETCHBLOCKPRESENT") = True
-                        SetorCreateCustomiProperty(subdoc, "SKETCHBLOCKCOUNT", oSketchBlocks.Count.ToString())
-                        'iProperties.Value("Custom", "NUMSKETCHBLOCKS") = oSketchBlocks.Count
+        'user feedback:
+        Dim sw As New Stopwatch()
+        sw.Start()
+        Dim progressint As Integer = 1
+
+        Dim percent As Double = Nothing
+
+        Dim partlist As list(Of Document) = (From a As document In ThisApplication.activedocument.allreferenceddocuments
+                                             Where TypeOf a Is partdocument
+                                             Select a).ToList()
+        Dim totalnumreferenceddocuments As Integer = partlist.count
+        For Each subdoc As document In partlist
+            percent = (CDbl(progressint) / totalnumreferenceddocuments)
+            progressint += 1
+            If TypeOf subdoc Is PartDocument Then
+                If Not subdoc.File.FullFileName.Contains("Content") Then 'skip CC and FACILITY files
+                    If Not subdoc.File.fullfilename.contains("FACILITY") Then
+                        updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(subdoc.File.fullfilename))
+                        Dim oSketchBlocks As SketchBlockDefinitions = subdoc.ComponentDefinition.SketchBlockDefinitions
+                        If oSketchBlocks.Count > 0 Then
+                            SetorCreateCustomiProperty(subdoc, "SKETCHBLOCKPRESENT", True)
+                            'iProperties.Value("Custom", "SKETCHBLOCKPRESENT") = True
+                            SetorCreateCustomiProperty(subdoc, "SKETCHBLOCKCOUNT", oSketchBlocks.Count.ToString())
+                            'iProperties.Value("Custom", "NUMSKETCHBLOCKS") = oSketchBlocks.Count
+                            ThisApplication.ActiveDocument.Save()
+                        End If
                     End If
                 End If
-            End If
-            'no need to bother with sub assemblies since we are using the "AllReferencedDocuments" collection but we'll leave it here anyway.
-        ElseIf TypeOf subdoc Is AssemblyDocument Then
+                'no need to bother with sub assemblies since we are using the "AllReferencedDocuments" collection but we'll leave it here anyway.
+            ElseIf TypeOf subdoc Is AssemblyDocument Then
 
+            End If
+        Next
+        'If TypeOf ThisDoc.Document Is PartDocument Then
+        '    SketchBlockCapture(ThisDoc.Document)
+        'Else
+        '    RunSketchBlockCapture(ThisDoc.Document)
+        'End If
+        ' MessageBox.Show("Done!")
+        sw.Stop()
+        Dim timeElapsed As Timespan = sw.elapsed
+        MessageBox.Show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                                            timeElapsed.Hours,
+                                                            timeElapsed.Minutes,
+                                                            timeElapsed.Seconds,
+                                                            timeElapsed.Milliseconds / 10))
+        'MessageBox.Show("Operation took: " & GetTime(sw.Elapsed.Seconds) & " to complete.")
+    Else
+        'this rule is being run from another processing rule.
+        'This means we can simply skip the list creation blah blah and get right to the sketch block present & count variables.
+        Dim oSketchBlocks As SketchBlockDefinitions = ThisApplication.ActiveDocument.ComponentDefinition.SketchBlockDefinitions
+        If oSketchBlocks.Count > 0 Then
+            SetorCreateCustomiProperty(ThisApplication.ActiveDocument, "SKETCHBLOCKPRESENT", True)
+            'iProperties.Value("Custom", "SKETCHBLOCKPRESENT") = True
+            SetorCreateCustomiProperty(ThisApplication.ActiveDocument, "SKETCHBLOCKCOUNT", oSketchBlocks.Count.ToString())
+            'iProperties.Value("Custom", "NUMSKETCHBLOCKS") = oSketchBlocks.Count
+            ThisApplication.ActiveDocument.Save()
         End If
-    Next
-    'If TypeOf ThisDoc.Document Is PartDocument Then
-    '    SketchBlockCapture(ThisDoc.Document)
-    'Else
-    '    RunSketchBlockCapture(ThisDoc.Document)
-    'End If
-    ' MessageBox.Show("Done!")
-    sw.Stop()
-    Dim timeElapsed As Timespan = sw.elapsed
-    messagebox.show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                                                        timeElapsed.Hours,
-                                                        timeElapsed.Minutes,
-                                                        timeElapsed.Seconds,
-                                                        timeElapsed.Milliseconds / 10))
-    'MessageBox.Show("Operation took: " & GetTime(sw.Elapsed.Seconds) & " to complete.")
+    End If
 End Sub
 
 Sub updatestatusbar(ByVal message As String)
-    thisApplication.statusbartext = message
+    ThisApplication.statusbartext = message
 End Sub
 
 Sub updatestatusbar(ByVal percent As Double, ByVal message As String)

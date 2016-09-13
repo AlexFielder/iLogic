@@ -1,5 +1,5 @@
-﻿AddReference "System.Core"
-AddReference "System.Linq"
+﻿addReference "System.Core"
+addReference "System.Linq"
 'addreference "Microsoft.Win32"
 
 Imports Inventor
@@ -10,15 +10,18 @@ Imports System.Windows.Forms
 Imports System.Collections.Generic
 Imports Microsoft.Win32
 
+''' <summary>
+''' 
+''' </summary>
 Public Sub Main()
     'user feedback tools start
     Dim sw As New Stopwatch()
     sw.Start()
 
     Dim IncludeSubFolders As Boolean = True
-    
 
-	ProcessPartsinFolder(IncludeSubFolders)
+
+    ProcessPartsinFolder(IncludeSubFolders)
     sw.Stop()
     Dim timeElapsed As Timespan = sw.elapsed
     MessageBox.Show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
@@ -29,6 +32,10 @@ Public Sub Main()
 
 End Sub
 
+''' <summary>
+''' Prompts the user to select a folder then processes the part files contained within
+''' </summary>
+''' <param name="includeSubfolders"></param>
 Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
     Dim iLogicAuto As Object = GetiLogicAutomation(ThisApplication)
     Dim folderbrowser As New System.Windows.Forms.FolderBrowserDialog()
@@ -54,12 +61,15 @@ Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
                     percent = (CDbl(progressint) / partlisttoprocess.Count)
                     progressint += 1
 
-                    Dim partdocument As partdocument = ThisApplication.documents.Open(partfile.fullname)
+                    Dim partdoc As partdocument = ThisApplication.documents.Open(partfile.fullname)
 
-                    updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(partdocument.File.fullfilename))
+                    updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(partdoc.File.fullfilename))
                     'insert the name of the external rule you wish to run here:
-                    iLogicAuto.RunExternalRule(partdocument, rulename)
-                    partdocument.Close()
+                    'iLogicAuto.RunExternalRule(partdocument, rulename)
+                    Dim Args As NameValueMap = thisapplication.transientobjects.createnamevaluemap
+                    Args.Value("Filename") = partdoc.fullfilename
+                    iLogicAuto.RunExternalRuleWithArguments(partdoc, rulename, Args)
+                    partdoc.Close()
                 Next
             End If
         End If
@@ -90,15 +100,6 @@ Public Function SelectRuleToProcessPartsWith(ByVal InventorExternalRulesFolderPa
     Next
     Dim selectedfile As String = InputListBox("Prompt", RulesList, "", Title:="Select Rule from this list", ListName:="Available External Rules")
 
-
-    'Dim FolderName As String = InventorExternalRulesFolderPath
-    'Dim selectedfile As String = String.Empty
-    'Dim oFileDlg As inventor.FileDialog = Nothing
-    'InventorVb.Application.CreateFileDialog(oFileDlg)
-    'oFileDlg.Filter = "iLogicVb files (*.iLogicVb)|*.iLogicVb|Vb files (*.vb)|*.vb|Other files (*.*)|*.*"
-    'oFileDlg.InitialDirectory = FolderName
-    'oFileDlg.CancelError = True
-    'oFileDlg.MultiSelectEnabled = True
 
     Try
         'oFileDlg.ShowOpen()
