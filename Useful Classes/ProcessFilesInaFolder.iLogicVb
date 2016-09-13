@@ -1,0 +1,99 @@
+﻿AddReference "System.Core"
+AddReference "System.Linq"
+
+Imports Inventor
+Imports System.IO
+Imports System.Core
+Imports System.Linq
+Imports System.Windows.Forms
+Imports System.Collections.Generic
+
+Public Sub Main()
+    'user feedback tools start
+    Dim sw As New Stopwatch()
+    sw.Start()
+
+    Dim IncludeSubFolders As Boolean = True
+    
+
+	ProcessPartsinFolder(IncludeSubFolders)
+    sw.Stop()
+    Dim timeElapsed As Timespan = sw.elapsed
+    MessageBox.Show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                                        timeElapsed.Hours,
+                                                        timeElapsed.Minutes,
+                                                        timeElapsed.Seconds,
+                                                        timeElapsed.Milliseconds / 10))
+
+End Sub
+
+Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
+    Dim iLogicAuto As Object = GetiLogicAutomation(ThisApplication)
+    Dim folderbrowser As New System.Windows.Forms.FolderBrowserDialog()
+
+    folderbrowser.RootFolder = System.Environment.SpecialFolder.MyComputer
+    folderbrowser.Description = "Select Folder to look for files to process."
+    folderbrowser.ShowDialog()
+    Dim foldername As String = folderbrowser.selectedpath
+    If Not foldername = String.Empty Then
+        'now we can get/create a list of part files
+        Dim directory As New System.IO.DirectoryInfo(foldername)
+        Dim partlisttoprocess As System.Collections.Generic.IEnumerable(Of fileinfo) = GetFilesByExtensions(directory, ".ipt")
+
+        Dim progressint As Integer = 1
+        Dim percent As Double = Nothing
+
+        If Not partlisttoprocess Is Nothing Then
+            For Each partfile As fileinfo In partlisttoprocess
+
+                percent = (CDbl(progressint) / partlisttoprocess.count)
+                progressint += 1
+
+                Dim partdocument As partdocument = ThisApplication.documents.Open(partfile.fullname)
+                If partdocument.componentdefinition.isiPartFactory Then
+                    updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(partdocument.File.fullfilename))
+                    'insert the name of the external rule you wish to run here:
+                    iLogicAuto.RunExternalRule(partdocument, ruleName)
+                    partdocument.Close()
+                Else
+                    partdocument.Close()
+                End If
+            Next
+        End If
+
+    End If
+End Sub
+
+Public Function GetFilesByExtensions(dir As DirectoryInfo, ParamArray extensions As String()) As System.Collections.Generic.IEnumerable(Of FileInfo)
+    If extensions Is Nothing Then
+        Throw New ArgumentNullException("extensions")
+    End If
+    Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) OrElse Not (s.FullName.contains("OldVersions")))
+    'Return files
+    Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension))
+End Function
+
+Sub updatestatusbar(ByVal message As String)
+    ThisApplication.statusbartext = message
+End Sub
+
+Sub updatestatusbar(ByVal percent As Double, ByVal message As String)
+    ThisApplication.statusbartext = message + " (" & percent.ToString("P1") + ")"
+End Sub
+
+''' <summary>
+''' Gets the iLogic Automation interface from the current Inventor application.
+''' </summary>
+''' <param name="app"></param>
+''' <returns></returns>
+Function GetiLogicAutomation(ByVal app As Inventor.Application) As Object
+
+    Dim addIn As Inventor.ApplicationAddIn = Nothing
+    Try
+        addIn = app.ApplicationAddIns.ItemById("{3bdd8d79-2179-4b11-8a5a-257b1c0263ac}")
+    Catch ex As Exception
+        Return Nothing
+    End Try
+
+    Return addIn.Automation
+End Function

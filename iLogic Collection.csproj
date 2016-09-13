@@ -146,6 +146,7 @@
     <None Include="Useful Classes\iProperties.iLogicVb" />
     <None Include="Useful Classes\Parameters.iLogicVb" />
     <None Include="Useful Classes\PartsandAssemblies.iLogicVb" />
+    <None Include="Useful Classes\ProcessFilesInaFolder.iLogicVb" />
     <None Include="Workplane Grid Creator.iLogicVb" />
   </ItemGroup>
   <!-- modified by AF to attempt a change to a VisualBasic template structure -->
