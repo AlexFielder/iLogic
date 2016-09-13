@@ -142,11 +142,11 @@
     <None Include="Turn View Labels on.iLogicVb" />
     <None Include="under constrained sketches.iLogicVb" />
     <None Include="UpdatedCurrentlyOpenDocuments.iLogicVb" />
-    <None Include="Useful Classes\Ground_and_Root.iLogicVb" />
-    <None Include="Useful Classes\iProperties.iLogicVb" />
-    <None Include="Useful Classes\Parameters.iLogicVb" />
-    <None Include="Useful Classes\PartsandAssemblies.iLogicVb" />
-    <None Include="Useful Classes\ProcessPartFilesInaFolder.iLogicVb" />
+    <None Include="Helper Rules\Ground_and_Root.iLogicVb" />
+    <None Include="Helper Rules\iProperties.iLogicVb" />
+    <None Include="Helper Rules\Parameters.iLogicVb" />
+    <None Include="Helper Rules\PartsandAssemblies.iLogicVb" />
+    <None Include="Helper Rules\ProcessPartFilesInaFolder.iLogicVb" />
     <None Include="Workplane Grid Creator.iLogicVb" />
   </ItemGroup>
   <!-- modified by AF to attempt a change to a VisualBasic template structure -->

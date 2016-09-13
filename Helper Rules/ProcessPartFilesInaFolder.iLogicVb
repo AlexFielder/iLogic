@@ -1,5 +1,6 @@
 ﻿AddReference "System.Core"
 AddReference "System.Linq"
+'addreference "Microsoft.Win32"
 
 Imports Inventor
 Imports System.IO
@@ -7,6 +8,7 @@ Imports System.Core
 Imports System.Linq
 Imports System.Windows.Forms
 Imports System.Collections.Generic
+Imports Microsoft.Win32
 
 Public Sub Main()
     'user feedback tools start
@@ -31,13 +33,15 @@ Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
     Dim iLogicAuto As Object = GetiLogicAutomation(ThisApplication)
     Dim folderbrowser As New System.Windows.Forms.FolderBrowserDialog()
 
-    folderbrowser.RootFolder = System.Environment.SpecialFolder.MyComputer
+    folderbrowser.RootFolder = System.Environment.SpecialFolder.UserProfile
+    'folderbrowser.RootFolder = getOneDriveFolderPath()
     folderbrowser.Description = "Select Folder to look for files to process."
     folderbrowser.ShowDialog()
     Dim foldername As String = folderbrowser.selectedpath
     If Not foldername = String.Empty Then
         'now we can get/create a list of part files
-        If Not SelectRuleToProcessPartsWith("") = Nothing Then
+        Dim rulename As String = SelectRuleToProcessPartsWith("C:\Users\alex.fielder\Dropbox\iLogic\")
+        If Not rulename = String.Empty Then
             Dim directory As New System.IO.DirectoryInfo(foldername)
             Dim partlisttoprocess As System.Collections.Generic.IEnumerable(Of fileinfo) = GetFilesByExtensions(directory, ".ipt")
 
@@ -47,37 +51,58 @@ Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
             If Not partlisttoprocess Is Nothing Then
                 For Each partfile As fileinfo In partlisttoprocess
 
-                    percent = (CDbl(progressint) / partlisttoprocess.count)
+                    percent = (CDbl(progressint) / partlisttoprocess.Count)
                     progressint += 1
 
                     Dim partdocument As partdocument = ThisApplication.documents.Open(partfile.fullname)
-                    If partdocument.componentdefinition.isiPartFactory Then
-                        updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(partdocument.File.fullfilename))
-                        'insert the name of the external rule you wish to run here:
-                        iLogicAuto.RunExternalRule(partdocument, ruleName)
-                        partdocument.Close()
-                    Else
-                        partdocument.Close()
-                    End If
+
+                    updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(partdocument.File.fullfilename))
+                    'insert the name of the external rule you wish to run here:
+                    iLogicAuto.RunExternalRule(partdocument, rulename)
+                    partdocument.Close()
                 Next
             End If
         End If
     End If
 End Sub
 
+'Public Function GetListofExternaliLogicFolders() As String()
+'    'the following might work one day, but 2016-09-13 is not that day.
+'    Dim iLogicInterfaces As Object = GetiLogicInterfaces(ThisApplication)
+'    Return iLogicInterfaces.iLogicFileOptions.ExternalRuleDirectories
+'End Function
+
+''' <summary>
+''' 
+''' </summary>
+''' <param name="InventorExternalRulesFolderPath"></param>
+''' <returns></returns>
 Public Function SelectRuleToProcessPartsWith(ByVal InventorExternalRulesFolderPath As String) As String
-    Dim FolderName As String = InventorExternalRulesFolderPath
-    Dim selectedfile As String = String.Empty
-    Dim oFileDlg As inventor.FileDialog = Nothing
-    InventorVb.Application.CreateFileDialog(oFileDlg)
-    oFileDlg.Filter = "iLogicVb files (*.iLogicVb)|*.iLogicVb|Vb files (*.vb)|*.vb|Other files (*.*)|*.*"
-    oFileDlg.InitialDirectory = FolderName
-    oFileDlg.CancelError = True
-    oFileDlg.MultiSelectEnabled = True
+    Dim partlisttoprocess As System.Collections.Generic.IEnumerable(Of fileinfo)
+    'For Each foldername As String In InventorExternalRulesFolderPath
+    Dim directory As New System.IO.DirectoryInfo(InventorExternalRulesFolderPath)
+    partlisttoprocess = GetFilesByExtensions(directory, ".iLogicVb")
+    'Next
+    Dim RulesList As New ArrayList
+
+    For Each file As System.IO.FileInfo In partlisttoprocess
+        RulesList.add(System.IO.Path.GetFileNameWithoutExtension(file.FullName))
+    Next
+    Dim selectedfile As String = InputListBox("Prompt", RulesList, "", Title:="Select Rule from this list", ListName:="Available External Rules")
+
+
+    'Dim FolderName As String = InventorExternalRulesFolderPath
+    'Dim selectedfile As String = String.Empty
+    'Dim oFileDlg As inventor.FileDialog = Nothing
+    'InventorVb.Application.CreateFileDialog(oFileDlg)
+    'oFileDlg.Filter = "iLogicVb files (*.iLogicVb)|*.iLogicVb|Vb files (*.vb)|*.vb|Other files (*.*)|*.*"
+    'oFileDlg.InitialDirectory = FolderName
+    'oFileDlg.CancelError = True
+    'oFileDlg.MultiSelectEnabled = True
 
     Try
-        oFileDlg.ShowOpen()
-        selectedfile = oFileDlg.FileName
+        'oFileDlg.ShowOpen()
+        selectedfile = System.IO.Path.GetFileNameWithoutExtension(selectedfile)
     Catch
         Return Nothing 'operation was cancelled by the user
     End Try
@@ -116,4 +141,17 @@ Function GetiLogicAutomation(ByVal app As Inventor.Application) As Object
     End Try
 
     Return addIn.Automation
+End Function
+
+Private Shared Function getOneDriveFolderPath() As String
+    Dim value1 = Registry.GetValue("HKEY_CURRENT_USER\Software\Microsoft\SkyDrive", "UserFolder", Nothing)
+    Dim path1 = TryCast(value1, String)
+    If path1 IsNot Nothing AndAlso System.IO.Directory.Exists(path1) Then Return path1
+    Dim value2 = Registry.GetValue("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\SkyDrive", "UserFolder", Nothing)
+    Dim path2 = TryCast(value2, String)
+    If path2 IsNot Nothing AndAlso System.IO.Directory.Exists(path2) Then Return path2
+    Dim value3 = Registry.GetValue("HKEY_CURRENT_USER\Software\Microsoft\OneDrive", "UserFolder", Nothing)
+    Dim path3 = TryCast(value3, String)
+    If path3 IsNot Nothing AndAlso System.IO.Directory.Exists(path3) Then Return path3
+    Return Nothing
 End Function
