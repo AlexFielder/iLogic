@@ -7,8 +7,6 @@ Imports System.Linq
 
 Public Sub Main()
     If Not RuleArguments.Exists("Filename") Then
-
-
         'user feedback:
         Dim sw As New Stopwatch()
         sw.Start()
@@ -61,12 +59,22 @@ Public Sub Main()
         'This means we can simply skip the list creation blah blah and get right to the sketch block present & count variables.
         Dim oSketchBlocks As SketchBlockDefinitions = ThisApplication.ActiveDocument.ComponentDefinition.SketchBlockDefinitions
         If oSketchBlocks.Count > 0 Then
-            'If iProperties.Value("Custom","NUMSKETCHBLOCKS") = String.Empty then
-            SetorCreateCustomiProperty(ThisApplication.ActiveDocument, "SKETCHBLOCKPRESENT", True)
-            'iProperties.Value("Custom", "SKETCHBLOCKPRESENT") = True
-            SetorCreateCustomiProperty(ThisApplication.ActiveDocument, "SKETCHBLOCKCOUNT", oSketchBlocks.Count.ToString())
-            'iProperties.Value("Custom", "NUMSKETCHBLOCKS") = oSketchBlocks.Count
-            ThisApplication.ActiveDocument.Save()
+            Try
+                If iProperties.Value("Custom", "NUMSKETCHBLOCKS") = String.Empty Then
+                    SetorCreateCustomiProperty(ThisApplication.ActiveDocument, "SKETCHBLOCKPRESENT", True)
+                    'iProperties.Value("Custom", "SKETCHBLOCKPRESENT") = True
+                    SetorCreateCustomiProperty(ThisApplication.ActiveDocument, "SKETCHBLOCKCOUNT", oSketchBlocks.Count.ToString())
+                    'iProperties.Value("Custom", "NUMSKETCHBLOCKS") = oSketchBlocks.Count
+                    ThisApplication.ActiveDocument.Save()
+                End If
+            Catch ex As Exception
+                SetorCreateCustomiProperty(ThisApplication.ActiveDocument, "SKETCHBLOCKPRESENT", True)
+                'iProperties.Value("Custom", "SKETCHBLOCKPRESENT") = True
+                SetorCreateCustomiProperty(ThisApplication.ActiveDocument, "SKETCHBLOCKCOUNT", oSketchBlocks.Count.ToString())
+                'iProperties.Value("Custom", "NUMSKETCHBLOCKS") = oSketchBlocks.Count
+                ThisApplication.ActiveDocument.Save()
+            End Try
+
         End If
     End If
 End Sub
