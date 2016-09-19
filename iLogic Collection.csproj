@@ -110,6 +110,7 @@
     <None Include="MakeComponentsProgramatically.iLogicVb" />
     <None Include="MetalShopPn.iLogicVb" />
     <None Include="MirrorPartInAssembly.iLogicVb" />
+    <None Include="Module Rules\Modules.ilogicvb" />
     <None Include="Move EOPs In Assembly.iLogicVb" />
     <None Include="MoveToPlane.iLogicVb" />
     <None Include="PrintRibbonInformation.iLogicVb" />

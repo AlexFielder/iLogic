@@ -1,0 +1,42 @@
+﻿Imports Inventor
+Imports System.IO
+Imports System.Core
+Imports System.Linq
+Imports System.Windows.Forms
+Imports System.Collections.Generic
+
+Public Sub main()
+    If Not RuleArguments.Exists("Filename") Then
+
+    Else 'being run from the helper rules.
+
+    End If
+
+End Sub
+Public Class FModule
+    Public WidthConfigs As List(Of FMWidth) = New List(Of FMWidth)
+    Public BracingConfigs As List(Of FMBracing) = New List(Of FMBracing)
+    Public HeightConfigs As List(Of FMHeight) = New List(Of FMHeight)
+
+    Public Class FMWidth
+        Private Public mWidth As String
+        Public Property ModuleWidth() As String
+            Get
+                Return mWidth
+            End Get
+            Set(ByVal value As String)
+                mWidth = value
+            End Set
+        End Property
+    End Class
+
+    Public Class FMBracing
+
+    End Class
+
+    Public Class FMHeight
+
+    End Class
+End Class
+
+
