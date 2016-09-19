@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema id="Modules"
+    targetNamespace="http://tempuri.org/Modules.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://tempuri.org/Modules.xsd"
+    xmlns:mstns="http://tempuri.org/Modules.xsd"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+  <xsd:element name="root" type="FilterHouse" />
+
+  <xsd:complexType name="FilterHouseVariants">
+    <xsd:sequence>
+      <xsd:element name="FHOption" type="FilterHouse" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="FilterHouse">
+    <xsd:sequence>
+      <xsd:element name="Doors">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="door"
+                         type="FilterHouseDoor"
+                         minOccurs="0"
+                         maxOccurs="unbounded" />
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Modules" type="ModulesType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="ModulesType">
+    <xsd:sequence>
+      <xsd:element name="Elements">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="property" 
+                        type="FModuleElement" 
+                        minOccurs="0" 
+                        maxOccurs="unbounded" />
+                      </xsd:sequence>
+        </xsd:complexType>  
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="FModuleElement">
+    <xsd:attribute type="xsd:string" name="ParentModuleID" />
+    <xsd:attribute type="xsd:boolean" name="ElementBracingLeftFront" />
+    <xsd:attribute type="xsd:boolean" name="ElementBracingLeftRear" />
+    <xsd:attribute type="xsd:boolean" name="ElementBracingRightFront" />
+    <xsd:attribute type="xsd:boolean" name="ElementBracingRightRear" />
+    <xsd:attribute type="xsd:integer" name="ElementWidth" />
+  </xsd:complexType>
+
+  <xsd:complexType name="FilterHouseDoor">
+    <xsd:attribute type="xsd:string" name="ParentHouseID" />
+    <xsd:attribute type="xsd:boolean" name="RightHandedFront" />
+    <xsd:attribute type="xsd:boolean" name="LeftHandedFront" />
+    <xsd:attribute type="xsd:boolean" name="RightHandedRear" />
+    <xsd:attribute type="xsd:boolean" name="LeftHandedRear" />
+  </xsd:complexType>
+</xsd:schema>

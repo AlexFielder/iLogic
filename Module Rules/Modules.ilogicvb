@@ -3,36 +3,78 @@ Imports System.IO
 Imports System.Core
 Imports System.Linq
 Imports System.Windows.Forms
+Imports System.Collections
 Imports System.Collections.Generic
 
 Public Sub main()
     If Not RuleArguments.Exists("Filename") Then
-
+        RunGetModuleConfig("C:\path\to\excel\data\file.xlsx")
     Else 'being run from the helper rules.
 
     End If
 
 End Sub
 Public Class FModule
-    Public WidthConfigs As List(Of FMWidth) = New List(Of FMWidth)
-    Public BracingConfigs As List(Of FMBracing) = New List(Of FMBracing)
+    'Public WidthConfigs As List(Of FMElement) = New List(Of FMElement)
     Public HeightConfigs As List(Of FMHeight) = New List(Of FMHeight)
+    'Public FMElements As List(Of FMElement) = New List(Of FMElement)
 
-    Public Class FMWidth
-        Private Public mWidth As String
-        Public Property ModuleWidth() As String
+    Public FMElements As New Dictionary(Of Integer, FMElement) 'the integer would be the number of filters wide and total no more than the sum of FMElement.ElementWidth
+
+    Public Class FMElement
+        Private Public elemWidth As Integer
+        Public Property ElementWidth() As Integer
             Get
-                Return mWidth
+                Return elemWidth
             End Get
-            Set(ByVal value As String)
-                mWidth = value
+            Set(ByVal value As Integer)
+                elemWidth = value
             End Set
         End Property
+
+#Region "Bracing"
+        Private Public elemBracingLeftFront As Boolean
+        Public Property ElementBracingLeftFront() As Boolean
+            Get
+                Return elemBracingLeftFront
+            End Get
+            Set(ByVal value As Boolean)
+                elemBracingLeftFront = value
+            End Set
+        End Property
+
+        Private Public elemBracingLeftRear As Boolean
+        Public Property ElementBracingLeftRear() As Boolean
+            Get
+                Return elemBracingLeftRear
+            End Get
+            Set(ByVal value As Boolean)
+                elemBracingLeftRear = value
+            End Set
+        End Property
+
+        Private Public elemBracingRightFront As Boolean
+        Public Property ElementBracingRightFront() As Boolean
+            Get
+                Return elemBracingRightFront
+            End Get
+            Set(ByVal value As Boolean)
+                elemBracingRightFront = value
+            End Set
+        End Property
+
+        Private Public elemBracingRightRear As String
+        Public Property ElementBracingRightFront() As String
+            Get
+                Return elemBracingRightRear
+            End Get
+            Set(ByVal value As String)
+                elemBracingRightRear = value
+            End Set
+        End Property
+#End Region
     End Class
 
-    Public Class FMBracing
-
-    End Class
 
     Public Class FMHeight
 

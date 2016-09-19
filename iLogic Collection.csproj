@@ -111,6 +111,9 @@
     <None Include="MetalShopPn.iLogicVb" />
     <None Include="MirrorPartInAssembly.iLogicVb" />
     <None Include="Module Rules\Modules.ilogicvb" />
+    <None Include="Module Rules\Modules.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Move EOPs In Assembly.iLogicVb" />
     <None Include="MoveToPlane.iLogicVb" />
     <None Include="PrintRibbonInformation.iLogicVb" />
