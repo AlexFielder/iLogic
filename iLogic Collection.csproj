@@ -114,6 +114,7 @@
     <None Include="Module Rules\Modules.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Module Rules\Update.iLogicVb" />
     <None Include="Move EOPs In Assembly.iLogicVb" />
     <None Include="MoveToPlane.iLogicVb" />
     <None Include="PrintRibbonInformation.iLogicVb" />

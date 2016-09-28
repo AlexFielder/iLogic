@@ -1,0 +1,9 @@
+﻿AddReference "IlogicExternalDebug.dll"
+    Imports iLogicExternalDebug
+Imports Inventor
+Sub Main()
+    Dim xtClass As New iLogicExternalDebug.ExtClass()
+    xtClass.ThisApplication = ThisApplication
+    xtClass.DocToUpdate = ThisDoc
+    Call xtClass.Update()
+End Sub

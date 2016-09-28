@@ -1,4 +1,4 @@
-﻿Sub main()
+﻿Sub Main()
     'FOR SAPPHIRE ONLY CURRENTLY!
     'should hopefully perform an update on each open assembly file skeleton base part
     For Each oDoc In ThisApplication.Documents

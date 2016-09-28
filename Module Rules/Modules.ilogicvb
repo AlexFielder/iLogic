@@ -229,7 +229,9 @@ Public Class Modules
 
         Private doorsField As List(Of FilterHouseDoorType)
 
-        Private modulesField As List(Of ModuleType)
+        Private leftModulesField As List(Of ModuleType)
+
+        Private rightModulesField As List(Of ModuleType)
 
         Private transitionField As TransitionType
 
@@ -260,7 +262,8 @@ Public Class Modules
             Me.inletFlangePatternField = New MiscSystemType
             Me.externalDrainageField = New MiscSystemType
             Me.transitionField = New TransitionType
-            Me.modulesField = New List(Of ModuleType)
+            Me.rightModulesField = New List(Of ModuleType)
+            Me.leftModulesField = New List(Of ModuleType)
             Me.doorsField = New List(Of FilterHouseDoorType)
         End Sub
 
@@ -275,12 +278,22 @@ Public Class Modules
         End Property
 
         <System.Xml.Serialization.XmlArrayItemAttribute("Module", IsNullable:=False)>
-        Public Property Modules() As List(Of ModuleType)
+        Public Property LeftModules() As List(Of ModuleType)
             Get
-                Return Me.modulesField
+                Return Me.leftModulesField
             End Get
             Set
-                Me.modulesField = Value
+                Me.leftModulesField = Value
+            End Set
+        End Property
+
+        <System.Xml.Serialization.XmlArrayItemAttribute("Module", IsNullable:=False)>
+        Public Property RightModules() As List(Of ModuleType)
+            Get
+                Return Me.rightModulesField
+            End Get
+            Set
+                Me.rightModulesField = Value
             End Set
         End Property
 
@@ -1498,6 +1511,7 @@ Public Class Modules
             End Set
         End Property
     End Class
+	
 End Class
 #End Region
 
