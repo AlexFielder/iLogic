@@ -1,0 +1,6 @@
+﻿For Each oval as Parameter in ThisDoc.Document.ComponentDefinition.Parameters
+	If oval.Name.startswith("Sec") Then
+		oval.Name.Replace("Sec","Element")
+		MsgBox(oval.Name)
+	End If
+Next

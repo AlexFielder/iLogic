@@ -50,6 +50,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assemblies\Create_Labels.Vb" />
     <Content Include="BomTools.bas" />
     <Content Include="clsSelect.cls" />
     <Content Include="Create_Labels.Vb" />
@@ -64,6 +65,16 @@
     <None Include="AlignUCSToAssy.iLogicVb" />
     <None Include="All Sketches Off In Assembly.iLogicVb" />
     <None Include="All Sketches Off In Part.iLogicVb" />
+    <None Include="Assemblies\AlignUCSToAssy.iLogicVb" />
+    <None Include="Assemblies\All Sketches Off In Assembly.iLogicVb" />
+    <None Include="Assemblies\CheckForCURequired.iLogicVb" />
+    <None Include="Assemblies\Create Drawings From Assembly.iLogicVb" />
+    <None Include="Assemblies\Create DT- Drawings From Assembly.iLogicVb" />
+    <None Include="Assemblies\Create DT- View Reps From Assembly.iLogicVb" />
+    <None Include="Assemblies\Create_Assembly_from_Excel.iLogicVb" />
+    <None Include="Assemblies\Create_Balconies.iLogicVb" />
+    <None Include="Assemblies\Create_Cables.iLogicVb" />
+    <None Include="Assemblies\Create_Labels.iLogicVb" />
     <None Include="Balloon Filtering iLogic.iLogicVb" />
     <None Include="Batch PDFs from Drawings.iLogicVb" />
     <None Include="CaptureSketchBlockLocations.iLogicVb" />
@@ -94,6 +105,11 @@
     <None Include="Drawing Automation Code.iLogicVb" />
     <None Include="Drawing Creation Code.iLogicVb" />
     <None Include="Drawing Template - Move and Resize View Code.iLogicVb" />
+    <None Include="Drawings\Balloon Filtering iLogic.iLogicVb" />
+    <None Include="Drawings\Batch PDFs from Drawings.iLogicVb" />
+    <None Include="Drawings\Drawing Automation Code.iLogicVb" />
+    <None Include="Drawings\Drawing Creation Code.iLogicVb" />
+    <None Include="Drawings\Drawing Template - Move and Resize View Code.iLogicVb" />
     <None Include="embed inventor drawings.iLogicVb" />
     <None Include="Export Open Inventor dwgs to AutoCAD.iLogicVb" />
     <None Include="Export Part to Step %28Stage by Stage%29.iLogicVb" />
@@ -117,6 +133,10 @@
     <None Include="Module Rules\Update.iLogicVb" />
     <None Include="Move EOPs In Assembly.iLogicVb" />
     <None Include="MoveToPlane.iLogicVb" />
+    <None Include="Parts\All Sketches Off In Part.iLogicVb" />
+    <None Include="Parts\CaptureSketchBlockLocations.iLogicVb" />
+    <None Include="Parts\Check Sketch Constraints.iLogicVb" />
+    <None Include="Parts\CheckiPartForErrors.iLogicVb" />
     <None Include="PrintRibbonInformation.iLogicVb" />
     <None Include="promptedentrytoiproperty.iLogicVb" />
     <None Include="Remove Missing OLE Links.iLogicVb" />
