@@ -77,11 +77,7 @@
     <None Include="Assemblies\Create_Labels.iLogicVb" />
     <None Include="Balloon Filtering iLogic.iLogicVb" />
     <None Include="Batch PDFs from Drawings.iLogicVb" />
-    <None Include="CaptureSketchBlockLocations.iLogicVb" />
     <None Include="ChangeLayerofOccurrences.iLogicVb" />
-    <None Include="Check Sketch Constraints.iLogicVb" />
-    <None Include="CheckForCURequired.iLogicVb" />
-    <None Include="CheckiPartForErrors.iLogicVb" />
     <None Include="Compare File volumes.iLogicVb" />
     <None Include="Contact Constraint Simulation.iLogicVb" />
     <None Include="CopySheet.iLogicVb" />
@@ -139,10 +135,10 @@
     <None Include="Parts\CheckiPartForErrors.iLogicVb" />
     <None Include="PrintRibbonInformation.iLogicVb" />
     <None Include="promptedentrytoiproperty.iLogicVb" />
-    <None Include="Remove Missing OLE Links.iLogicVb" />
-    <None Include="Remove Unwanted Linked Parameter Tables.iLogicVb" />
-    <None Include="Remove Unwanted OLE Links in Inventor Files.iLogicVb" />
-    <None Include="RemoveColourOverrides.ilogicVb" />
+    <None Include="Add+Remove\Remove Missing OLE Links.iLogicVb" />
+    <None Include="Add+Remove\Remove Unwanted Linked Parameter Tables.iLogicVb" />
+    <None Include="Add+Remove\Remove Unwanted OLE Links in Inventor Files.iLogicVb" />
+    <None Include="Add+Remove\RemoveColourOverrides.ilogicVb" />
     <None Include="Replace references from external list.iLogicVb" />
     <None Include="run design checker on each component.iLogicVb" />
     <None Include="RunCorrectBomForExcel.iLogicVb" />
