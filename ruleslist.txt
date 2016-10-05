@@ -1,67 +1,90 @@
-AlignUCSToAssy.iLogicVb
-All Sketches Off In Assembly.iLogicVb
-All Sketches Off In Part.iLogicVb
-Balloon Filtering iLogic.iLogicVb
-Batch PDFs from Drawings.iLogicVb
-ChangeLayerofOccurrences.iLogicVb
-Check Sketch Constraints.iLogicVb
-CheckForCURequired.iLogicVb
-CheckiPartForErrors.iLogicVb
-Compare File volumes.iLogicVb
-CopySheet.iLogicVb
-Copy_Camera_to_open_documents.iLogicVb
-Create a New iLogic Rule automatically.iLogicVb
-Create Drawings From Assembly.iLogicVb
-Create DT- Drawings From Assembly.iLogicVb
-Create DT- View Reps From Assembly.iLogicVb
-create line between arc ends using a selectionset.iLogicVb
-Create_Assembly_from_Excel.iLogicVb
-Create_Cables.iLogicVb
-Create_Labels.iLogicVb
-Create_standard_parts_from_Excel.iLogicVb
-Create_View_Reps.iLogicVb
-De-Author.iLogicVb
-Dedupe_and_Hash.iLogicVb
-DesignCheckerResultsFromAssembly.iLogicVb
-Drawing Automation Code.iLogicVb
-Drawing Creation Code.iLogicVb
-Drawing Template - Move and Resize View Code.iLogicVb
-embed inventor drawings.iLogicVb
-Export Part to Step (Stage by Stage).iLogicVb
-Export to 3D PDF and Attach or Embed.iLogicVb
-FEATURECOUNT.iLogicVb
-Flat pattern save as dxf.iLogicVb
-HyperLink to Excel.iLogicVb
-Insert Revision Table.iLogicVb
-Inventor 2016 - ILogic to write Parameter to every part in the Assembly.iLogicVb
-MetalShopPn.iLogicVb
-MirrorPartInAssembly.iLogicVb
-Move EOPs In Assembly.iLogicVb
-MoveToPlane.iLogicVb
-PrintRibbonInformation.iLogicVb
-promptedentrytoiproperty.iLogicVb
-Remove Missing OLE Links.iLogicVb
-Remove Unwanted Linked Parameter Tables.iLogicVb
-Remove Unwanted OLE Links in Inventor Files.iLogicVb
-RemoveColourOverrides.ilogicVb
-run design checker on each component.iLogicVb
-RunCorrectBomForExcel.iLogicVb
-RunCreateAssemblyFromiLogic.iLogicVb
-RunCreateAssemblyFromiLogic_UPLOAD.iLogicVb
-RunFeatureCountonAssembly.iLogicVb
-RunPlatformDrawings.iLogicVb
-SaveAs_PDF_(Single_Or_Multi-sheet).iLogicVb
-Selective Colour Change.iLogicVb
-Sketch Symbol Text Changer.iLogicVb
-Suppress Weld Prep.iLogicVb
-sweep-length-code-snippet.iLogicVb
-Synchronize iProperties between part parameters and iProperties.iLogicVb
-Synchronize iProperties between parts and drawings.iLogicVb
-Text_Changer.iLogicVb
-Title Block Definition Create and Insert API Sample.iLogicVb
-Toggle Sketches and Workplanes.iLogicVb
-Turn On-Off all Workfeatures with iLogic.iLogicVb
-Turn Sketch Symbol Leaders on.iLogicVb
-Turn View Labels on.iLogicVb
-under constrained sketches.iLogicVb
-Workplane Grid Creator.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\AddRemove\De-Author.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\AddRemove\Dedupe_and_Hash.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\AddRemove\delete empty folders.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\AddRemove\embed inventor drawings.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\AddRemove\Remove Missing OLE Links.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\AddRemove\Remove Unwanted Linked Parameter Tables.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\AddRemove\Remove Unwanted OLE Links in Inventor Files.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\AddRemove\RemoveColourOverrides.ilogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Balloon Filtering iLogic.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Batch PDFs from Drawings.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\ChangeLayerofOccurrences.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\CopySheet.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Create_View_Reps.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Drawing Automation Code.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Drawing Creation Code.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Drawing Template - Move and Resize View Code.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Export Open Inventor dwgs to AutoCAD.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Insert Revision Table.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\promptedentrytoiproperty.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\RunPlatformDrawings.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\SaveAs_PDF_(Single_Or_Multi-sheet).iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Sketch Symbol Text Changer.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Synchronize iProperties between parts and drawings.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Text_Changer.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Title Block Definition Create and Insert API Sample.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Turn Sketch Symbol Leaders on.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Drawings\Turn View Labels on.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Helper Rules\Ground_and_Root.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Helper Rules\iProperties.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Helper Rules\Parameters.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Helper Rules\PartsandAssemblies.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Helper Rules\ProcessPartFilesInaFolder.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\AlignUCSToAssy.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\All Sketches Off In Assembly.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\All Sketches Off In Part.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\CaptureSketchBlockLocations.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Check Sketch Constraints.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\CheckForCURequired.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\CheckiPartForErrors.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Compare File volumes.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Contact Constraint Simulation.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Copy_Camera_to_open_documents.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Create a New iLogic Rule automatically.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Create Drawings From Assembly.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Create DT- Drawings From Assembly.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Create DT- View Reps From Assembly.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Create_Assembly_from_Excel.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Create_Balconies.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Create_Cables.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Create_Labels.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Create_standard_parts_from_Excel.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\CS Data Standards.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\DesignCheckerResultsFromAssembly.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Export Part to Step (Stage by Stage).iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Export to 3D PDF and Attach or Embed.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\FEATURECOUNT.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Flat pattern save as dxf.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Generate iPart Members from Folder.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Generate iPart Members from Parent Assemblies.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Generate iPart Members.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Ground&RootSelectedComponents.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\HyperLink to Excel.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Inventor 2016 - ILogic to write Parameter to every part in the Assembly.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\MakeComponentsProgramatically.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\MetalShopPn.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\MirrorPartInAssembly.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Move EOPs In Assembly.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\MoveToPlane.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\PrintRibbonInformation.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Rename Parameters.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Replace references from external list.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\run design checker on each component.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\RunCorrectBomForExcel.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\RunCreateAssemblyFromiLogic.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\RunCreateAssemblyFromiLogic_UPLOAD.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\RunExportToMultipleFormats.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\RunFeatureCountonAssembly.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\RunGraitecPartCreator.ilogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Selective Colour Change.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Suppress Weld Prep.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\sweep-length-code-snippet.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Synchronize iProperties between part parameters and iProperties.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Toggle Sketches and Workplanes.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Turn On-Off all Workfeatures with iLogic.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\under constrained sketches.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\UpdatedCurrentlyOpenDocuments.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Modelling\Workplane Grid Creator.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\Module Rules\Modules.ilogicvb
+C:\Users\alex.fielder\Dropbox\iLogic\Module Rules\Update.iLogicVb
+C:\Users\alex.fielder\Dropbox\iLogic\PJ\06 Add Size To Parts.iLogicVb
