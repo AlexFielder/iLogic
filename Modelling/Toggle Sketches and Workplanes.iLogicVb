@@ -1,6 +1,6 @@
 ﻿Option Explicit On
 
-Sub main()
+Sub Main()
     'catch and skip errors
     On Error Resume Next
     'define the active assembly
@@ -26,6 +26,11 @@ Sub main()
     wfBoolean = InputRadioBox("Toggle Workplanes On/Off", "On", "Off", False, "iLogic")
     For Each wp As WorkPlane In PartDoc.ComponentDefinition.WorkPlanes
         wp.Visible = wfBoolean
+    Next
+	
+	wfboolean = InputRadioBox("Toggle Workaxes On/Off?", "On", "Off", False, "iLogic")
+    For Each wa As WorkAxis In PartDoc.ComponentDefinition.WorkAxes
+        wa.Visible = wfBoolean
     Next
     ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
     InventorVb.DocumentUpdate()
