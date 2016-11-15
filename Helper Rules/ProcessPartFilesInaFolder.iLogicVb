@@ -1,5 +1,5 @@
-﻿addReference "System.Core"
-addReference "System.Linq"
+﻿AddReference "System.Core"
+AddReference "System.Linq"
 'addreference "Microsoft.Win32"
 
 Imports Inventor
@@ -66,7 +66,7 @@ Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
                     updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(partdoc.File.fullfilename))
                     'insert the name of the external rule you wish to run here:
                     'iLogicAuto.RunExternalRule(partdocument, rulename)
-                    Dim Args As NameValueMap = thisapplication.transientobjects.createnamevaluemap
+                    Dim Args As NameValueMap = ThisApplication.transientobjects.createnamevaluemap
                     Args.Value("Filename") = partdoc.fullfilename
                     iLogicAuto.RunExternalRuleWithArguments(partdoc, rulename, Args)
                     partdoc.Close()
@@ -164,13 +164,13 @@ Private Shared Function getDropBoxFolderPath() As String
     Dim jsonPath As String = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), infoPath)
     'Dim jsonPath = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), infoPath)
     'debug only
-    messagebox.show(jsonPath)
+    MessageBox.Show(jsonPath)
     If Not System.IO.File.Exists(jsonPath) Then
         jsonPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), infoPath)
         'jsonPath = Path.Combine(Environment.GetEnvironmentVariable("AppData"), infoPath)
     End If
     'debug only
-    messagebox.show(jsonPath)
+    MessageBox.Show(jsonPath)
 
     If Not System.IO.File.Exists(jsonPath) Then
         Throw New Exception("Dropbox could not be found!")

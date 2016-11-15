@@ -1,35 +1,114 @@
-﻿Sub Main()
+﻿Option Explicit On
+Sub Main()
  MoveOccurrences()
 End Sub
- 
+
 Sub MoveOccurrences()
-Dim AsmCompDef as AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
-Dim XOffset As Double = CDbl(InputBox("X Offset", "X Offset","0"))
-Dim YSpacingInc As Double = CDbl(InputBox("Y Spacing","Y Spacing","30"))
-Dim YSpacing As Double = 0
-'Dim oSelect As New clsSelect
+    Dim tr As transaction = thisapplication.transactionmanager.starttransaction(ThisApplication.ACtiveDocument, "Move Assembly Occurrences to plane")
+    Dim AsmCompDef As AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
+    Dim XOffset As Double = CDbl(InputBox("X Offset", "X Offset", "0"))
+    Dim YSpacingInc As Double = CDbl(InputBox("Y Spacing", "Y Spacing", "30"))
+    Dim YSpacing As Double = 0
+    'Dim oSelect As New clsSelect
 
-'Dim oSelectedEnts as ObjectsEnumerator = oSelect.PickPartToMove(kAssemblyOccurrenceFilter)
-Dim oSelectedEnts as ObjectsEnumerator = ThisApplication.CommandManager.Pick(kAssemblyOccurrenceFilter,"Pick a set of Occurrences!")
+    'Dim oSelectedEnts as ObjectsEnumerator = oSelect.PickPartToMove(SelectionFilterEnum.kAssemblyOccurrenceFilter)
+    'Dim oSelectedEnts as ObjectsEnumerator = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAssemblyOccurrenceFilter,"Pick a set of Occurrences!")
+    Dim comps As ObjectCollection
+    Dim comp As Object
 
-If oselectedEnts.Count = 0 Then
-	MsgBox ("An occurrence must be selected.")
-    Exit Sub
-End If
+    comps = ThisApplication.TransientObjects.CreateObjectCollection
 
-For i = 1 To oselectedEnts.Count
-	Dim oOccurrence As ComponentOccurrence = oselectedents.item(i)
-    ' Get the current transformation matrix from the occurrence.
-    Dim oTransform As Matrix = oOccurrence.Transformation
-    
-    ' Move the occurrence honoring any existing constraints.
-    oTransform.SetTranslation (ThisApplication.TransientGeometry.CreateVector(XOffset, YSpacing + YSpacingInc, 0))
-    oOccurrence.Transformation = oTransform
-    YSpacing = YSpacing + YSpacingInc
-Next i
+    While True
+        comp = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAssemblyOccurrenceFilter, "Pick a set of Occurrences!")
 
+        ' If nothing gets selected then we're done	
+        If IsNothing(comp) Then Exit While
 
+        comps.Add(comp)
+    End While
+
+    '   If oselectedEnts.Count = 0 Then
+    'MsgBox ("An occurrence must be selected.")
+    '   Exit Sub
+    'End If
+
+    For Each compOcc As componentoccurrence In comps
+        'Dim oOccurrence As ComponentOccurrence = oselectedents.item(i)
+        ' Get the current transformation matrix from the occurrence.
+        Dim oTransform As Matrix = compOcc.Transformation
+
+        ' Move the occurrence honoring any existing constraints.
+        oTransform.SetTranslation(ThisApplication.TransientGeometry.CreateVector(XOffset, YSpacing + YSpacingInc, 0))
+        compOcc.Transformation = oTransform
+        YSpacing = YSpacing + YSpacingInc
+    Next
+
+    tr.end()
 End Sub
+
+'Public Class clsSelect
+''*************************************************************
+'
+'' The declarations and functions below need to be copied into
+'' a class module whose name is "clsSelect". The name can be
+'' changed but you'll need to change the declaration in the
+'' calling function "TestWindowSelection" to use the new name.
+'
+'' Declare the event objects
+'Private WithEvents oInteractEvents As InteractionEvents
+'Private WithEvents oSelectEvents As SelectEvents
+'' Declare a flag that's used to determine if command prompts are shown as tooltips.
+'Private bTooltipEnabled As Boolean
+'
+'Public Function WindowSelect()
+'    ' Create an InteractionEvents object.
+'    oInteractEvents = ThisApplication.CommandManager.CreateInteractionEvents
+'
+'    ' Ensure interaction is enabled.
+'    oInteractEvents.InteractionDisabled = False
+'
+'    ' Set a reference to the select events.
+'    oSelectEvents = oInteractEvents.SelectEvents
+'
+'    ' Set the filter for circular edges (this includes circular arcs).
+'    oSelectEvents.AddSelectionFilter (SelectionFilterEnum.kAssemblyOccurrenceFilter)
+'
+'    oSelectEvents.WindowSelectEnabled = True
+'
+'    bTooltipEnabled = ThisApplication.GeneralOptions.ShowCommandPromptTooltips
+'    ThisApplication.GeneralOptions.ShowCommandPromptTooltips = True
+'
+'    oInteractEvents.StatusBarText = "Window select. Esc to exit."
+'
+'    ' Start the InteractionEvents object.
+'    oInteractEvents.Start
+'End Function
+'
+'Private Sub oInteractEvents_OnTerminate()
+'    ' Reset to original value
+'    ThisApplication.GeneralOptions.ShowCommandPromptTooltips = bTooltipEnabled
+'
+'    ' Clean up.
+'    oSelectEvents = Nothing
+'
+'    oInteractEvents = Nothing
+'End Sub
+'
+'Private Sub oSelectEvents_OnPreSelect(PreSelectEntity As Object, DoHighlight As Boolean, MorePreSelectEntities As ObjectCollection, ByVal SelectionDevice As SelectionDeviceEnum, ByVal ModelPosition As Point, ByVal ViewPosition As Point2d, ByVal View As View)
+'    ' Set a reference to the selected edge.
+'    ' Only circular edges can come through since the circular edge filter was set.
+''    Dim oEdge As Edge = PreSelectEntity
+''
+''    ' Allow only fully circular edges to be picked.
+''    If Not oEdge.GeometryType = SelectionFilterEnum.kAssemblyOccurrenceFilter Then
+''      DoHighlight = False
+''    End If
+'End Sub
+'
+'Private Sub oSelectEvents_OnSelect(ByVal JustSelectedEntities As ObjectsEnumerator, ByVal SelectionDevice As SelectionDeviceEnum, ByVal ModelPosition As Point, ByVal ViewPosition As Point2d, ByVal View As View)
+'    MsgBox ("Picked " & JustSelectedEntities.Count & " Assembly occurrences.")
+'End Sub
+'End Class
 
 'Public Class clsSelect
 '' Declare the event objects
@@ -54,7 +133,7 @@ End Sub
 '    oSelect = oInteraction.SelectEvents
 '    
 '    ' Set the filter using the value passed in.
-'    oSelect.AddSelectionFilter Filter
+'    oSelect.AddSelectionFilter( Filter)
 '    
 '    ' The InteractionEvents object.
 '    oInteraction.Start
@@ -125,7 +204,7 @@ End Sub
 '    ' Get the selected item.  If more than one thing was selected,
 '    ' just get the first item and ignore the rest.
 '    
-'    Dim oSelectedEnts As ObjectsEnumerator oSelectedEnts = oSelect.SelectedEntities
+'    Dim oSelectedEnts As ObjectsEnumerator = oSelect.SelectedEntities
 '    
 '    If oSelectedEnts.Count > 0 Then
 '        PickPartToMove = oSelectedEnts
