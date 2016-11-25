@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ShareableOptions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <ExternalRuleDirectories>
-    <string>C:\Users\alex\Dropbox\iLogic\AddRemove</string>
-    <string>C:\Users\alex\Dropbox\iLogic\Drawings</string>
-    <string>C:\Users\alex\Dropbox\iLogic\Helper Rules</string>
-    <string>C:\Users\alex\Dropbox\iLogic\Modelling</string>
-    <string>C:\Users\alex\Dropbox\iLogic\Properties</string>
-    <string>C:\Users\alex\Dropbox\iLogic\Misc</string>
+    <string>C:\Users\alex.fielder\Dropbox\iLogic\AddRemove</string>
+    <string>C:\Users\alex.fielder\Dropbox\iLogic\Drawings</string>
+    <string>C:\Users\alex.fielder\Dropbox\iLogic\Helper Rules</string>
+    <string>C:\Users\alex.fielder\Dropbox\iLogic\Modelling</string>
+    <string>C:\Users\alex.fielder\Dropbox\iLogic\Properties</string>
+    <string>C:\Users\alex.fielder\Dropbox\iLogic\Misc</string>
   </ExternalRuleDirectories>
   <ExternalRuleFilenames />
   <ExternalRuleDefaultExtension>.iLogicVb</ExternalRuleDefaultExtension>

@@ -61,6 +61,7 @@
     <Content Include="Word_Add_Image_Caption_Tables.cls" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Drawings\ModifySketchEntities.iLogicVb" />
     <None Include="Modelling\AlignUCSToAssy.iLogicVb" />
     <None Include="Modelling\All Sketches Off In Assembly.iLogicVb" />
     <None Include="Modelling\CheckForCURequired.iLogicVb" />
