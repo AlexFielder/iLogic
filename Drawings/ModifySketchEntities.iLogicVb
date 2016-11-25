@@ -1,149 +1,225 @@
-'seems like this needs to be a combination of the following:
-
-Public Sub ModifyDrawingSketchEntityProperties()
-    ' Set a reference to the active document.  This assumes it
-    ' is a drawing document.
-    Dim oDoc As DrawingDocument = ThisApplication.ActiveDocument
-
-    ' Set a reference to the drawing view on the active sheet.
-    Dim oDrawView As DrawingView = oDoc.ActiveSheet.DrawingViews.AddDraftView
-
-    ' Set a reference to the sketch of the draft view.
-    Dim oSketch As DrawingSketch = oDrawView.Sketches.Item(1)
-
-    ' Set a reference to the transient geometry object.
-    Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
-
-    ' Draw two lines in the sketch.
-    Call oSketch.SketchLines.AddByTwoPoints(oTG.CreatePoint2d(10, 10), oTG.CreatePoint2d(30, 30))
-    Call oSketch.SketchLines.AddByTwoPoints(oTG.CreatePoint2d(10, 30), oTG.CreatePoint2d(30, 10))
-
-    ' Create a transient color object.
-    Dim oColor As Color = ThisApplication.TransientObjects.CreateColor(255, 0, 0) 'Red
-
-    ' Override the color of the first line.
-    oSketch.SketchLines(1).OverrideColor = oColor
-
-    ' Override the line type of the second line.
-    oSketch.SketchLines(2).LineType = kDashedLineType
-
-    ' Override the line weight of the second line.
-    oSketch.SketchLines(2).LineWeight = 0.11
-
-    ' Override the line scale of the second line.
-    oSketch.SketchLines(2).LineScale = 0.5
-
-    ' Exit from editing the sketch.
-    oSketch.ExitEdit
-End Sub
-
-'and this rule:
-
-'Main is always the first method in iLogic if you are working in VB.NET-style code!
+'pseudo-code:
 Public Sub Main()
-    ChangeLayerOfOccurrenceCurves()
+    Dim oDoc As DrawingDocument = Thisapplication.Activedocument
+    For Each oSheet As Sheet In oDoc.Sheets
+        For Each IDWDrawingView As DrawingView In oSheet.DrawingViews
+            ProcessDrawingView(IDWDrawingView)
+        Next
+    Next
+
 End Sub
 
-Public Sub ChangeLayerOfOccurrenceCurves()
-    ' Get the active drawing document. 
-    Dim drawDoc As DrawingDocument = ThisApplication.ActiveDocument
-
-    ' Have the user select a drawing view. 
-    Dim drawView As DrawingView = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingViewFilter, "Select a drawing view.")
-
-    Dim docDesc As DocumentDescriptor = drawView.ReferencedDocumentDescriptor
-
-    ' Verify that the selected drawing view is of an assembly. 
-    If docDesc.ReferencedDocumentType <> DocumentTypeEnum.kAssemblyDocumentObject Then
-        MsgBox("The selected view must be of an assembly.")
-        Exit Sub
-    End If
-
-    ' Get the component definition for the assembly. 
-    Dim asmDef As AssemblyComponentDefinition = docDesc.ReferencedDocument.ComponentDefinition
-
-    ' Process the occurrences, wrapping it in a transaction so the 
-    ' entire process can be undone with a single undo operation. 
-    Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(drawDoc, "Change drawing view color")
-
-    ' Call the recursive function that does all the work. 
-    Call ProcessAssemblyColor(drawView, asmDef.Occurrences)
-    trans.End
-End Sub
-
-
-
-Private Sub ProcessAssemblyColor(drawView As DrawingView, Occurrences As ComponentOccurrences)
-    ' Iterate through the current collection of occurrences. 
-    Dim occ As ComponentOccurrence
-    For Each occ In Occurrences
-        ' Check to see if this occurrence is a part or assembly. 
-        If occ.DefinitionDocumentType = DocumentTypeEnum.kPartDocumentObject Then
-            ' ** It's a part so process the color.  
-
-            ' Get the render style of the occurrence. 
-            Dim color As RenderStyle
-            Dim sourceType As StyleSourceTypeEnum = occ.GetRenderStyle(sourceType)
-
-            ' Get the TransientsObjects object to use later. 
-            Dim transObjs As TransientObjects = ThisApplication.TransientObjects
-
-            ' Verify that a layer exists for this color. 
-            Dim layers As LayersEnumerator = drawView.Parent.Parent.StylesManager.layers
-
-            Dim drawDoc As DrawingDocument = drawView.Parent.Parent
-
-            On Error Resume Next
-            Dim colorLayer As Layer = layers.Item(color.Name)
-
-            If Err.Number <> 0 Then
-                On Error GoTo 0
-                ' Get the diffuse color for the render style. 
-                Dim red As Byte
-                Dim green As Byte
-                Dim blue As Byte
-
-                ' Create a color object that is the diffuse color. 
-                Call color.GetDiffuseColor(red, green, blue)
-                Dim newColor As color = transObjs.CreateColor(red, green, blue)
-
-                ' Copy an arbitrary layer giving it the name 
-                ' of the render style. 
-                colorLayer = layers.Item(1).Copy(color.Name)
-
-                ' Set the attributes of the layer to use the color, 
-                ' have a solid line type, and a specific width. 
-                colorLayer.color = newColor
-                colorLayer.LineType = LineTypeEnum.kContinuousLineType
-                colorLayer.LineWeight = 0.02
-            End If
-            On Error GoTo 0
-
-            ' Get all of the curves associated with this occurrence. 
-            On Error Resume Next
-            Dim drawcurves As DrawingCurvesEnumerator = drawView.DrawingCurves(occ)
-            If Err.Number = 0 Then
-                On Error GoTo 0
-
-                ' Create an empty collection. 
-                Dim objColl As ObjectCollection = transObjs.CreateObjectCollection()
-
-                ' Add the curve segments to the collection. 
-                Dim drawCurve As DrawingCurve
-                For Each drawCurve In drawcurves
-                    Dim segment As DrawingCurveSegment
-                    For Each segment In drawCurve.Segments
-                        objColl.Add segment 
-               Next
-                Next
-
-                ' Change the layer of all of the segments. 
-                Call drawView.Parent.ChangeLayer(objColl, colorLayer)
-            End If
-            On Error GoTo 0
-        Else
-            ' It's an assembly so process its contents. 
-            Call ProcessAssemblyColor(drawView, occ.SubOccurrences)
-        End If
+Public Sub ProcessDrawingView(ByVal ThisDrawingView As DrawingView)
+    Dim oDrawViewCurves As DrawingCurvesEnumerator
+    oDrawViewCurves = oFrontView.DrawingCurves(oCircularEdge)
+    For Each oCircularCurve As DrawingCurve In oDrawViewCurves
+        oCircularCurve = oDrawViewCurves.Item(1)
+        MoveCurveToLayer(oCircularCurve)
     Next
 End Sub
+
+Public Sub MoveCurveToLayer(ByVal ThisDrawingCurve As DrawingCurve)
+    Dim ThisCircle As SketchCircle = ThisDrawingCurve
+    Dim IsHidden As Boolean
+    Dim LayerEnum As Integer
+
+    If ThisCircle.Layer = "HIDDEN" Then
+        IsHidden = True
+    ElseIf ThisCircle.layer = "VISIBLE" Then
+        IsHidden = False
+    End If
+    If IsHidden Then
+        If ThisCircle.Diameter <= "4.99" Then
+            ThisCircle.Layer = ChangeLayer(0)
+        ElseIf ThisCircle.Diameter <= "13.37" Then
+            ThisCircle.Layer = ChangeLayer(1)
+        ElseIf ThisCircle.Diameter <= "133.7" Then
+            ThisCircle.Layer = ChangeLayer(2)
+        Else
+            ThisCircle.Layer = ChangeLayer(3)
+        End If
+    Else
+        If ThisCircle.Diameter <= "4.99" Then
+            ThisCircle.Layer = ChangeLayer(4)
+        ElseIf ThisCircle.Diameter <= "13.37" Then
+            ThisCircle.Layer = ChangeLayer(5)
+        ElseIf ThisCircle.Diameter <= "133.7" Then
+            ThisCircle.Layer = ChangeLayer(6)
+        Else
+            ThisCircle.Layer = ChangeLayer(7)
+        End If
+    End If
+
+End Sub
+
+Public Function ChangeLayer(ByVal LayerEnum As Integer) As String
+    Select Case LayerEnum
+        Case 0
+            Return "LOREM"
+        Case 1
+            Return "IPSUM"
+        Case 2
+            Return "DOLOR"
+        Case 3
+            Return "SIT"
+        Case 4
+            Return "AMET"
+        Case 5
+            Return "CONSECTETUR"
+        Case 6
+            Return "ADIPISCING"
+        Case 7
+            Return "ELIT"
+        Case Else
+            Return "MESSIER"
+    End Select
+End Function
+''seems like this needs to be a combination of the following:
+
+'Public Sub ModifyDrawingSketchEntityProperties()
+'    ' Set a reference to the active document.  This assumes it
+'    ' is a drawing document.
+'    Dim oDoc As DrawingDocument = ThisApplication.ActiveDocument
+
+'    ' Set a reference to the drawing view on the active sheet.
+'    Dim oDrawView As DrawingView = oDoc.ActiveSheet.DrawingViews.AddDraftView
+
+'    ' Set a reference to the sketch of the draft view.
+'    Dim oSketch As DrawingSketch = oDrawView.Sketches.Item(1)
+
+'    ' Set a reference to the transient geometry object.
+'    Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
+
+'    ' Draw two lines in the sketch.
+'    Call oSketch.SketchLines.AddByTwoPoints(oTG.CreatePoint2d(10, 10), oTG.CreatePoint2d(30, 30))
+'    Call oSketch.SketchLines.AddByTwoPoints(oTG.CreatePoint2d(10, 30), oTG.CreatePoint2d(30, 10))
+
+'    ' Create a transient color object.
+'    Dim oColor As Color = ThisApplication.TransientObjects.CreateColor(255, 0, 0) 'Red
+
+'    ' Override the color of the first line.
+'    oSketch.SketchLines(1).OverrideColor = oColor
+
+'    ' Override the line type of the second line.
+'    oSketch.SketchLines(2).LineType = kDashedLineType
+
+'    ' Override the line weight of the second line.
+'    oSketch.SketchLines(2).LineWeight = 0.11
+
+'    ' Override the line scale of the second line.
+'    oSketch.SketchLines(2).LineScale = 0.5
+
+'    ' Exit from editing the sketch.
+'    oSketch.ExitEdit
+'End Sub
+
+''and this rule:
+
+''Main is always the first method in iLogic if you are working in VB.NET-style code!
+'Public Sub Main()
+'    ChangeLayerOfOccurrenceCurves()
+'End Sub
+
+'Public Sub ChangeLayerOfOccurrenceCurves()
+'    ' Get the active drawing document. 
+'    Dim drawDoc As DrawingDocument = ThisApplication.ActiveDocument
+
+'    ' Have the user select a drawing view. 
+'    Dim drawView As DrawingView = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingViewFilter, "Select a drawing view.")
+
+'    Dim docDesc As DocumentDescriptor = drawView.ReferencedDocumentDescriptor
+
+'    ' Verify that the selected drawing view is of an assembly. 
+'    If docDesc.ReferencedDocumentType <> DocumentTypeEnum.kAssemblyDocumentObject Then
+'        MsgBox("The selected view must be of an assembly.")
+'        Exit Sub
+'    End If
+
+'    ' Get the component definition for the assembly. 
+'    Dim asmDef As AssemblyComponentDefinition = docDesc.ReferencedDocument.ComponentDefinition
+
+'    ' Process the occurrences, wrapping it in a transaction so the 
+'    ' entire process can be undone with a single undo operation. 
+'    Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(drawDoc, "Change drawing view color")
+
+'    ' Call the recursive function that does all the work. 
+'    Call ProcessAssemblyColor(drawView, asmDef.Occurrences)
+'    trans.End
+'End Sub
+
+
+
+'Private Sub ProcessAssemblyColor(drawView As DrawingView, Occurrences As ComponentOccurrences)
+'    ' Iterate through the current collection of occurrences. 
+'    Dim occ As ComponentOccurrence
+'    For Each occ In Occurrences
+'        ' Check to see if this occurrence is a part or assembly. 
+'        If occ.DefinitionDocumentType = DocumentTypeEnum.kPartDocumentObject Then
+'            ' ** It's a part so process the color.  
+
+'            ' Get the render style of the occurrence. 
+'            Dim color As RenderStyle
+'            Dim sourceType As StyleSourceTypeEnum = occ.GetRenderStyle(sourceType)
+
+'            ' Get the TransientsObjects object to use later. 
+'            Dim transObjs As TransientObjects = ThisApplication.TransientObjects
+
+'            ' Verify that a layer exists for this color. 
+'            Dim layers As LayersEnumerator = drawView.Parent.Parent.StylesManager.layers
+
+'            Dim drawDoc As DrawingDocument = drawView.Parent.Parent
+
+'            On Error Resume Next
+'            Dim colorLayer As Layer = layers.Item(color.Name)
+
+'            If Err.Number <> 0 Then
+'                On Error GoTo 0
+'                ' Get the diffuse color for the render style. 
+'                Dim red As Byte
+'                Dim green As Byte
+'                Dim blue As Byte
+
+'                ' Create a color object that is the diffuse color. 
+'                Call color.GetDiffuseColor(red, green, blue)
+'                Dim newColor As color = transObjs.CreateColor(red, green, blue)
+
+'                ' Copy an arbitrary layer giving it the name 
+'                ' of the render style. 
+'                colorLayer = layers.Item(1).Copy(color.Name)
+
+'                ' Set the attributes of the layer to use the color, 
+'                ' have a solid line type, and a specific width. 
+'                colorLayer.color = newColor
+'                colorLayer.LineType = LineTypeEnum.kContinuousLineType
+'                colorLayer.LineWeight = 0.02
+'            End If
+'            On Error GoTo 0
+
+'            ' Get all of the curves associated with this occurrence. 
+'            On Error Resume Next
+'            Dim drawcurves As DrawingCurvesEnumerator = drawView.DrawingCurves(occ)
+'            If Err.Number = 0 Then
+'                On Error GoTo 0
+
+'                ' Create an empty collection. 
+'                Dim objColl As ObjectCollection = transObjs.CreateObjectCollection()
+
+'                ' Add the curve segments to the collection. 
+'                Dim drawCurve As DrawingCurve
+'                For Each drawCurve In drawcurves
+'                    Dim segment As DrawingCurveSegment
+'                    For Each segment In drawCurve.Segments
+'                        objColl.Add segment 
+'               Next
+'                Next
+
+'                ' Change the layer of all of the segments. 
+'                Call drawView.Parent.ChangeLayer(objColl, colorLayer)
+'            End If
+'            On Error GoTo 0
+'        Else
+'            ' It's an assembly so process its contents. 
+'            Call ProcessAssemblyColor(drawView, occ.SubOccurrences)
+'        End If
+'    Next
+'End Sub
