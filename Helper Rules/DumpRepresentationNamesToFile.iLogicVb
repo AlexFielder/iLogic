@@ -1,0 +1,37 @@
+﻿Option Explicit On
+
+''' <summary>
+''' This rule is intended to dump the representations in the current parent assembly file to a text file for ease of copying.
+''' </summary>
+Public Sub Main()
+    Dim ThisAssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
+    Dim oAsmCompDef As AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
+
+    Dim csvFile As System.IO.File
+    csvWriter = csvFile.CreateText(ThisDoc.PathAndFileName(False) & ".csv")
+    csvWriter.WriteLine("Positional Representations present in this Assembly:")
+    csvWriter.WriteLine()
+
+    'Not implemented pseudo-code:
+    'call iterateViewReps(ThisAssyDoc)
+    'call iterateLevelofDetailReps(ThisAssyDoc)
+
+    Call iteratePosReps(oAsmCompDef)
+    csvWriter.Close()
+End Sub
+
+Public csvWriter As System.IO.StreamWriter
+
+Public Sub iteratePosReps(ByVal CurrentAssemblyDocDef As AssemblyComponentDefinition)
+    For Each PosRep As PositionalRepresentation In CurrentAssemblyDocDef.RepresentationsManager.PositionalRepresentations
+        csvWriter.WriteLine(PosRep.Name)
+    Next
+End Sub
+
+Public Sub iterateViewReps(ByVal CurrentAssemblyDocDef As AssemblyComponentDefinition)
+    Throw New System.NotImplementedException
+End Sub
+
+Public Sub iterateLevelofDetailReps(ByVal CurrentAssemblyDocDef As AssemblyComponentDefinition)
+    Throw New System.NotImplementedException
+End Sub

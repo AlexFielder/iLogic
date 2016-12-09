@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Drawings\ModifySketchEntities.iLogicVb" />
+    <None Include="Helper Rules\DumpRepresentationNamesToFile.iLogicVb" />
     <None Include="Modelling\AlignUCSToAssy.iLogicVb" />
     <None Include="Modelling\All Sketches Off In Assembly.iLogicVb" />
     <None Include="Modelling\CheckForCURequired.iLogicVb" />
@@ -143,7 +144,7 @@
     <None Include="Drawings\Text_Changer.iLogicVb" />
     <None Include="Drawings\Title Block Definition Create and Insert API Sample.iLogicVb" />
     <None Include="Modelling\Toggle Sketches and Workplanes.iLogicVb" />
-    <None Include="Modelling\Turn On-Off all Workfeatures with iLogic.iLogicVb" />
+    <None Include="Modelling\Turn On-Off all Workfeatures in an Assembly.iLogicVb" />
     <None Include="Drawings\Turn Sketch Symbol Leaders on.iLogicVb" />
     <None Include="Drawings\Turn View Labels on.iLogicVb" />
     <None Include="Modelling\under constrained sketches.iLogicVb" />
