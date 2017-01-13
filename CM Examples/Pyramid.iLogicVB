@@ -14,11 +14,11 @@ Public Sub GeneratePyramid(ByVal pyramidHeight As String)
     Dim height As Integer = Convert.ToInt32(pyramidheight)
     Dim rowCount As Integer = 1
     Dim spacing As Double = 10 'units = cm
-    Dim oPartDocument As PartDocument = g_inventorApplication.ActiveDocument
+    Dim oPartDocument As PartDocument = ThisApplication.ActiveDocument
     Dim oCompDef As PartComponentDefinition = oPartDocument.ComponentDefinition
-    Dim oTrans As TransientGeometry = g_inventorApplication.TransientGeometry
+    Dim oTrans As TransientGeometry = ThisApplication.TransientGeometry
 
-    Dim trans As Transaction = g_inventorApplication.TransactionManager.StartTransaction(oPartDocument, "Create pyramid of points")
+    Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(oPartDocument, "Create pyramid of points")
 
     'Dim partOrigin As Point = oTrans.CreatePoint(0, 0, 0)
 
@@ -28,7 +28,7 @@ Public Sub GeneratePyramid(ByVal pyramidHeight As String)
     Dim YSpacing As Double = 0
     Dim ZSpacing As Double = 0
     For i As Integer = height To 0 Step -1
-        'Dim tmpPoint As Point = g_inventorApplication.TransientGeometry.CreatePoint(0, 0, 0)
+        'Dim tmpPoint As Point = ThisApplication.TransientGeometry.CreatePoint(0, 0, 0)
 
 
         For j As Integer = 1 To i
