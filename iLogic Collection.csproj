@@ -61,6 +61,7 @@
     <Content Include="Word_Add_Image_Caption_Tables.cls" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CM Examples\Pyramid.iLogicVb" />
     <None Include="Drawings\ModifySketchEntities.iLogicVb" />
     <None Include="Helper Rules\DumpRepresentationNamesToFile.iLogicVb" />
     <None Include="Modelling\AlignUCSToAssy.iLogicVb" />

@@ -1,0 +1,55 @@
+﻿Option Explicit On
+Public Sub Main()
+    If TypeOf ThisApplication.ActiveDocument Is PartDocument Then
+
+        Dim pyramidheight As String = InputBox("How high?", "Pyramid height", "10")
+        GeneratePyramid(pyramidheight)
+    Else
+        MessageBox.Show("Suggest you create a new part file and run this rule again!")
+    End If
+End Sub
+
+Public Sub GeneratePyramid(ByVal pyramidHeight As String)
+    Dim height As Integer = Convert.ToInt32(pyramidHeight)
+    Dim rowCount As Integer = 1
+    Dim spacing As Double = 10 'units = cm
+    Dim oPartDocument As PartDocument = ThisApplication.ActiveDocument
+    Dim oCompDef As componentdefinition = oPartDocument.componentdefinition
+
+    Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(oPartDocument, "Create pyramid of points")
+
+    Dim partOrigin As Point = ThisApplication.TransientGeometry.CreatePoint(0, 0, 0)
+
+    'i = row
+    'j = column
+
+    For i As Integer = height To 0 Step -1
+        Dim tmpPoint As point = ThisApplication.TransientGeometry.CreatePoint(0, 0, 0)
+        Dim XSpacing As Double = 0
+        Dim YSpacing As Double = 0
+        Dim ZSpacing As Double = 0
+
+        For j As Integer = 1 To i
+            'set up X Spacing
+            XSpacing += spacing
+            Dim oTransform As Matrix = tmpPoint.Transformation
+            oTransform.SetTranslation(ThisApplication.TransientGeometry.CreateVector(XSpacing, 0, 0))
+            tmpPoint.Transformation = oTransform
+        Next
+
+        For j As Integer = 1 To rowCount
+
+        Next
+        rowCount += 1
+    Next
+
+    trans.End
+End Sub
+
+Sub updatestatusbar(ByVal message As String)
+    ThisApplication.statusbartext = message
+End Sub
+
+Sub updatestatusbar(ByVal percent As Double, ByVal message As String)
+    ThisApplication.statusbartext = message + " (" & percent.ToString("P1") + ")"
+End Sub
