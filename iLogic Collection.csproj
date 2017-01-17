@@ -66,6 +66,7 @@
     <None Include="Helper Rules\DumpRepresentationNamesToFile.iLogicVb" />
     <None Include="Modelling\AlignUCSToAssy.iLogicVb" />
     <None Include="Modelling\All Sketches Off In Assembly.iLogicVb" />
+    <None Include="Modelling\Appearance Overrides.iLogicVb" />
     <None Include="Modelling\CheckForCURequired.iLogicVb" />
     <None Include="Modelling\Create Drawings From Assembly.iLogicVb" />
     <None Include="Modelling\Create DT- Drawings From Assembly.iLogicVb" />
