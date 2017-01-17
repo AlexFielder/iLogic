@@ -11,7 +11,6 @@ If TypeOf ThisApplication.ActiveDocument Is PartDocument Then
 ElseIf TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
 	Dim AsmDef as AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
 	'work on occurrences
-	overridesColl = transObjs.CreateObjectCollection()
 	For Each occ in asmDef.Occurrences
 		If occ.DefinitionDocumentType = DocumentTypeEnum.kPartDocumentObject Then
 			Dim tmpPart As partDocument = occ.definition.Document
@@ -22,63 +21,45 @@ ElseIf TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
 	Next
 End If
 End Sub
-' Get the TransientsObjects object to use later. 
-Public transObjs As TransientObjects = ThisApplication.TransientObjects 
-Public overridesColl as ObjectCollection = Nothing
 
 Public Sub PromotePartOverridesToUserParameters(ByVal partDoc as PartDocument)
-	If Not partDoc.ComponentDefinition.AppearanceOverridesObjects Is Nothing Then
-		Dim obj As Object
-		For Each obj In partDoc.ComponentDefinition.AppearanceOverridesObjects
-			If TypeOf obj Is SurfaceBody Then
-	'            objcoll.add AppearanceSourceTypeEnum.kPartAppearance
-			ElseIf TypeOf obj Is PartFeature Then
-	'            obj.AppearanceSourceType = AppearanceSourceTypeEnum.kBodyAppearance
-			ElseIf TypeOf obj Is Face Then
-				Dim thisFace As Face = obj
-				overridesColl.Add (thisFace.Appearance.Name)
-			Else
-				MsgBox("Unexpected type with appearance override: " & TypeName(obj))
-			End If
-		Next
-		Dim PartDocName As String = System.IO.Path.GetFileNameWithoutExtension(partDoc.DisplayName) & ":1"
-		Dim oParams as Parameters = partDoc.ComponentDefinition.Parameters
-		Dim ParamInt As Integer = 1
-		If overridesColl.Count > 0 Then
-			For Each overrideName As String in overridesColl
-				Dim customParamName As String = "Appearance " & paramInt.Tostring
-				Try
-					Parameter(customParamName) = overrideName
-				Catch 'catch the error if the parameter doesn't already exist
-					MessageBox.Show("There was an error!")
-				End Try
-				ParamInt += 1
-			Next
-		End If
-	Else
-		MessageBox.Show("No Overrides found!")
-	End If
-End Sub
-
-Public Sub RemovePartOverrides()
-        ' Get the active part document.
-        Dim partDoc As PartDocument
-        partDoc = ThisApplication.ActiveDocument
-
-        ' Iterate through the objects that have an override.
+	Dim transObjs As TransientObjects = ThisApplication.TransientObjects
+    Dim overridesColl As ObjectCollection = transObjs.CreateObjectCollection()
+    If Not partDoc.ComponentDefinition.AppearanceOverridesObjects Is Nothing Then
         Dim obj As Object
         For Each obj In partDoc.ComponentDefinition.AppearanceOverridesObjects
-            ' Set the source of the appearance based on the type of object.
-            ' It's possible to use kPartAppearance in all cases, but this sets
-            ' it to the default source used by Inventor when no overrides exist.
             If TypeOf obj Is SurfaceBody Then
-                obj.AppearanceSourceType = AppearanceSourceTypeEnum.kPartAppearance
+                '            objcoll.add AppearanceSourceTypeEnum.kPartAppearance
             ElseIf TypeOf obj Is PartFeature Then
-                obj.AppearanceSourceType = AppearanceSourceTypeEnum.kBodyAppearance
+                '            obj.AppearanceSourceType = AppearanceSourceTypeEnum.kBodyAppearance
             ElseIf TypeOf obj Is Face Then
-                obj.AppearanceSourceType = AppearanceSourceTypeEnum.kFeatureAppearance
+                Dim thisFace As Face = obj
+                overridesColl.Add(thisFace.Appearance.DisplayName)
             Else
                 MsgBox("Unexpected type with appearance override: " & TypeName(obj))
             End If
         Next
-    End Sub
+        'Dim PartDocName As String = System.IO.Path.GetFileNameWithoutExtension(partDoc.DisplayName) & ":1"
+        'commented because API > iLogic
+        'Dim oParams As Parameters = partDoc.ComponentDefinition.Parameters
+        Dim ParamInt As Integer = 1
+        If overridesColl.Count > 0 Then
+            For Each overrideName As String In overridesColl
+                Dim customParamName As String = "Appearance00" & ParamInt.ToString
+                Try
+					Parameter(customParamName) = overrideName
+                Catch 'catch the error if the parameter doesn't already exist
+					Dim oParameters As Inventor.Parameters = partDoc.ComponentDefinition.Parameters
+					'because this is text the following will work:
+					oParameters.UserParameters.AddByValue(customParamName, overrideName, UnitsTypeEnum.kTextUnits)
+                End Try
+                ParamInt += 1
+            Next
+        End If
+    Else
+        MessageBox.Show("No Overrides found!")
+    End If
+    overridesColl = Nothing
+    transObjs = Nothing
+End Sub
+
