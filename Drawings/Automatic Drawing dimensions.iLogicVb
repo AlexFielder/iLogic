@@ -1,0 +1,62 @@
+﻿
+Sub Main()
+    'This rule will create delete any existing iLogic-created dimensions before replacing them anew
+    Dim oDWG As DrawingDocument = ThisDoc.Document
+
+    Dim oSht As Sheet = oDWG.ActiveSheet
+
+    Dim oView As DrawingView = ActiveSheet.View("VIEW1").View
+
+    Dim oAssy As AssemblyDocument = ActiveSheet.View("VIEW1").ModelDocument
+
+    Dim TransG As TransientGeometry = ThisApplication.TransientGeometry
+
+    Dim oGenDims As GeneralDimensions = oSht.DrawingDimensions.GeneralDimensions
+    'messagebox.show("Setup complete")
+    'Dim oObjs as Object = Nothing
+
+    Dim aoEdge1 As face
+
+    oObjs = oAssy.AttributeManager.FindObjects("DIM", "Datum1", "1")
+
+    aoEdge1 = oobjs.Item(1)
+
+    'messagebox.show("Got face 1")
+
+    Dim aoEdge2 As face
+
+    oObjs = oAssy.AttributeManager.FindObjects("DIM", "Edge1", "1")
+
+    aoEdge2 = oObjs.Item(1)
+
+    'messagebox.show("Got face 2")
+
+    'Dim oDrawingCurves as Object = Nothing
+
+    Dim oDrawCurve1 As DrawingCurve
+
+    oDrawingCurves = oView.DrawingCurves(aoEdge1)
+
+    oDrawCurve1 = oDrawingCurves.Item(1)
+
+    'messagebox.show("Got first set of drawing curves")
+
+    Dim oDrawCurve2 As drawingcurve
+
+    oDrawingCurves = oview.DrawingCurves(aoEdge2)
+
+    oDrawCurve2 = oDrawingCurves.Item(1)
+
+    'messagebox.show("Got second set of drawing curves")
+
+    Dim oPt1 As Point2d = TransG.Createpoint2d(oView.left + (oView.Width / 4), oView.Top - (oView.Height) - 1)
+
+    messagebox.show("Got dimension line point position: " & oPt1.X.ToString() & "," & oPt1.Y.ToString())
+
+    Dim oDim1 As GeneralDimension = oGenDims.AddLinear(oPt1, oSht.CreateGeometryintent(oDrawCurve1, PointIntentEnum.kStartPointIntent), oSht.CreateGeometryIntent(oDrawCurve2, PointIntentEnum.kEndPointIntent), DimensionTypeEnum.kHorizontalDimensionType)
+
+    messagebox.show("Dimension Added.")
+
+    Dim odimatt1 As Attributeset = oDim1.Attributesets.add("iLogic_Created")
+
+End Sub

@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CM Examples\Pyramid.iLogicVb" />
+    <None Include="Drawings\Automatic Drawing dimensions.iLogicVb" />
     <None Include="Drawings\ModifySketchEntities.iLogicVb" />
     <None Include="Helper Rules\DumpRepresentationNamesToFile.iLogicVb" />
     <None Include="Modelling\AlignUCSToAssy.iLogicVb" />
