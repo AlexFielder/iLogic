@@ -33,6 +33,7 @@ Public Sub GeneratePyramid(ByVal pyramidHeight As String)
 
         For j As Integer = 1 To i
             Dim wp As WorkPoint = oCompDef.WorkPoints.AddFixed(oTrans.CreatePoint(XSpacing, YSpacing, ZSpacing))
+			wp.Name = "WP" & i.ToString() & "." & j.ToString()
             'set up X Spacing
             XSpacing += spacing
         Next
