@@ -103,6 +103,7 @@
     <None Include="Modelling\Generate iPart Members from Folder.iLogicVb" />
     <None Include="Modelling\Generate iPart Members from Parent Assemblies.iLogicVb" />
     <None Include="Modelling\Generate iPart Members.iLogicVb" />
+    <None Include="Modelling\GraitecPartCreator.iLogicVb" />
     <None Include="Modelling\Ground&amp;RootSelectedComponents.iLogicVb" />
     <None Include="Modelling\HyperLink to Excel.iLogicVb" />
     <None Include="Drawings\Insert Revision Table.iLogicVb" />
