@@ -111,6 +111,8 @@
     <None Include="Modelling\MakeComponentsProgramatically.iLogicVb" />
     <None Include="Modelling\MetalShopPn.iLogicVb" />
     <None Include="Modelling\MirrorPartInAssembly.iLogicVb" />
+    <None Include="Modelling\ProjectCurveToSurface.iLogicVb" />
+    <None Include="Modelling\ProjectCurveToSurface.ipt" />
     <None Include="Module Rules\Modules.ilogicvb" />
     <None Include="Module Rules\Modules.xsd">
       <SubType>Designer</SubType>

@@ -1,0 +1,140 @@
+﻿Private Sub Main()
+ 
+        ' get inventor appliaction
+        Dim _InvApp As Inventor.Application = ThisApplication
+ 
+        Dim oPartDoc As PartDocument
+        oPartDoc = _InvApp.ActiveDocument
+ 
+        Dim oTG As TransientGeometry
+        oTG = _InvApp.TransientGeometry
+ 
+        Dim oDef As PartComponentDefinition
+        oDef = oPartDoc.ComponentDefinition
+ 
+        'select the spline to project
+        Dim oObject As Object
+        oObject =
+            _InvApp.CommandManager.Pick(
+                SelectionFilterEnum.kSketch3dCurveFilter,
+                               "Pick a sketch spline")
+ 
+        Dim oSplineToPro As Object
+        oSplineToPro = oObject
+ 
+        'select the surface to project to
+        oObject =
+            _InvApp.CommandManager.Pick(
+                SelectionFilterEnum.kPartFaceFilter,
+                "Pick a surface")
+ 
+        Dim oSurface As Face
+        oSurface = oObject
+ 
+        'projection type
+        Dim oProType As String
+        'oProType = "project along vector"
+        oProType = "project to the closet point"
+ 
+ 
+        'get spline param extents
+        Dim oEV As CurveEvaluator
+        oEV = oSplineToPro.Geometry.Evaluator
+        Dim oMinP As Double
+        Dim oMaxP As Double
+        Call oEV.GetParamExtents(oMinP, oMaxP)
+ 
+        ' number of points we want to project
+        Dim oNumOfPt As Integer
+        oNumOfPt = 50
+ 
+        'the result points of projection
+        Dim oPointCoords As ObjectCollection
+        oPointCoords =
+            _InvApp.TransientObjects.
+            CreateObjectCollection()
+ 
+        ' select a vector for type 1: "project along vector"
+        Dim oVectorForProject As UnitVector
+        oVectorForProject =
+                oTG.CreateUnitVector()
+        If oProType = "project along vector" Then
+            Dim oObjectTemp As Object
+            oObjectTemp =
+           _InvApp.CommandManager.Pick(
+               SelectionFilterEnum.kAllLinearEntities,
+               "Pick a linear edge")
+ 
+            If Not oObjectTemp Is Nothing Then
+                Dim oLine As LineSegment
+                oLine = oObjectTemp.Geometry
+                oVectorForProject =
+                    oLine.Direction
+            Else
+                MsgBox("select a linear edge as" &
+                        "the projection vector!!")
+                Return
+            End If
+        End If
+ 
+        ' iterate each point and get the projection point
+        Dim i As Integer
+        For i = 0 To oNumOfPt
+ 
+            Dim params(0) As Double
+            params(0) = oMinP + i * (oMaxP - oMinP) / oNumOfPt
+ 
+            Dim points(2) As Double
+            Call oEV.GetPointAtParam(params, points)
+ 
+            Dim oInvPt As Inventor.Point
+            oInvPt = oTG.CreatePoint(points(0), points(1), points(2))
+ 
+         
+            'type 1
+            If oProType = "project along vector" Then
+                Dim oFoundEntities As ObjectsEnumerator =
+              _InvApp.TransientObjects.CreateObjectCollection()
+ 
+                Dim oLocatePtArray As ObjectsEnumerator =
+                    _InvApp.TransientObjects.
+                      CreateObjectCollection()
+                ' project each point of the spline to
+                'the surface along the normal vector
+                oDef.FindUsingRay(oInvPt,
+                                  oVectorForProject,
+                                  0.000000000000001,
+                                  oFoundEntities,
+                                  oLocatePtArray,
+                                  True)
+                If oLocatePtArray.Count > 0 Then
+                    oPointCoords.Add(
+                        oTG.CreatePoint(oLocatePtArray(1).x,
+                                       oLocatePtArray(1).Y,
+                                       oLocatePtArray(1).Z))
+                End If
+ 
+                'type 2
+            ElseIf oProType = "project to the closet point" Then
+ 
+                'finds the closest point of each spline point on the surface.
+                Dim oClosestPt As Inventor.Point
+                oClosestPt =
+                    oSurface.GetClosestPointTo(oInvPt)
+                oPointCoords.Add(
+                      oTG.CreatePoint(oClosestPt.X,
+                                      oClosestPt.Y,
+                                      oClosestPt.Z))
+            Else
+ 
+            End If
+ 
+ 
+        Next
+ 
+        ' create the 3d sketch spline with the result points
+        Dim oNew3dSketch As Sketch3D
+        oNew3dSketch = oDef.Sketches3D.Add
+ 
+        oNew3dSketch.SketchSplines3D.Add(oPointCoords)
+    End Sub
