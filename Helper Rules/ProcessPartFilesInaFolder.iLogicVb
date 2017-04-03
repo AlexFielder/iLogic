@@ -40,39 +40,52 @@ Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
     Dim iLogicAuto As Object = GetiLogicAutomation(ThisApplication)
     Dim folderbrowser As New System.Windows.Forms.FolderBrowserDialog()
 
-    folderbrowser.RootFolder = System.Environment.SpecialFolder.UserProfile
+    folderbrowser.RootFolder = System.Environment.SpecialFolder.MyComputer
+	'folderbrowser.RootFolder = System.Environment.SpecialFolder.UserProfile
     'folderbrowser.RootFolder = getOneDriveFolderPath()
     folderbrowser.Description = "Select Folder to look for files to process."
     folderbrowser.ShowDialog()
     Dim foldername As String = folderbrowser.selectedpath
     If Not foldername = String.Empty Then
         'now we can get/create a list of part files
-        Dim rulename As String = SelectRuleToProcessPartsWith(getDropBoxFolderPath() & "\iLogic\")
-        If Not rulename = String.Empty Then
-            Dim directory As New System.IO.DirectoryInfo(foldername)
-            Dim partlisttoprocess As System.Collections.Generic.IEnumerable(Of fileinfo) = GetFilesByExtensions(directory, ".ipt")
-
-            Dim progressint As Integer = 1
-            Dim percent As Double = Nothing
-
-            If Not partlisttoprocess Is Nothing Then
-                For Each partfile As fileinfo In partlisttoprocess
-
-                    percent = (CDbl(progressint) / partlisttoprocess.Count)
-                    progressint += 1
-
-                    Dim partdoc As partdocument = ThisApplication.documents.Open(partfile.fullname)
-
-                    updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(partdoc.File.fullfilename))
-                    'insert the name of the external rule you wish to run here:
-                    'iLogicAuto.RunExternalRule(partdocument, rulename)
-                    Dim Args As NameValueMap = ThisApplication.transientobjects.createnamevaluemap
-                    Args.Value("Filename") = partdoc.fullfilename
-                    iLogicAuto.RunExternalRuleWithArguments(partdoc, rulename, Args)
-                    partdoc.Close()
-                Next
-            End If
-        End If
+		Dim Rulesfolderbrowser As New System.Windows.Forms.FolderBrowserDialog()
+    	Rulesfolderbrowser.RootFolder = System.Environment.SpecialFolder.MyComputer
+		RulesFolderbrowser.Description = "Select your external iLogic rules folder:"
+		RulesFolderbrowser.ShowDialog()
+		Dim externalRulesFolder As String = rulesFolderBrowser.selectedpath
+		If Not externalRulesFolder = String.Empty Then
+			Dim rulename As String = SelectRuleToProcessPartsWith(externalRulesFolder)
+			'Dim rulename As String = SelectRuleToProcessPartsWith(getDropBoxFolderPath() & "\iLogic\")
+			If Not rulename = String.Empty Then
+				Dim directory As New System.IO.DirectoryInfo(foldername)
+				Dim partlisttoprocess As System.Collections.Generic.IEnumerable(Of fileinfo) = GetFilesByExtensions(directory, ".ipt")
+				
+				Dim progressint As Integer = 1
+				Dim percent As Double = Nothing
+	
+				If Not partlisttoprocess Is Nothing Then
+					For Each partfile As fileinfo In partlisttoprocess
+	
+						percent = (CDbl(progressint) / partlisttoprocess.Count)
+						progressint += 1
+	
+						Dim partdoc As partdocument = ThisApplication.documents.Open(partfile.fullname)
+	
+						updatestatusbar(percent, "Processing: " & System.IO.Path.GetFileNameWithoutExtension(partdoc.File.fullfilename))
+						'insert the name of the external rule you wish to run here:
+						'iLogicAuto.RunExternalRule(partdocument, rulename)
+						Dim Args As NameValueMap = ThisApplication.transientobjects.createnamevaluemap
+						Args.Value("Filename") = partdoc.fullfilename
+						iLogicAuto.RunExternalRuleWithArguments(partdoc, rulename, Args)
+						partdoc.Close()
+					Next
+				End If
+			End If
+		Else
+			MessageBox.Show("You didn't select your external iLogic rules folder!")
+		End If
+	Else
+		MessageBox.Show("You didn't select a folder to process!")
     End If
 End Sub
 
@@ -117,7 +130,7 @@ Public Function GetFilesByExtensions(dir As DirectoryInfo, ParamArray extensions
     Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) And Not (s.FullName.contains("OldVersions")))
     'Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) OrElse Not (s.FullName.contains("OldVersions")))
     'Return files
-    Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension))
+    Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension)).Orderby(Function(x as FileInfo) x.Name)
 End Function
 
 Sub updatestatusbar(ByVal message As String)

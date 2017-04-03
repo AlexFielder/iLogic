@@ -1,0 +1,14 @@
+﻿Imports System
+
+Sub Main()
+Try
+	'Do something here that might cause one of the following:
+Catch ArgEx As ArgumentException
+	MessageBox.Show("Caught an Argument Exception: " & Ex.Message, "Title")
+Catch ComEx As COMException
+	MessageBox.Show(Caught a COM Exception: " & ComEx.Message, "Title")
+Catch Ex As Exception
+	MessageBox.Show("Caught a general Exception: " & Ex.Message, "Title")
+End Try
+
+End Sub

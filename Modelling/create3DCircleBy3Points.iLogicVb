@@ -1,0 +1,93 @@
+﻿Sub Main()
+	create3DCircleBy3Points()
+End Sub
+
+Sub create3DCircleBy3Points()
+ 
+        ' get active Inventor process
+        Dim InvApp As Inventor.Application = _
+             Runtime.InteropServices.Marshal. _
+             GetActiveObject("Inventor.Application")
+ 
+        ' get TransientGeometry
+        Dim oTG As TransientGeometry
+        oTG = InvApp.TransientGeometry
+ 
+        ' create three points
+        Dim oStrP As Point
+        oStrP = oTG.CreatePoint(1, 0, 3)
+ 
+        Dim oMidP As Point
+        oMidP = oTG.CreatePoint(0, 1, 3)
+ 
+        Dim oEndP As Point
+        oEndP = oTG.CreatePoint(-1, 0, 3)
+ 
+ 
+        ' get current document
+        Dim oDoc As PartDocument
+        oDoc = InvApp.ActiveDocument
+ 
+        Dim pdef As PartComponentDefinition
+        pdef = oDoc.ComponentDefinition
+ 
+        ' add the sketch3d
+        Dim oSketch3d As Sketch3D
+        oSketch3d = pdef.Sketches3D.Add()
+ 
+        ' add p1, p2, p3 as sketch 3d point
+        Dim oP1_sketch As SketchPoint3D
+        oP1_sketch = oSketch3d.SketchPoints3D.Add(oStrP)
+ 
+        Dim oP2_sketch As SketchPoint3D
+        oP2_sketch = oSketch3d.SketchPoints3D.Add(oMidP)
+ 
+        Dim oP3_sketch As SketchPoint3D
+        oP3_sketch = oSketch3d.SketchPoints3D.Add(oEndP)
+ 
+        Dim oSketch3DCircle As SketchCircle3D
+ 
+        ' this failed because AddByThreePoints does not accept
+        ' SketchPoint3D
+ 
+        'oSketch3d.SketchCircles3D.AddByThreePoints(oP1_sketch, _
+        '                                           oP2_sketch, _
+        '                                           oP3_sketch)
+ 
+ 
+        ' we intensionlly get the geometry (point) again
+        ' this mimic if we have had some SketchPoint3D
+ 
+        Dim oP1_Geometry As Point
+        oP1_Geometry = oP1_sketch.Geometry
+ 
+        Dim oP2_Geometry As Point
+        oP2_Geometry = oP2_sketch.Geometry
+ 
+        Dim oP3_Geometry As Point
+        oP3_Geometry = oP3_sketch.Geometry
+ 
+ 
+        oSketch3DCircle = oSketch3d.SketchCircles3D. _
+                        AddByThreePoints(oP1_Geometry, _
+                                         oP2_Geometry, _
+                                         oP3_Geometry)
+ 
+        ' add GeometricConstraint
+        Dim oCC3D1 As CoincidentConstraint3D
+        oCC3D1 = oSketch3d.GeometricConstraints3D. _
+                AddCoincident(oSketch3DCircle, oP1_sketch)
+ 
+ 
+        Dim oCC3D2 As CoincidentConstraint3D
+        oCC3D2 = oSketch3d.GeometricConstraints3D. _
+                AddCoincident(oSketch3DCircle, oP2_sketch)
+ 
+        Dim oCC3D3 As CoincidentConstraint3D
+        oCC3D3 = oSketch3d.GeometricConstraints3D. _
+                AddCoincident(oSketch3DCircle, oP3_sketch)
+ 
+ 
+ 
+ 
+    End Sub
