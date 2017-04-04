@@ -130,7 +130,7 @@ Public Function GetFilesByExtensions(dir As DirectoryInfo, ParamArray extensions
     Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) And Not (s.FullName.contains("OldVersions")))
     'Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) OrElse Not (s.FullName.contains("OldVersions")))
     'Return files
-    Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension)).Orderby(Function(x as FileInfo) x.Name)
+    Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension)).Orderby(Function(x As FileInfo) x.Name)
 End Function
 
 Sub updatestatusbar(ByVal message As String)
