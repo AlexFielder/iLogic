@@ -1,0 +1,28 @@
+﻿Public Sub Main()
+	Dim trans as transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument,"Add Blank Rows")
+	Try
+		Dim oDrawDoc As DrawingDocument = ThisApplication.ActiveDocument
+		Dim oPartList As PartsList = oDrawDoc.ActiveSheet.PartsLists.Item(1)
+		oPartList.Sort("VENDOR",True,"PART NUMBER",True)
+		Dim i As Long = 1
+		For i = 1 To 500 'oPartList.PartsListRows.Count
+			Dim thisCell As PartsListCell = oPartList.PartsListRows.Item(i).Item("VENDOR")
+			If Not thisCell.Value = "" Then
+				Dim nextrowint As Integer = i + 1
+				If nextrowint > oPartList.PartsListRows.Count Then Exit For
+				Dim nextCell As PartsListCell = oPartList.PartsListRows.Item(nextrowint).Item("VENDOR")
+				If Not thisCell.Value = nextCell.Value Then
+					oPartList.PartsListRows.Add(i, False)
+					oPartList.PartsListRows.Add(i, False)
+					oPartList.PartsListRows.Add(i, False)
+				End If
+			End If
+		Next
+		oPartList.Renumber
+		oPartList.SaveItemOverridesToBOM
+	Catch
+		trans.Abort()
+	Finally
+		trans.End()
+	End Try
+End Sub

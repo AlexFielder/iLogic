@@ -158,6 +158,8 @@ Public Sub ExtrudeFeature(ByVal ActiveDoc As Document)
     If Parameter("DisplayiPropertiesAfterFormFilled") Then
         Dim iPropertiesCtrldef As Inventor.controldefinition = ThisApplication.CommandManager.ControlDefinitions.Item("PartiPropertiesCmd")
         iPropertiesCtrldef.Execute()
+	Else
+		ActiveDoc.Save()
     End If
 
 End Sub
