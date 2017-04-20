@@ -1,0 +1,66 @@
+﻿Option Explicit
+Option Compare Text
+
+Imports System.Collections.Generic
+
+Public Sub Main()
+If TypeOf ThisApplication.Activedocument Is AssemblyDocument Then
+	ActiveCompDef = ThisApplication.Activedocument.Componentdefinition
+	Dim repsToProcess as New ArrayList
+	repstoProcess.add("Design Views")
+	repstoProcess.add("Pos Reps")
+	repstoProcess.add("LODs")
+	Dim result As String = InputListBox("What to sort?", repstoProcess, "", Title := "Select a collection to sort", ListName := "Available Collections")
+	Select Case result
+		Case "Design Views"
+			Throw New notimplementedException
+		Case "Pos Reps"
+			BeginSortPosReps()
+		Case "LODs"
+			Throw New notimplementedException
+	End Select
+Else
+	MessageBox.Show("Only works with Assemblies")
+	Exit Sub
+End If
+
+End Sub
+
+Private unsortedDesignViews as List(Of String)
+Private unsortedPosReps as List(Of String)
+Private unsortedLoDs as List(Of String)
+Private ActiveCompDef as AssemblyComponentDefinition
+Private oPosReps as PositionalRepresentations
+Private DesignViews as DesignViewRepresentations
+Private LODs as LevelofDetailRepresentations
+
+Public Sub BeginSortPosReps()
+	unsortedPosReps = New List(Of String)
+	oPosReps = ActiveCompDef.RepresentationsManager.PositionalRepresentations
+	For Each oPosRep As PositionalRepresentation In oPosReps
+		If Not oPosRep.Name = "Master" Then
+			unsortedPosReps.Add(oPosRep.Name)
+		End If
+	Next
+	'MessageBox.Show(unsortedPosReps.Count)
+	'sortedPosReps = unsortedPosReps.Orderby(Function(x) x.Name)
+	unsortedPosReps.Sort()
+'	For Each oPosRep As String In unsortedPosReps
+'		MessageBox.Show(oposrep)
+'	Next
+	SortPosReps()
+End Sub
+
+Public Sub SortPosReps()
+	Dim name As String
+	Dim oldname As String
+	For i As Integer = 0 To unsortedPosReps.count -1
+		name = unsortedPosReps(i)
+		'MessageBox.Show("original name: " & name)
+		oldname = name & "_old"
+		'MessageBox.Show("old name: " & oldname)
+		oPosReps.Item(name).Name = oldName
+		Call oPosReps.Item(oldname).copy(Name)
+		Call oPosReps.Item(oldName).Delete
+	Next
+End Sub

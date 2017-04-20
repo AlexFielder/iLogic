@@ -1,0 +1,66 @@
+﻿Imports System.Text.RegularExpressions
+Public Sub Main()
+	AssyDoc = ThisApplication.ActiveDocument
+	AssyCompDef = AssyDoc.ComponentDefinition
+	Dim RepsManager As RepresentationsManager = AssyCompDef.RepresentationsManager
+	Dim ActivePosRep As PositionalRepresentation = RepsManager.ActivePositionalRepresentation
+'	Dim regextoMatch As New Regex("(\w.*)(\d{1,})")
+'	Dim matchingprefix As String = String.empty
+'	Dim matchingsuffix As String = String.empty
+'	Try
+'		matchingprefix = regextoMatch.Match(ActivePosRep.Name).Captures(0).ToString()
+'		matchingsuffix = regextoMatch.Match(ActivePosRep.Name).Captures(1).ToString()
+'	Catch
+'		'Master posRep?
+'	End Try
+'	
+'	If Not matchingprefix = "" And Not matchingsuffix = "" Then
+'		DeactivateMatchingJoints("Rigid:" & matchingprefix & ":" & matchingsuffix)
+'	End If
+	'MessageBox.Show(ActivePosRep.Name)
+	If ActivePosRep.Name = "Master" Or ActivePosRep.Name = "Position3" Then
+		'MessageBox.Show("Master or Pos3!")
+		Component.IsActive("Bolted Connection:1") = True
+		Component.IsActive("Bolted Connection:2") = False
+		Component.IsActive("Bolted Connection:3") = True
+		Component.IsActive("Bolted Connection:4") = False
+		Joint.IsActive("Rigid:Position:Master") = True
+	Else If ActivePosRep.Name = "Position1 (Carriage)" Or ActivePosRep.Name = "Position9 (Carriage)" _
+		Or ActivePosRep.Name = "Position2 (Carriage)" Or ActivePosRep.Name = "Position10 (Carriage)" Then
+		'MessageBox.Show(ActivePosRep.Name)
+		Component.IsActive("Bolted Connection:1") = False
+		Component.IsActive("Bolted Connection:2") = True
+		Component.IsActive("Bolted Connection:3") = True
+		Component.IsActive("Bolted Connection:4") = False
+		Joint.IsActive("Rigid:Position:Master") = False
+	Else If ActivePosRep.Name = "Position7 (Carriage)"Or ActivePosRep.Name = "Position8 (Carriage)" Then
+		Component.IsActive("Bolted Connection:1") = True
+		Component.IsActive("Bolted Connection:2") = False
+		Component.IsActive("Bolted Connection:3") = False
+		Component.IsActive("Bolted Connection:4") = True
+		Joint.IsActive("Rigid:Position:Master") = False
+	Else
+		Component.IsActive("Bolted Connection:1") = True
+		Component.IsActive("Bolted Connection:2") = False
+		Component.IsActive("Bolted Connection:3") = True
+		Component.IsActive("Bolted Connection:4") = False
+		Joint.IsActive("Rigid:Position:Master") = False
+	End If
+End Sub
+
+Public AssyDoc as AssemblyDocument = Nothing
+Public AssyCompDef as ComponentDefinition = Nothing
+
+Public Sub DeactivateMatchingJoints(JointMatch As String)
+For Each AssyJoint As AssemblyJoint In assycompdef.Joints
+	If Not assyJoint.Name = JointMatch Then
+		Joint.IsActive(AssyJoint.Name) = False
+	Else
+		Joint.IsActive(AssyJoint.Name) = True
+	End If
+Next
+End Sub
+
+Public Sub ActivateMatchingJoint(JointName As String)
+
+End Sub
