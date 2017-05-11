@@ -84,6 +84,7 @@
     <None Include="Modelling\Create a New iLogic Rule automatically.iLogicVb" />
     <None Include="Modelling\Create_standard_parts_from_Excel.iLogicVb" />
     <None Include="Drawings\Create_View_Reps.iLogicVb" />
+    <None Include="Modelling\create_virtual_parts_from_Excel.iLogicVb" />
     <None Include="Modelling\CS Data Standards.iLogicVb" />
     <None Include="AddRemove\De-Author.iLogicVb" />
     <None Include="AddRemove\Dedupe_and_Hash.iLogicVb" />

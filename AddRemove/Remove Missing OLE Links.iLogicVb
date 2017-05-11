@@ -6,41 +6,41 @@ End Sub
 Public Sub oleLinksDelete()
            
     ThisApplication.SilentOperation = True
-     Dim oAssyDoc As AssemblyDocument
+     'Dim oAssyDoc As AssemblyDocument
      'Dim oPartDoc As PartDocument
-     'Dim oDrawingDoc As DrawingDocument
+     Dim oDrawingDoc As DrawingDocument
      'oPartDoc = ThisApplication.ActiveDocument
-	 oAssyDoc = ThisApplication.ActiveDocument
-     'oDrawingDoc = ThisApplication.ActiveDocument
+	 'oAssyDoc = ThisApplication.ActiveDocument
+     oDrawingDoc = ThisApplication.ActiveDocument
      
      Dim bSaveDoc As Boolean
      bSaveDoc = False
     
      Dim oRefOleFileDesc As ReferencedOLEFileDescriptor
-     If oAssyDoc.ReferencedOLEFileDescriptors.Count > 0 Then
+     'If oAssyDoc.ReferencedOLEFileDescriptors.Count > 0 Then
      'If oPartDoc.ReferencedOLEFileDescriptors.Count > 0 Then
-     'If oDrawingDoc.ReferencedOLEFileDescriptors.Count > 0 Then
-         For Each oRefOleFileDesc In oAssyDoc.ReferencedOLEFileDescriptors
+     If oDrawingDoc.ReferencedOLEFileDescriptors.Count > 0 Then
+         'For Each oRefOleFileDesc In oAssyDoc.ReferencedOLEFileDescriptors
 		 'For Each oRefOleFileDesc In oPartDoc.ReferencedOLEFileDescriptors
-         'For Each oRefOleFileDesc In oDrawingDoc.ReferencedOLEFileDescriptors
+         For Each oRefOleFileDesc In oDrawingDoc.ReferencedOLEFileDescriptors
               'Debug.Print oRefOleFileDesc.ReferenceStatus
               
               If oRefOleFileDesc.ReferenceStatus = ReferenceStatusEnum.kMissingReference Then
                   ' Debug.Print oRefOleFileDesc.DisplayName
                   oRefOleFileDesc.Delete
                   'oPartDoc.Dirty = True
-                  'oDrawingDoc.Dirty = True
-				  oAssyDoc.Dirty = True
+                  oDrawingDoc.Dirty = True
+				  'oAssyDoc.Dirty = True
                   bSaveDoc = True
               End If
             Next oRefOleFileDesc
           
-          If bSaveDoc = True Then
-		  	oAssyDoc.Save
-              'oPartDoc.Save
-              'oDrawingDoc.Save
-              bSaveDoc = False
-          End If
+         	If bSaveDoc = True Then
+		  		'oAssyDoc.Save
+              	'oPartDoc.Save
+				oDrawingDoc.Save
+            	bSaveDoc = False
+          	End If
       End If
     ' Be sure to set this back to False
      ThisApplication.SilentOperation = False
