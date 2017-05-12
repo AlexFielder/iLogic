@@ -1,0 +1,11 @@
+﻿Option Explicit On
+AddReference "IlogicExternalDebug.dll"
+Imports iLogicExternalDebug
+Imports System.IO
+'Imports Microsoft.office.interop.excel
+Private Sub Main()
+    xtClass.ThisApplication = ThisApplication
+    xtClass.DocToUpdate = ThisDoc
+    Call xtClass.BeginRenumberItems
+    'Call insertdummyfiles
+End Sub
