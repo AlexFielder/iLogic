@@ -9,3 +9,4 @@ Private Sub Main()
     Call xtClass.BeginRenumberItems
     'Call insertdummyfiles
 End Sub
+Public xtClass As New iLogicExternalDebug.ExtClass()

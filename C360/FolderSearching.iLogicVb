@@ -1,0 +1,43 @@
+﻿AddReference "System.Core"
+AddReference "System.Linq"
+'addreference "Microsoft.Win32"
+
+Imports Inventor
+Imports System.IO
+Imports System.Core
+Imports System.Linq
+Imports System.Windows.Forms
+Imports System.Collections.Generic
+
+Public Sub Main()
+    'user feedback tools start
+    Dim sw As New Stopwatch()
+    sw.Start()
+
+    Dim IncludeSubFolders As Boolean = True
+
+
+    ProcessPartsinFolder(IncludeSubFolders)
+    sw.Stop()
+    Dim timeElapsed As Timespan = sw.elapsed
+    MessageBox.Show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                                        timeElapsed.Hours,
+                                                        timeElapsed.Minutes,
+                                                        timeElapsed.Seconds,
+                                                        timeElapsed.Milliseconds / 10))
+
+End Sub
+
+Public Function GetFilesByForEach(dir As DirectoryInfo)
+
+End Function
+
+Public Function GetFilesByLINQ(dir As DirectoryInfo, ParamArray extensions As String()) As System.Collections.Generic.IEnumerable(Of FileInfo)
+    If extensions Is Nothing Then
+        Throw New ArgumentNullException("extensions")
+    End If
+    Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) And Not (s.FullName.contains("OldVersions")))
+    'Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) OrElse Not (s.FullName.contains("OldVersions")))
+    'Return files
+    Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension)).Orderby(Function(x As FileInfo) x.Name)
+End Function
