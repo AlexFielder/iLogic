@@ -27,17 +27,18 @@ Public Sub Main()
             MessageBox.Show(foundFile.FullName)
         End If
 
-        'Dim foundFiles As List(Of FileInfo) = getFilesByWildCard(ProjectPath, "*COTS*")
+        Dim foundFiles As List(Of FileInfo) = getFilesByWildCard(ProjectPath, "*COTS*")
 
-        'If Not foundFiles Is Nothing Then
-        '    If foundFiles.Count > 0 Then
-        '        For i = 0 To foundFiles.Count - 1
-        '            MessageBox.Show(foundFiles(i).FullName)
-        '        Next
-        '    End If
-        'Else
-        '    messagebox.show("Found nothing")
-        'End If
+        If Not foundFiles Is Nothing Then
+            If foundFiles.Count > 0 Then
+                For i = 0 To foundFiles.Count - 1
+                    MessageBox.Show(foundFiles(i).FullName)
+                Next
+            End If
+        Else
+            messagebox.show("Found nothing")
+        End If
+
         Dim extensions As String() = {".ipt", ".iam"}
         Dim foundfilesWithLINQ As Ienumerable(Of fileInfo) = GetFilesByLINQWithExclusions(New DirectoryInfo(ProjectPath), "Hinging Bracket", extensions)
         If Not foundfilesWithLINQ Is Nothing Then
@@ -98,6 +99,13 @@ Public Function getFilesByWildCard(dir As String, filename As String) As List(Of
     Return files
 End Function
 
+''' <summary>
+''' Searches the given path using a wildcard * surrounding the filename and a string() of file extensions.
+''' </summary>
+''' <param name="dir">Directory to search</param>
+''' <param name="filename">filename to wildcard search</param>
+''' <param name="extensions">list of file extensions to search</param>
+''' <returns></returns>
 Public Function GetFilesByLINQWithExclusions(dir As DirectoryInfo, filename As String, extensions As String()) As IENumerable(Of FileInfo)
     If extensions Is Nothing Then
         Throw New ArgumentNullException("extensions")
