@@ -1,0 +1,24 @@
+﻿Public Sub Main()
+    Dim fileName As String = InputBox("What file are we suppressing?", "Type the filename", "COTS-100200.ipt")
+    'change this inside Inventor
+    Dim ThisDoc As AssemblyDocument = ThisApplication.ActiveDocument
+    Dim oCompDef As ComponentDefinition = ThisDoc.ComponentDefinition
+    'need to do this for speed:
+    ' get filename
+    ' look for filename in allreferenceddocuments and their children
+    ' collect all occurrences and the parent assembly file for each
+    ' iterate collection and suppress relevant occurrences
+    '
+    ' the really slow way would be to iterate the entire set of occurrences but that could take forever.
+    ' also need to check current level of detail is set to iLogic to prevent errors when suppressing.
+    Call SuppressOccurrenceByFileName(fileName, oCompDef)
+End Sub
+
+Public Function SuppressOccurrenceByFileName(occName As String, parentCompDef As ComponentDefinition)
+    For Each item As ComponentOccurrence In parentCompDef.Occurrences
+        Dim current
+        If item Is compOcc Then
+            Component.Suppress(item)
+        End If
+    Next
+End Function

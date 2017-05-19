@@ -63,6 +63,7 @@
     <None Include="AddRemove\RemoveColourOverrides.ilogicVb" />
     <None Include="App.config" />
     <None Include="C360\FolderSearching.iLogicVb" />
+    <None Include="C360\SuppressOccurrences.iLogicVb" />
     <None Include="CM Examples\Pyramid.iLogicVb" />
     <None Include="Drawings\Add blank rows to parts list.iLogicVb" />
     <None Include="Drawings\Automatic Drawing dimensions.iLogicVb" />
@@ -187,6 +188,13 @@
   <ItemGroup>
     <Compile Include="Modelling\Create_Labels.Vb" />
     <Compile Include="Modelling\MoveItMoveIt.bas" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Autodesk.Inventor.Interop, Version=22.0.0.0, Culture=neutral, PublicKeyToken=d84147f8b4276564, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\..\..\..\Program Files\Autodesk\Inventor 2018\Bin\Public Assemblies\Autodesk.Inventor.Interop.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
