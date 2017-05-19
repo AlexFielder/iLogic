@@ -43,8 +43,8 @@ Public Sub Main()
         Dim foundfilesWithLINQ As Ienumerable(Of fileInfo) = GetFilesByLINQWithExclusions(New DirectoryInfo(ProjectPath), "Hinging Bracket", extensions)
         If Not foundfilesWithLINQ Is Nothing Then
             MessageBox.Show(foundfilesWithLINQ.count)
-            For Each item As fileinfo In foundfilesWithLINQ
-                MessageBox.Show(item.fullname)
+            For Each foundfile As fileinfo In foundfilesWithLINQ
+                MessageBox.Show(foundfile.fullname)
             Next
         Else
             MessageBox.Show("Found nothing")
