@@ -1,5 +1,5 @@
-﻿'AddReference "System.Core"
-'AddReference "System.Linq"
+﻿AddReference "System.Core"
+AddReference "System.Linq"
 'addreference "Microsoft.Win32"
 
 Imports Inventor
@@ -12,27 +12,41 @@ Imports System.Collections.Generic
 Public Sub Main()
     'user feedback tools start
     Try
-
-
         Dim sw As New Stopwatch()
         sw.Start()
 
         Dim IncludeSubFolders As Boolean = True
 
         Dim ProjectPath As String = ThisApplication.DesignProjectManager.ActiveDesignProject.FullFileName
+        ProjectPath = IO.Path.GetDirectoryName(ProjectPath)
+        MessageBox.Show(ProjectPath)
 
-        Dim foundFile As FileInfo = GetFileByForEach(ProjectPath, "COTS-100200")
+        Dim foundFile As FileInfo = GetFileByForEach(ProjectPath, "COTS-100200.ipt")
 
         If Not foundFile Is Nothing Then
-            messagebox.show(foundFile.FullName)
+            MessageBox.Show(foundFile.FullName)
         End If
 
-        Dim foundFiles As List(Of FileInfo) = getFilesByForEach(ProjectPath, "COTS")
+        'Dim foundFiles As List(Of FileInfo) = getFilesByWildCard(ProjectPath, "*COTS*")
 
-        If foundFiles.Count > 0 Then
-            For i = 0 To foundFiles.Count - 1
-                messagebox.show(foundFiles(i).FullName)
+        'If Not foundFiles Is Nothing Then
+        '    If foundFiles.Count > 0 Then
+        '        For i = 0 To foundFiles.Count - 1
+        '            MessageBox.Show(foundFiles(i).FullName)
+        '        Next
+        '    End If
+        'Else
+        '    messagebox.show("Found nothing")
+        'End If
+        Dim extensions As String() = {".ipt", ".iam"}
+        Dim foundfilesWithLINQ As Ienumerable(Of fileInfo) = GetFilesByLINQWithExclusions(New DirectoryInfo(ProjectPath), "Hinging Bracket", extensions)
+        If Not foundfilesWithLINQ Is Nothing Then
+            MessageBox.Show(foundfilesWithLINQ.count)
+            For Each item As fileinfo In foundfilesWithLINQ
+                MessageBox.Show(item.fullname)
             Next
+        Else
+            MessageBox.Show("Found nothing")
         End If
 
         sw.Stop()
@@ -43,6 +57,7 @@ Public Sub Main()
                                                             timeElapsed.Seconds,
                                                             timeElapsed.Milliseconds / 10))
     Catch ex As Exception
+        MessageBox.Show(ex.message)
         iProperties.Value("Custom", "C360MessageText_ErrorChecking") = ex.message
         iProperties.Value("Custom", "C360MessageSeverity_ErrorChecking") = "Error"
         iProperties.Value("Custom", "C360MessageTriggered_ErrorChecking") = True
@@ -55,9 +70,10 @@ End Sub
 ''' <param name="dir"></param>
 ''' <param name="filename"></param>
 ''' <returns></returns>
-Public Function GetFileByForEach(dir As DirectoryInfo, filename As String) As FileInfo
+Public Function GetFileByForEach(dir As String, filename As String) As FileInfo
     'search everything
-    For Each file As FileInfo In dir.GetFiles(filename, SearchOption.AllDirectories)
+    Dim dirToSearch As DirectoryInfo = New directoryinfo(dir)
+    For Each file As FileInfo In dirToSearch.GetFiles(filename, SearchOption.AllDirectories)
         If file.Name = filename Then
             Return file
         End If
@@ -70,20 +86,25 @@ End Function
 ''' <param name="dir"></param>
 ''' <param name="filename"></param>
 ''' <returns></returns>
-Public Function getFilesByForEach(dir As DirectoryInfo, filename As String) As List(Of FileInfo)
+Public Function getFilesByWildCard(dir As String, filename As String) As List(Of FileInfo)
     'wildcard search
+    Dim dirToSearch As DirectoryInfo = New directoryinfo(dir)
     Dim files As List(Of FileInfo) = New List(Of FileInfo)
-    For Each file As FileInfo In dir.GetFiles("*" & filename & "*", SearchOption.AllDirectories)
+    MessageBox.Show(filename)
+    For Each file As FileInfo In dirToSearch.GetFiles(filename, SearchOption.AllDirectories)
+        'messagebox.show(file.name)
         files.Add(file)
     Next
+    Return files
 End Function
 
-Public Function GetFilesByLINQWithExclusions(dir As DirectoryInfo, ParamArray extensions As String()) As System.Collections.Generic.IEnumerable(Of FileInfo)
+Public Function GetFilesByLINQWithExclusions(dir As DirectoryInfo, filename As String, extensions As String()) As IENumerable(Of FileInfo)
     If extensions Is Nothing Then
         Throw New ArgumentNullException("extensions")
     End If
-    Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) And Not (s.FullName.Contains("OldVersions")))
-    'Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) OrElse Not (s.FullName.contains("OldVersions")))
+    'Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) And Not (s.FullName.Contains("OldVersions")))
+    'Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.EndsWith(".v")) And Not (s.FullName.contains("OldVersions")))
+    Dim files = dir.EnumerateFiles("*" & filename & "*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.EndsWith(".v")) And Not (s.FullName.contains("OldVersions")))
     'Return files
     Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension)).OrderBy(Function(x As FileInfo) x.Name)
 End Function
