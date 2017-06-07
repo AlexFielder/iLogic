@@ -100,6 +100,7 @@
     <None Include="Helper Rules\PartsandAssemblies.iLogicVb" />
     <None Include="Helper Rules\ProcessPartFilesInaFolder.iLogicVb" />
     <None Include="Helper Rules\RenumberItems.iLogicVb" />
+    <None Include="Helper Rules\runextdebig.iLogicVb" />
     <None Include="Helper Rules\TryCatchCatch.iLogicVb" />
     <None Include="Modelling\AlignUCSToAssy.iLogicVb" />
     <None Include="Modelling\All Sketches Off In Assembly.iLogicVb" />
