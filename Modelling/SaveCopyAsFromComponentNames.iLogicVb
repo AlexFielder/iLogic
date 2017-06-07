@@ -1,0 +1,46 @@
+﻿AddReference "System.core"
+
+Imports System.linq
+Imports System.collections.generic
+
+Sub Main()
+Dim searchstring as String = InputBox("what are we searching for?", "Search string", "Default Entry")
+
+If Not searchstring = String.empty Then
+	Dim oDoc as document = ThisDoc.Document
+	Dim oPane As Browserpane = odoc.browserpanes("Model")
+	Dim oTopNode As Browsernode = opane.topnode
+	
+	Dim nodelist As list(Of String) = New list(Of String)
+	
+	nodelist = (from a As BrowserNode In otopnode.Browsernodes
+				let nodedef as browsernodedefinition = a.browsernodedefinition
+				where nodedef.label.contains(searchstring)
+				Select nodedef.label).ToList()
+	ThisApplication.StatusBartext = searchstring
+	
+'	For Each node As browsernode In oTopnode.Browsernodes
+'		Dim nodeDef as browsernodedefinition = node.browsernodedefinition
+'		If nodedef.label.startswith(searchstring) Then
+'			nodelist.add(nodedef.label)
+'			
+'		End If
+'		MessageBox.Show("browser node: " & nodedef.label)
+'	Next
+	If nodelist.count > 0 Then
+		Dim FolderName As String  = System.IO.Path.GetDirectoryName(oDoc.FullFileName)
+		Dim filename As String = System.io.Path.GetFileNameWithoutExtension(oDoc.fullfilename)
+		For Each nodename As String in nodelist
+			Dim newfilename As String = foldername & "\" & filename & "-" & nodename.Replace("°:1","") & ".iam"
+			'newfilename.Replace("°:","°-")
+			MessageBox.Show(newfilename)
+			If Not System.io.file.Exists(newfilename) Then
+				odoc.saveas(newfilename, False)
+			End If
+		Next
+	End If
+End If
+
+
+End Sub
+

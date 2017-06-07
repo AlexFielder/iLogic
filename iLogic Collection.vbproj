@@ -155,6 +155,7 @@
     <None Include="Modelling\RunFeatureCountonAssembly.iLogicVb" />
     <None Include="Modelling\RunGraitecPartCreator.ilogicVb" />
     <None Include="Modelling\RunPlatformDrawings.iLogicVb.bak" />
+    <None Include="Modelling\SaveCopyAsFromComponentNames.iLogicVb" />
     <None Include="Modelling\Selective Colour Change.iLogicVb" />
     <None Include="Modelling\Suppress Weld Prep.iLogicVb" />
     <None Include="Modelling\sweep-length-code-snippet.iLogicVb" />
