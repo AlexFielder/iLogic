@@ -126,6 +126,7 @@
     <None Include="Modelling\Create_standard_parts_from_Excel.iLogicVb" />
     <None Include="Modelling\CS Data Standards.iLogicVb" />
     <None Include="Modelling\DesignCheckerResultsFromAssembly.iLogicVb" />
+    <None Include="Modelling\Engraving.iLogicVb" />
     <None Include="Modelling\Export Part to Step %28Stage by Stage%29.iLogicVb" />
     <None Include="Modelling\Export to 3D PDF and Attach or Embed.iLogicVb" />
     <None Include="Modelling\FEATURECOUNT.iLogicVb" />

@@ -1,0 +1,36 @@
+﻿iLogicVb.UpdateWhenDone = True
+
+Select Case HoleAngle
+Case 20
+PartMarking = "20/50"
+Case 25
+PartMarking = "25/45"
+Case 30
+PartMarking = "30/40"
+Case 35
+PartMarking = "35/35"
+Case 40
+PartMarking = "40/30"
+Case 45
+PartMarking = "45/25"
+'Case 1
+'	MultiValue.SetList("PartMarking", "20/50", "35/35", "40/30", "45/25")
+'	PartMarking = "45/25"
+'	MultiValue.SetList("PartMarkingAlt", "25/45", "30/40", "35/35")
+'	PartMarkingAlt = "25/45"
+'Case 2
+'	MultiValue.SetList("PartMarking", "20/50", "35/35", "40/30", "45/25")
+'	PartMarking = "40/30"
+'	MultiValue.SetList("PartMarkingAlt", "25/45", "30/40", "35/35")
+'	PartMarkingAlt = "30/40"
+'Case 3
+'	MultiValue.SetList("PartMarking", "20/50", "35/35", "40/30", "45/25")
+'	PartMarking = "35/35"
+'	MultiValue.SetList("PartMarkingAlt", "25/45", "30/40", "35/35")
+'	PartMarkingAlt = "HIDEME"
+'Case 4
+'	MultiValue.SetList("PartMarking", "20/50", "35/35", "40/30", "45/25")
+'	PartMarking = "20/50"
+'	MultiValue.SetList("PartMarkingAlt", "25/45", "30/40", "35/35")
+'	PartMarkingAlt = "HIDEME"
+End Select
