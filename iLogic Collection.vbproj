@@ -66,6 +66,7 @@
     <None Include="C360\SuppressOccurrences.iLogicVb" />
     <None Include="CM Examples\Pyramid.iLogicVb" />
     <None Include="Drawings\Add blank rows to parts list.iLogicVb" />
+    <None Include="Drawings\AlignDrawingViews.iLogicVb" />
     <None Include="Drawings\Automatic Drawing dimensions.iLogicVb" />
     <None Include="Drawings\Balloon Filtering iLogic.iLogicVb" />
     <None Include="Drawings\Batch PDFs from Drawings.iLogicVb" />

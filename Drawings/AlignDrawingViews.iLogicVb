@@ -1,0 +1,100 @@
+﻿Sub main()
+
+    'This code allows user To accurately Set the lower left corner position Of drawing view 1 And drawing view 2 On sheet 1
+
+    ' Be careful when copying and pasting – don’t introduce new lines accidentally……
+
+
+
+    Dim oView As DrawingView = Nothing
+
+    Dim oBasePosition As Point2d = Nothing
+
+    Dim Title As String = "Cadline iLogic"
+
+    Dim oDrawingViews As DrawingViews = ThisApplication.ActiveDocument.Sheets.Item(1).DrawingViews
+
+    Dim XPos As String
+
+    Dim YPos As String
+
+
+
+    ' Loop through first two drawing views in first sheet
+
+    For i = 1 To oDrawingViews.Count
+        ' Reset values for X and Y positions
+        XPos = "a"
+        YPos = "a"
+        ' Define drawing view
+
+        oView = oDrawingViews.Item(i)
+
+
+
+        ' Get user input for X co-ordinate
+
+        Do While Not IsNumeric(XPos)
+
+            XPos = InputBox("Enter X co-ordinate for View " & i & " (" & oView.Name & ")", Title, "50")
+
+            If XPos = "" Then
+
+                Return
+
+            End If
+
+        Loop
+
+
+
+        ' Get user input for Y co-ordinate
+
+        Do While Not IsNumeric(YPos)
+
+            YPos = InputBox("Enter Y co-ordinate for View " & i & " (" & oView.Name & ")", Title, "50")
+
+            If YPos = "" Then
+
+                Return
+
+            End If
+
+        Loop
+
+
+
+        ' Correct units
+
+        XPos /= 10
+
+        YPos /= 10
+
+
+
+        ' Create a new point to move the baseview to.
+
+        oBasePosition = ThisApplication.TransientGeometry.CreatePoint2d()
+
+        oBasePosition.X = XPos + (oView.Width / 2)
+
+        oBasePosition.Y = YPos + (oView.Height / 2)
+
+
+
+        'Move the baseview to the new position
+
+        oView.Position = oBasePosition
+
+
+
+        ' Ensure that the geometry in this view will not move if new geometry is added (and the view size changes as a result)
+
+        ' Note this doesn't prevent a user dragging the view around!
+
+        oView.ViewJustification = ViewJustificationEnum.kFixedViewJustification
+
+
+
+    Next
+End Sub

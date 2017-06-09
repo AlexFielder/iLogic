@@ -5,7 +5,7 @@ End Sub
 Sub CheckiPartTableForErrors()
     Dim oErrorManager As ErrorManager = ThisApplication.ErrorManager
 
-    If TypeOf (Thisapplication.activedocument) Is partdocument Then
+    If TypeOf (ThisApplication.activedocument) Is partdocument Then
         Dim oDoc As PartDocument = ThisApplication.ActiveDocument
         Dim oiPart As iPartFactory = oDoc.ComponentDefinition.iPartFactory
         Dim oTop As BrowserNode = oDoc.BrowserPanes("Model").TopNode
@@ -28,8 +28,8 @@ Sub CheckiPartTableForErrors()
             End If
         Next i
         MessageBox.Show("No errors shown = None found!", "Title")
-    ElseIf TypeOf (thisapplication.activedocument) Is assemblydocument Then
-        Dim odoc As assemblydocument = thisapplication.activedocument
+    ElseIf TypeOf (ThisApplication.activedocument) Is assemblydocument Then
+        Dim odoc As assemblydocument = ThisApplication.activedocument
         Dim iAssy As iAssemblyFactory = odoc.componentdefinition.iassemblyfactory
         Dim oTop As BrowserNode = odoc.BrowserPanes("Model").TopNode
         Dim bHasErrorOrWarning As Boolean
