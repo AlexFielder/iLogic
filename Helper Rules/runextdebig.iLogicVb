@@ -6,7 +6,8 @@ Imports System.IO
 Private Sub Main()
     xtClass.ThisApplication = ThisApplication
     xtClass.DocToUpdate = ThisDoc
-    Call xtClass.SaveCopyAsFromBrowserNodeNames
+    'Call xtClass.SaveCopyAsFromBrowserNodeNames
     'Call insertdummyfiles
+	Call xtclass.CheckiPartTableForErrors
 End Sub
 Public xtClass As New iLogicExternalDebug.ExtClass()
