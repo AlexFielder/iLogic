@@ -1,242 +1,152 @@
 ﻿AddReference "System.Core"
 AddReference "System.Linq"
-AddReference "log4net.dll"
 
 Imports System.core
 Imports System.linq
 Imports System.Collections.generic
-Imports log4net
-Imports log4net.Appender
-Imports log4net.Repository.Hierarchy
 
 Sub Main()
-	Dim ilClass as iLogicClass = New iLogicClass
-	iLClass.ThisApplication = ThisApplication
-	iLClass.aligndrawingviews()
+	aligndrawingviews()
 End Sub
 
-Class iLogicClass
-	
-	'logging
-	Public logHelper As Log4NetFileHelper = New Log4NetFileHelper()
-	Public Shared ReadOnly Log As ILog = LogManager.GetLogger(GetType(iLogicClass))
-	
-	Public Shared m_inventorApplication As Inventor.Application
-	
-	Public viewStateList As List(Of ViewState) = New list(Of viewstate)
-	Public Shared dwgDoc as drawingdocument = Nothing
-	Public ActiveSht As Sheet = Nothing
-	Public oDrawingViews As DrawingViews = Nothing
-	
-	Public Shared Property ThisApplication() As Inventor.Application
-        Get
-            ThisApplication = m_inventorApplication
-        End Get
+Public viewStateList As List(Of viewstate) = New List(Of viewstate)
+Public Shared dwgDoc As DrawingDocument = Nothing
+Public ActiveSht As Sheet = Nothing
+Public oDrawingViews As DrawingViews = Nothing
 
-        Set(ByVal Value As Inventor.Application)
-            m_inventorApplication = Value
-        End Set
-    End Property
-	Sub aligndrawingviews()
-		'set up logging
-		loghelper.init()
-		logHelper.AddRollingFileLogging("C:\Logs\RollingFileLog.txt", log4net.Core.Level.All, True)
-		Log.debug("logging from iLogic, who'd have thought it!?")
-		Try
-			Dim viewState As viewstate = Nothing
-			dwgDoc = ThisApplication.ActiveDocument
-			ActiveSht = dwgDoc.ActiveSheet
-			oDrawingViews = ActiveSht.DrawingViews
-			
-			'capture initialview states to re-enable them later.
-			For Each dwgView As drawingview In odrawingviews
-				viewstate = New viewstate
-				viewstate.View = dwgView
-				'viewstate.curves = dwgview.drawingcurves
-				viewstate.viewenabled = dwgView.Suppressed
-				viewstatelist.add(viewstate)
-			Next
-			Log.debug("captured viewstates")
-			Dim selectedDrawingView1 as DrawingView = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingViewFilter, "Select a drawing view.")
-			'turn off other competing views
-			SetViewVisibility(selectedDrawingView1, False)
-			Dim selectedPoint1 as Point = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingCurveSegmentFilter, "Select a point within the chosen view.")
-			'turn all drawing views on
-			SetViewVisibility(Nothing, True)
-			Dim selectedDrawingView2 as DrawingView = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingViewFilter, "Select a drawing view.")
-			'turn off other competing views
-			SetViewVisibility(selectedDrawingView2, False)
-			Dim selectedPoint2 as point = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingCurveSegmentFilter, "Select a point within the chosen view.")
-			SetViewVisibility(Nothing, True)
-		Catch ex As exception
-		 	Log.error(ex.message, ex)
-			'reset views
-			SetViewVisibility(Nothing, True)
-		End Try
-	End Sub
+Sub aligndrawingviews()
+    If Not TypeOf (ThisApplication.ActiveDocument) Is DrawingDocument Then
+        MessageBox.Show("Drawing not active!")
+        Exit Sub
+    End If
+    dwgDoc = ThisApplication.ActiveDocument
+    Dim tr As Transaction = ThisApplication.TransactionManager.StartTransaction(dwgDoc, "Align Drawing Views")
+    Try
+        Dim viewState As viewstate = Nothing
+        ActiveSht = dwgDoc.ActiveSheet
+        oDrawingViews = ActiveSht.DrawingViews
 
-	Public Sub SetViewVisibility(viewToKeepVisible As drawingView, Optional viewVis as Boolean = False)
-		Log.debug("made it to SetViewVisibility")
-		MessageBox.Show("view: " & viewToKeepVisible.Name)
-		Try
-			If Not viewtokeepvisible Is Nothing Then
-				For Each view As DrawingView In odrawingviews
-					MessageBox.Show("view: " & view.Name)
-					If Not view Is viewtokeepvisible Then
-						view.suppressed = True
-						For Each curve As drawingcurve In view.drawingcurves
-							view.setvisibility(curve, viewvis)
-						Next
-					End If
-				Next
-			End If
-			'restore original settings:
-			If viewVis = True And viewtokeepvisible Is Nothing Then
-				For Each view As DrawingView In odrawingviews
-					Dim viewtorestore As viewstate = (from a As viewstate In viewstatelist
-														where a.View Is view
-														Select a).firstordefault()
-					If Not viewtorestore Is Nothing Then
-						view.suppressed = viewtorestore.viewEnabled
-					End If
-				Next
-			End If
-		Catch ex As exception
-			Log.error(ex.message,ex)
-		End Try
+        'capture initialview states to re-enable them later.
+        For Each dwgView As DrawingView In odrawingviews
+            viewState = New viewstate
+            viewState.View = dwgView
+            'viewstate.curves = dwgview.drawingcurves
+            viewState.viewenabled = dwgView.Suppressed
+            viewstatelist.add(viewState)
+        Next
+        'Log.Debug("captured viewstates")
+        Dim selectedDrawingView1 As DrawingView = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingViewFilter, "Select a drawing view.")
+        'turn off other competing views
+        SetViewVisibility(selectedDrawingView1, False)
+        Dim selectedCurve1 As DrawingCurveSegment = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingCurveSegmentFilter, "Select a point within the chosen view.")
+        'turn all drawing views on
+        SetViewVisibility(Nothing, True)
+        Dim selectedDrawingView2 As DrawingView = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingViewFilter, "Select a drawing view.")
+        'turn off other competing views
+        SetViewVisibility(selectedDrawingView2, False)
+        Dim selectedCurve2 As DrawingCurveSegment = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingCurveSegmentFilter, "Select a point within the chosen view.")
+
+        SetViewVisibility(Nothing, True)
+
+        'do some more fancy stuff here such as: 
+        'display start /end points
+        'snap selected points together
+
+        Dim pointToSnap1 As Point2d = DisplayEndPoints(selectedDrawingView1, selectedCurve1)
+
+        Dim pointToSnap2 As Point2d = DisplayEndPoints(selectedDrawingView2, selectedCurve2)
+
+
+
+        'not required:
+        'Dim highlight1 As HighlightSet = ThisApplication.ActiveDocument.CreateHighlightSet
+        'highlight1.AddItem(selectedCurve1.StartPoint)
+        'highlight1.AddItem(selectedCurve1.EndPoint)
+
+        Dim tmpPoint As Point2d = selectedDrawingView2.Position 'ThisApplication.TransientGeometry.CreatePoint2d(pointToSnap1.X, pointToSnap1.Y)
+        'Dim dwgViewMatrix As Matrix = selectedDrawingView2.DrawingViewToSheetTransform
+        'assume that view 2 is the one we are moving
+        Dim VectorX As Double = pointToSnap1.X - pointToSnap2.X
+        Dim VectorY As Double = pointToSnap1.Y - pointToSnap2.Y
+        'dwgViewMatrix.SetTranslation(ThisApplication.TransientGeometry.CreateVector2d(VectorX, VectorY))
+        Dim newVector As Vector2d = ThisApplication.TransientGeometry.CreateVector2d(VectorX, VectorY)
+        tmpPoint.TranslateBy(newVector)
+        selectedDrawingView2.Position = tmpPoint
+
+
+    Catch ex As Exception
+        tr.Abort()
+        'Log.Error(ex.Message, ex)
+        'reset views
+        SetViewVisibility(Nothing, True)
+    Finally
+        tr.End()
+    End Try
 End Sub
-End Class
+
+Private Function DisplayEndPoints(selectedDrawingView As DrawingView, selectedCurve As DrawingCurveSegment) As Point2d
+    Dim curve As DrawingCurve = selectedCurve.Parent
+    Dim transgeom As TransientGeometry = ThisApplication.TransientGeometry
+    Dim clientgraphics1 As ClientGraphics = Nothing
+    Try
+        clientgraphics1 = selectedDrawingView.ClientGraphicsCollection("selectedlineView1")
+    Catch ex As Exception
+        clientgraphics1 = selectedDrawingView.ClientGraphicsCollection.Add("selectedlineView1")
+    End Try
+
+    Dim gfxnode1 As GraphicsNode = clientgraphics1.AddNode(1)
+    Dim endtxtgfx As TextGraphics = gfxnode1.AddTextGraphics()
+    endtxtgfx.Text = "End point"
+    endtxtgfx.Anchor = transgeom.CreatePoint(selectedCurve.EndPoint.X, selectedCurve.EndPoint.Y, 0)
+
+    Dim starttxtgfx As TextGraphics = gfxnode1.AddTextGraphics()
+    endtxtgfx.Text = "Start Point"
+    endtxtgfx.Anchor = transgeom.CreatePoint(selectedCurve.StartPoint.X, selectedCurve.StartPoint.Y, 0)
+
+    ThisApplication.ActiveView.Update()
+
+    Dim result As String = InputBox("Which point?", "1 is start; 2 is end", "1")
+    If result = "1" Then
+        Return selectedCurve.StartPoint
+    ElseIf result = "2" Then
+        Return selectedCurve.EndPoint
+    End If
+End Function
+
+Public Sub SetViewVisibility(viewToKeepVisible As DrawingView, Optional viewVis As Boolean = False)
+    'log.Debug("made it to SetViewVisibility")
+    Try
+        If Not viewToKeepVisible Is Nothing Then
+            'MessageBox.Show("view: " & viewToKeepVisible.Name)
+            For Each view As DrawingView In oDrawingViews
+                'MessageBox.Show("view: " & view.Name)
+                If Not view Is viewToKeepVisible Then
+                    view.Suppressed = True
+                    For Each curve As DrawingCurve In view.DrawingCurves
+                        view.SetVisibility(curve, viewVis)
+                    Next
+                End If
+            Next
+        End If
+        'restore original settings:
+        If viewVis = True And viewToKeepVisible Is Nothing Then
+            For Each view As DrawingView In oDrawingViews
+                Dim viewtorestore As viewstate = (From a As viewstate In viewStateList
+                                                  Where a.View Is view
+                                                  Select a).FirstOrDefault()
+                If Not viewtorestore Is Nothing Then
+                    view.Suppressed = viewtorestore.viewEnabled
+                End If
+            Next
+        End If
+    Catch ex As Exception
+		MessageBox.Show(ex.message)
+        'Log.Error(ex.Message, ex)
+    End Try
+End Sub
 
 Class viewstate 
 	Public viewEnabled As Boolean
 	Public view As Drawingview
 	'Public curves as DrawingCurvesEnumerator
 End Class
-
-Public Class Log4NetFileHelper
-    Private DEFAULT_LOG_FILENAME As String = String.Format("application_log_{0}.log", DateTime.Now.ToString("yyyyMMMdd_hhmm"))
-
-    Private root As Logger
-
-    Public Sub Log4NetFileHelper()
-    End Sub
-
-    Public Overridable Sub Init()
-        root = (CType(LogManager.GetRepository(), Hierarchy)).Root
-        root.Repository.Configured = True
-    End Sub
-
-    Public Overridable Sub AddConsoleLogging()
-        Dim C As ConsoleAppender = GetConsoleAppender()
-        AddConsoleLogging(C)
-    End Sub
-
-    Public Overridable Sub AddConsoleLogging(ByVal C As ConsoleAppender)
-        root.AddAppender(C)
-    End Sub
-
-    Public Overridable Function AddFileLogging() As FileAppender
-        Return AddFileLogging(DEFAULT_LOG_FILENAME)
-    End Function
-
-    Public Overridable Function AddFileLogging(ByVal sFileFullPath As String) As FileAppender
-        Return AddFileLogging(sFileFullPath, log4net.Core.Level.All)
-    End Function
-
-    Public Overridable Function AddFileLogging(ByVal sFileFullPath As String, ByVal threshold As log4net.Core.Level) As FileAppender
-        Return AddFileLogging(sFileFullPath, threshold, True)
-    End Function
-
-    Public Overridable Function AddFileLogging(ByVal sFileFullPath As String, ByVal threshold As log4net.Core.Level, ByVal bAppendfile As Boolean) As FileAppender
-        Dim appender As FileAppender = GetFileAppender(sFileFullPath, threshold, bAppendfile)
-        root.AddAppender(appender)
-        Return appender
-    End Function
-
-    Public Overridable Function AddRollingFileLogging(ByVal sFileFullPath As String, ByVal threshold As log4net.Core.Level, ByVal bAppendfile As Boolean) As RollingFileAppender
-        Dim appender As RollingFileAppender = GetRollingFileAppender(sFileFullPath, threshold, bAppendfile)
-        root.AddAppender(appender)
-        Return appender
-    End Function
-
-'    Public Overridable Function AddSMTPLogging(ByVal smtpHost As String, ByVal From As String, ByVal [To] As String, ByVal CC As String, ByVal subject As String, ByVal threshhold As log4net.Core.Level) As SmtpAppender
-'        Dim appender As SmtpAppender = GetSMTPAppender(smtpHost, From, [To], CC, subject, threshhold)
-'        root.AddAppender(appender)
-'        Return appender
-'    End Function
-
-    Public Function GetLogAppender(ByVal AppenderName As String) As IAppender
-        Dim ac As AppenderCollection = (CType(LogManager.GetRepository(), log4net.Repository.Hierarchy.Hierarchy)).Root.Appenders
-        For Each appender As log4net.Appender.IAppender In ac
-            If appender.Name = AppenderName Then
-                Return appender
-            End If
-        Next
-
-        Return Nothing
-    End Function
-
-    Public Sub CloseAppender(ByVal AppenderName As String)
-        Dim appender As log4net.Appender.IAppender = GetLogAppender(AppenderName)
-        CloseAppender(appender)
-    End Sub
-
-    Private Sub CloseAppender(ByVal appender As log4net.Appender.IAppender)
-        appender.Close()
-    End Sub
-
-'    Private Function GetSMTPAppender(ByVal smtpHost As String, ByVal From As String, ByVal [To] As String, ByVal CC As String, ByVal subject As String, ByVal threshhold As log4net.Core.Level) As SmtpAppender
-'        Dim lAppender As SmtpAppender = New SmtpAppender()
-'        lAppender.Cc = CC
-'        lAppender.[To] = [To]
-'        lAppender.From = From
-'        lAppender.SmtpHost = smtpHost
-'        lAppender.Subject = subject
-'        lAppender.BufferSize = 512
-'        lAppender.Lossy = False
-'        lAppender.Layout = New log4net.Layout.PatternLayout("%date{yyyy-MM-dd HH:mm:ss,fff} %5level [%2thread] %message (%logger{1}:%line)%n")
-'        lAppender.Threshold = threshhold
-'        lAppender.ActivateOptions()
-'        Return lAppender
-'    End Function
-
-    Private Function GetConsoleAppender() As ConsoleAppender
-        Dim lAppender As ConsoleAppender = New ConsoleAppender()
-        lAppender.Name = "Console"
-        lAppender.Layout = New log4net.Layout.PatternLayout(" %message %n")
-        lAppender.Threshold = log4net.Core.Level.All
-        lAppender.ActivateOptions()
-        Return lAppender
-    End Function
-
-    Private Function GetFileAppender(ByVal sFileName As String, ByVal threshhold As log4net.Core.Level, ByVal bFileAppend As Boolean) As FileAppender
-        Dim lAppender As FileAppender = New FileAppender()
-        lAppender.Name = sFileName
-        lAppender.AppendToFile = bFileAppend
-        lAppender.File = sFileName
-        lAppender.Layout = New log4net.Layout.PatternLayout("%date{yyyy-MM-dd HH:mm:ss} [%logger:%line] %level - %message%newline%exception")
-        lAppender.Threshold = threshhold
-        lAppender.ActivateOptions()
-        Return lAppender
-    End Function
-
-    Private Function GetRollingFileAppender(ByVal sFileName As String, ByVal threshhold As log4net.Core.Level, ByVal bFileAppend As Boolean) As RollingFileAppender
-        Dim lAppender As RollingFileAppender = New RollingFileAppender()
-        lAppender.Name = sFileName
-        lAppender.AppendToFile = bFileAppend
-        lAppender.File = sFileName
-        lAppender.Layout = New log4net.Layout.PatternLayout("%date{yyyy-MM-dd HH:mm:ss} [%logger:%line] %level - %message%newline%exception")
-        lAppender.Threshold = threshhold
-        lAppender.RollingStyle = RollingFileAppender.RollingMode.Size
-        lAppender.MaximumFileSize = "10MB"
-        lAppender.MaxSizeRollBackups = 5
-        lAppender.StaticLogFileName = True
-        lAppender.ActivateOptions()
-        Return lAppender
-    End Function
-
-    Private Sub ConfigureLog(ByVal sFileName As String)
-    End Sub
-
-End Class
-
