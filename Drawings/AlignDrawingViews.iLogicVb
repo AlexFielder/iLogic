@@ -100,8 +100,8 @@ Private Function DisplayEndPoints(selectedDrawingView As DrawingView, selectedCu
     endtxtgfx.Anchor = transgeom.CreatePoint(selectedCurve.EndPoint.X, selectedCurve.EndPoint.Y, 0)
 
     Dim starttxtgfx As TextGraphics = gfxnode1.AddTextGraphics()
-    endtxtgfx.Text = "Start Point"
-    endtxtgfx.Anchor = transgeom.CreatePoint(selectedCurve.StartPoint.X, selectedCurve.StartPoint.Y, 0)
+    starttxtgfx.Text = "Start Point"
+    starttxtgfx.Anchor = transgeom.CreatePoint(selectedCurve.StartPoint.X, selectedCurve.StartPoint.Y, 0)
 
     ThisApplication.ActiveView.Update()
 
