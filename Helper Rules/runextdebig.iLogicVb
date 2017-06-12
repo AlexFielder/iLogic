@@ -8,6 +8,7 @@ Private Sub Main()
     xtClass.DocToUpdate = ThisDoc
     'Call xtClass.SaveCopyAsFromBrowserNodeNames
     'Call insertdummyfiles
-	Call xtclass.CheckiPartTableForErrors
+	'Call xtclass.CheckiPartTableForErrors
+	Call xtclass.beginaligndrawingviews
 End Sub
 Public xtClass As New iLogicExternalDebug.ExtClass()
