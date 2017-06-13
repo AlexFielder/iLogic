@@ -1,0 +1,234 @@
+﻿Sub Main()
+    Dim assyDoc As Assemblydocument = ThisApplication.Activedocument
+    Dim ActiveCompDef As AssemblyComponentDefinition = assyDoc.componentdefinition
+    Dim oPosReps As PositionalRepresentations = ActiveCompDef.RepresentationsManager.PositionalRepresentations
+    If Not ActiveCompDef.RepresentationsManager.activepositionalrepresentation.Name = "Master" Then
+        ActiveCompDef.RepresentationsManager.PositionalRepresentations("Master").activate
+    End If
+
+
+    If Position = "090" Then
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 095:1") And Component.IsActive("Davit Arm-Locking Boss 095:2") Then
+                Component.Replace("Davit Arm-Locking Boss 095:1", "Davit Arm-Locking Boss 090.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 100:1") And Component.IsActive("Davit Arm-Locking Boss 100:2") Then
+                Component.Replace("Davit Arm-Locking Boss 100:1", "Davit Arm-Locking Boss 090.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 105:1") And Component.IsActive("Davit Arm-Locking Boss 105:2") Then
+                Component.Replace("Davit Arm-Locking Boss 105:1", "Davit Arm-Locking Boss 090.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 110:1") And Component.IsActive("Davit Arm-Locking Boss 110:2") Then
+                Component.Replace("Davit Arm-Locking Boss 110:1", "Davit Arm-Locking Boss 090.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 115:1") And Component.IsActive("Davit Arm-Locking Boss 115:2") Then
+                Component.Replace("Davit Arm-Locking Boss 115:1", "Davit Arm-Locking Boss 090.iam", True)
+            End If
+        Catch
+
+        End Try
+    ElseIf Position = "095" Then
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 090:1") And Component.IsActive("Davit Arm-Locking Boss 090:2") Then
+                Component.Replace("Davit Arm-Locking Boss 090:1", "Davit Arm-Locking Boss 095.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 100:1") And Component.IsActive("Davit Arm-Locking Boss 100:2") Then
+                Component.Replace("Davit Arm-Locking Boss 100:1", "Davit Arm-Locking Boss 095.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 105:1") And Component.IsActive("Davit Arm-Locking Boss 105:2") Then
+                Component.Replace("Davit Arm-Locking Boss 105:1", "Davit Arm-Locking Boss 095.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 110:1") And Component.IsActive("Davit Arm-Locking Boss 110:2") Then
+                Component.Replace("Davit Arm-Locking Boss 110:1", "Davit Arm-Locking Boss 095.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 115:1") And Component.IsActive("Davit Arm-Locking Boss 115:2") Then
+                Component.Replace("Davit Arm-Locking Boss 115:1", "Davit Arm-Locking Boss 095.iam", True)
+            End If
+        Catch
+
+        End Try
+    ElseIf Position = "100" Then
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 090:1") And Component.IsActive("Davit Arm-Locking Boss 090:2") Then
+                Component.Replace("Davit Arm-Locking Boss 090:1", "Davit Arm-Locking Boss 100.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 095:1") And Component.IsActive("Davit Arm-Locking Boss 095:2") Then
+                Component.Replace("Davit Arm-Locking Boss 095:1", "Davit Arm-Locking Boss 100.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 105:1") And Component.IsActive("Davit Arm-Locking Boss 105:2") Then
+                Component.Replace("Davit Arm-Locking Boss 105:1", "Davit Arm-Locking Boss 100.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 110:1") And Component.IsActive("Davit Arm-Locking Boss 110:2") Then
+                Component.Replace("Davit Arm-Locking Boss 110:1", "Davit Arm-Locking Boss 100.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 115:1") And Component.IsActive("Davit Arm-Locking Boss 115:2") Then
+                Component.Replace("Davit Arm-Locking Boss 115:1", "Davit Arm-Locking Boss 100.iam", True)
+            End If
+        Catch
+
+        End Try
+    ElseIf Position = "105" Then
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 090:1") And Component.IsActive("Davit Arm-Locking Boss 090:2") Then
+                Component.Replace("Davit Arm-Locking Boss 090:1", "Davit Arm-Locking Boss 105.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 095:1") And Component.IsActive("Davit Arm-Locking Boss 095:2") Then
+                Component.Replace("Davit Arm-Locking Boss 095:1", "Davit Arm-Locking Boss 105.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 100:1") And Component.IsActive("Davit Arm-Locking Boss 100:2") Then
+                Component.Replace("Davit Arm-Locking Boss 100:1", "Davit Arm-Locking Boss 105.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 110:1") And Component.IsActive("Davit Arm-Locking Boss 110:2") Then
+                Component.Replace("Davit Arm-Locking Boss 110:1", "Davit Arm-Locking Boss 105.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 115:1") And Component.IsActive("Davit Arm-Locking Boss 115:2") Then
+                Component.Replace("Davit Arm-Locking Boss 115:1", "Davit Arm-Locking Boss 105.iam", True)
+            End If
+        Catch
+
+        End Try
+    ElseIf Position = "110" Then
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 090:1") And Component.IsActive("Davit Arm-Locking Boss 090:2") Then
+                Component.Replace("Davit Arm-Locking Boss 090:1", "Davit Arm-Locking Boss 110.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 095:1") And Component.IsActive("Davit Arm-Locking Boss 095:2") Then
+                Component.Replace("Davit Arm-Locking Boss 095:1", "Davit Arm-Locking Boss 110.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 100:1") And Component.IsActive("Davit Arm-Locking Boss 100:2") Then
+                Component.Replace("Davit Arm-Locking Boss 100:1", "Davit Arm-Locking Boss 110.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 105:1") And Component.IsActive("Davit Arm-Locking Boss 105:2") Then
+                Component.Replace("Davit Arm-Locking Boss 105:1", "Davit Arm-Locking Boss 110.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 115:1") And Component.IsActive("Davit Arm-Locking Boss 115:2") Then
+                Component.Replace("Davit Arm-Locking Boss 115:1", "Davit Arm-Locking Boss 110.iam", True)
+            End If
+        Catch
+
+        End Try
+    ElseIf Position = "115" Then
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 090:1") And Component.IsActive("Davit Arm-Locking Boss 090:2") Then
+                Component.Replace("Davit Arm-Locking Boss 090:1", "Davit Arm-Locking Boss 115.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 095:1") And Component.IsActive("Davit Arm-Locking Boss 095:2") Then
+                Component.Replace("Davit Arm-Locking Boss 095:1", "Davit Arm-Locking Boss 115.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 100:1") And Component.IsActive("Davit Arm-Locking Boss 100:2") Then
+                Component.Replace("Davit Arm-Locking Boss 100:1", "Davit Arm-Locking Boss 115.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 105:1") And Component.IsActive("Davit Arm-Locking Boss 105:2") Then
+                Component.Replace("Davit Arm-Locking Boss 105:1", "Davit Arm-Locking Boss 115.iam", True)
+            End If
+        Catch
+
+        End Try
+        Try
+            If Component.IsActive("Davit Arm-Locking Boss 110:1") And Component.IsActive("Davit Arm-Locking Boss 110:2") Then
+                Component.Replace("Davit Arm-Locking Boss 110:1", "Davit Arm-Locking Boss 115.iam", True)
+            End If
+        Catch
+
+        End Try
+    End If
+
+    'For Each oPosRep As PositionalRepresentation In oPosReps
+    '	If oPosRep.Name = Position Then
+    '		oPosRep.activate
+    '	End If
+    'Next
+End Sub
+

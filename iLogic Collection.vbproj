@@ -161,6 +161,7 @@
     <None Include="Modelling\SaveCopyAsFromComponentNames.iLogicVb" />
     <None Include="Modelling\Selective Colour Change.iLogicVb" />
     <None Include="Modelling\Suppress Weld Prep.iLogicVb" />
+    <None Include="Modelling\SwapPositions.iLogicVb" />
     <None Include="Modelling\sweep-length-code-snippet.iLogicVb" />
     <None Include="Modelling\Synchronize iProperties between part parameters and iProperties.iLogicVb" />
     <None Include="Modelling\Toggle Sketches and Workplanes.iLogicVb" />
