@@ -1,0 +1,180 @@
+﻿Option Explicit On
+
+AddReference "IlogicExternalDebug.dll"
+Imports iLogicExternalDebug
+
+Sub Main()
+    xtclass.ThisApplication = ThisApplication
+    xtclass.DocToUpdate = ThisDoc
+    RunFootwalk()
+End Sub
+
+Public xtclass As New iLogicExternalDebug.ExtClass()
+
+Sub RunFootwalk()
+    'storing these for later
+    AssyDoc = ThisApplication.ActiveDocument
+    AssyDef = AssyDoc.ComponentDefinition
+    xtclass.AssyDoc = AssyDoc
+    xtclass.AssyDef = AssyDef
+    iLogicVb.UpdateWhenDone = True
+
+    ' If Footwalk is unchecked disable all footwalk options
+
+    If FootWalk_Disable = False Then
+        Footwalk = "Not Required"
+    End If
+
+    ' If Footwalk is unchecked suppress all footwalk options
+    If Footwalk = "Not Required" Then
+        '		MessageBox.Show("Not Req.")
+        '		MessageBox.Show(LeftFootWalkPatternName)
+        '		MessageBox.Show(RightFootWalkPatternName)
+        ActuallyDeletePattern(LeftFootWalkPatternName)
+        ActuallyDeletePattern(RightFootWalkPatternName)
+        '		DeletePattern(LeftFootWalkPatternName)
+        '		DeletePattern(RightFootWalkPatternName)
+        Component.IsActive(FootWalkLeftFemale) = False
+        Component.IsActive(FootWalkLeftMale) = False
+        Component.IsActive(FootWalkLeftInter) = False
+        'Component.IsActive("Footwalk Inter LH Pattern") = False
+
+        Component.IsActive(FootWalkRightFemale) = False
+        Component.IsActive(FootWalkRightMale) = False
+        Component.IsActive(FootWalkRightInter) = False
+        'Component.IsActive("Footwalk Inter RH Pattern") = False
+    End If
+
+    '  Footwalk options (Left Side, Right Side or Both Sides)
+    If Footwalk = "Left Side" Then
+        ActuallyDeletePattern(LeftFootWalkPatternName)
+        ActuallyDeletePattern(RightFootWalkPatternName)
+        Component.IsActive(FootWalkLeftFemale) = True
+        Component.IsActive(FootWalkLeftMale) = True
+        Component.IsActive(FootWalkLeftInter) = True
+        PatternFootWalk(FootWalkLeftInter, Module_Pattern_QTY, Module_Spacing, LeftFootWalkPatternName, LeftFolderName)
+        'Component.IsActive("Footwalk Inter LH Pattern") = True
+        Component.IsActive(FootWalkRightFemale) = False
+        Component.IsActive(FootWalkRightMale) = False
+        Component.IsActive(FootWalkRightInter) = False
+        'Component.IsActive("Footwalk Inter RH Pattern") = False
+    ElseIf Footwalk = "Right Side" Then
+        ActuallyDeletePattern(LeftFootWalkPatternName)
+        ActuallyDeletePattern(RightFootWalkPatternName)
+        Component.IsActive(FootWalkLeftFemale) = False
+        Component.IsActive(FootWalkLeftMale) = False
+        Component.IsActive(FootWalkLeftInter) = False
+        'Component.IsActive("Footwalk Inter LH Pattern") = False
+        Component.IsActive(FootWalkRightFemale) = True
+        Component.IsActive(FootWalkRightMale) = True
+        Component.IsActive(FootWalkRightInter) = True
+        PatternFootWalk(FootWalkRightInter, Module_Pattern_QTY, Module_Spacing, RightFootWalkPatternName, RightFolderName)
+
+        'Component.IsActive("Footwalk Inter RH Pattern") = True
+    ElseIf Footwalk = "Both" Then
+        ActuallyDeletePattern(LeftFootWalkPatternName)
+        ActuallyDeletePattern(RightFootWalkPatternName)
+        Component.IsActive(FootWalkLeftFemale) = True
+        Component.IsActive(FootWalkLeftMale) = True
+        Component.IsActive(FootWalkLeftInter) = True
+        PatternFootWalk(FootWalkLeftInter, Module_Pattern_QTY, Module_Spacing, LeftFootWalkPatternName, LeftFolderName)
+        'Component.IsActive("Footwalk Inter LH Pattern") = True
+        Component.IsActive(FootWalkRightFemale) = True
+        Component.IsActive(FootWalkRightMale) = True
+        Component.IsActive(FootWalkRightInter) = True
+        PatternFootWalk(FootWalkRightInter, Module_Pattern_QTY, Module_Spacing, RightFootWalkPatternName, RightFolderName)
+        'Component.IsActive("Footwalk Inter RH Pattern") = True
+    End If
+    RuleParametersOutput()
+    InventorVb.DocumentUpdate()
+End Sub
+
+Public AssyDoc As Assemblydocument
+Public AssyDef As AssemblyComponentDefinition
+'string values - reduces chances of typos tripping us up.
+'left
+Public LeftFolderName As String = "Footwalk LH"
+Public FootWalkLeftFemale As String = "Footwalk Female L H"
+Public FootWalkLeftInter As String = "Footwalk Inter L H"
+Public FootWalkLeftMale As String = "Footwalk Male L H"
+Public LeftFootWalkPatternName As String = "Footwalk Inter LH Pattern"
+'right
+Public RightFolderName As String = "Footwalk RH"
+Public FootWalkRightFemale As String = "Footwalk Female R H"
+Public FootWalkRightInter As String = "Footwalk Inter R H"
+Public FootWalkRightMale As String = "Footwalk Male R H"
+Public RightFootWalkPatternName As String = "Footwalk Inter RH Pattern"
+
+'''Needs to use Module_Pattern_QTY for driving the number, Module_Spacing for the distance between
+''' and the Z axis for direction.
+'''
+Public Sub PatternFootWalk(OccName As String, NumOccs As Integer, OffsetDistance As Double, PatternName As String, FolderName As String)
+    Dim CompOccs As ComponentOccurrences = AssyDef.Occurrences
+    Dim newPatternOcc As RectangularOccurrencePattern
+    Dim compOcc As ComponentOccurrence = CompOccs.ItemByName(OccName)
+    Dim objCol As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+
+    'base work axes - don't need all three but useful to demonstrate
+    Dim XAxis As WorkAxis
+    Dim YAxis As WorkAxis
+    Dim Zaxis As WorkAxis
+    With AssyDef
+        XAxis = .WorkAxes(1)
+        YAxis = .WorkAxes(2)
+        Zaxis = .WorkAxes(3)
+    End With
+
+    objCol.Add(compOcc)
+    newPatternOcc = AssyDef.OccurrencePatterns.AddRectangularPattern(objCol,
+                                                                    Zaxis,
+                                                                    False,
+                                                                    OffsetDistance / 10,
+                                                                    NumOccs)
+    newPatternOcc.Name = PatternName
+
+    'AddNewPatternToFolder(FolderName, newPatternOcc)
+    '	Component.IsActive("Footwalk Inter RH Pattern") = False
+    '	Component.IsActive("Footwalk Inter LH Pattern") = False
+
+End Sub
+
+Sub AddNewPatternToFolder(Foldername As String, occ As RectangularOccurrencePattern)
+    ' get the model browser pane
+    Dim oPane As BrowserPane
+    oPane = AssyDoc.BrowserPanes.Item("Model")
+
+    ' Create a Browser node object from an existing object
+    Dim oNode As BrowserNode
+    oNode = oPane.GetBrowserNodeFromObject(occ)
+
+
+
+    ' Add the node to the extra folder
+    Dim browserFolder As BrowserFolder = (From a As BrowserFolder In oPane.TopNode.BrowserFolders
+                                          Where a.Name = Foldername
+                                          Select a).FirstOrDefault()
+    Dim maleNode As BrowserNode = (From node As BrowserNode In browserFolder.BrowserNode.BrowserNodes
+                                   Where node.BrowserNodeDefinition.Label.StartsWith("Footwalk Male")
+                                   Select node).FirstOrDefault()
+    'browserFolder.Add(oNode, maleNode, False)
+    'doesn't f*$£ing work!
+    'oPane.TopNode.BrowserFolders.Item(Foldername).Add(oNode)
+End Sub
+
+Public Sub ActuallyDeletePattern(PatternName As String)
+    '	Try
+    Dim CompOccs As ComponentOccurrences = AssyDef.Occurrences
+    'Dim PatternOccToDelete As RectangularOccurrencePattern = CompOccs.ItemByName(PatternName)
+    ' Dim PatternOccToDelete As ComponentOccurrence = CompOccs.ItemByName(PatternName)
+
+    ' get the model browser pane
+    Dim oPane As BrowserPane
+    oPane = AssyDoc.BrowserPanes.Item("Model")
+    Dim nodeTodelete As BrowserNode = (From node As BrowserNode In oPane.TopNode.BrowserNodes
+                                       Where node.BrowserNodeDefinition.Label = PatternName
+                                       Select node).FirstOrDefault()
+    If Not nodeTodelete Is Nothing Then
+        Dim PatternOccToDelete As RectangularOccurrencePattern = nodeTodelete.NativeObject
+        PatternOccToDelete.Delete()
+    End If
+End Sub

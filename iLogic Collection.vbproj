@@ -145,6 +145,7 @@
     <None Include="Modelling\Move EOPs In Assembly.iLogicVb" />
     <None Include="Modelling\MoveToPlane.iLogicVb" />
     <None Include="Modelling\OldVersions\ProjectCurveToSurface.0001.ipt" />
+    <None Include="Modelling\Pattern Footwalks.iLogicVb" />
     <None Include="Modelling\PrintRibbonInformation.iLogicVb" />
     <None Include="Modelling\ProjectCurveToSurface.iLogicVb" />
     <None Include="Modelling\ProjectCurveToSurface.ipt" />
