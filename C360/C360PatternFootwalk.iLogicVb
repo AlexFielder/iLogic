@@ -1,0 +1,168 @@
+﻿Option Explicit On
+
+Sub Main()
+    Try
+        iProperties.Value("Custom", "C360MessageText_Error") = "Donald Trump Rules!"
+        iProperties.Value("Custom", "C360MessageSeverity_Error") = "Error"
+        iProperties.Value("Custom", "C360MessageTriggered_Error") = False
+        iProperties.Value("Custom", "C360MessageText_RuleFired") = "Footwalk"
+        iProperties.Value("Custom", "C360MessageSeverity_RuleFired") = "Info"
+        iProperties.Value("Custom", "C360MessageTriggered_RuleFired") = False
+        RunFootwalk()
+    Catch ex As exception
+        iProperties.Value("Custom", "C360MessageText_Error") = ex.message & ex.stacktrace
+        iProperties.Value("Custom", "C360MessageSeverity_Error") = "Error"
+        iProperties.Value("Custom", "C360MessageTriggered_Error") = True
+    End Try
+    If Not iProperties.Value("Custom", "C360MessageTriggered_Error") = True Then
+        iProperties.Value("Custom", "C360MessageTriggered_RuleFired") = False
+    End If
+End Sub
+
+Sub RunFootwalk()
+    Dim AssyDoc As Assemblydocument
+    Dim AssyDef As AssemblyComponentDefinition
+    'string values - reduces chances of typos tripping us up.
+    'left
+    Dim LeftFolderName As String = "Footwalk LH"
+    Dim FootWalkLeftFemale As String = "Footwalk Female L H"
+    Dim FootWalkLeftInter As String = "Footwalk Inter L H"
+    Dim FootWalkLeftMale As String = "Footwalk Male L H"
+    Dim LeftFootWalkPatternName As String = "Footwalk Inter LH Pattern"
+    'right
+    Dim RightFolderName As String = "Footwalk RH"
+    Dim FootWalkRightFemale As String = "Footwalk Female R H"
+    Dim FootWalkRightInter As String = "Footwalk Inter R H"
+    Dim FootWalkRightMale As String = "Footwalk Male R H"
+    Dim RightFootWalkPatternName As String = "Footwalk Inter RH Pattern"
+
+    iProperties.Value("Custom", "C360MessageText_RuleFired") = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa." &
+    "Fusce posuere, magna sed pulvinar ultricies, purus lectus malesuada libero, sit amet commodo magna eros quis urna. Nunc viverra imperdiet enim." &
+"Fusce est. Vivamus a tellus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin pharetra nonummy pede." &
+"Mauris et orci. Aenean nec lorem. In porttitor. Donec laoreet nonummy augue. Suspendisse dui purus, scelerisque at, vulputate vitae, pretium mattis, nunc. Mauris eget neque at sem venenatis eleifend." &
+"Ut nonummy. Fusce aliquet pede non pede. Suspendisse dapibus lorem pellentesque magna. Integer nulla." &
+"Donec blandit feugiat ligula. Donec hendrerit, felis et imperdiet euismod, purus ipsum pretium metus, In lacinia nulla nisl eget sapien."
+    iProperties.Value("Custom", "C360MessageTriggered_RuleFired") = True
+    'storing these for later
+    AssyDoc = ThisDoc.Document
+    AssyDef = AssyDoc.ComponentDefinition
+    iLogicVb.UpdateWhenDone = True
+
+    ' If Footwalk is unchecked disable all footwalk options
+
+    If FootWalk_Disable = False Then
+        Footwalk = "Not Required"
+    End If
+
+    ' If Footwalk is unchecked suppress all footwalk options
+    If Footwalk = "Not Required" Then
+        ActuallyDeletePattern(AssyDoc, AssyDef, LeftFootWalkPatternName)
+        ActuallyDeletePattern(AssyDoc, AssyDef, RightFootWalkPatternName)
+        Component.IsActive(FootWalkLeftFemale) = False
+        Component.IsActive(FootWalkLeftMale) = False
+        Component.IsActive(FootWalkLeftInter) = False
+        Component.IsActive(FootWalkRightFemale) = False
+        Component.IsActive(FootWalkRightMale) = False
+        Component.IsActive(FootWalkRightInter) = False
+    End If
+
+    '  Footwalk options (Left Side, Right Side or Both Sides)
+    If Footwalk = "Left Side" Then
+        ActuallyDeletePattern(AssyDoc, AssyDef, LeftFootWalkPatternName)
+        ActuallyDeletePattern(AssyDoc, AssyDef, RightFootWalkPatternName)
+        Component.IsActive(FootWalkLeftFemale) = True
+        Component.IsActive(FootWalkLeftMale) = True
+        Component.IsActive(FootWalkLeftInter) = True
+        PatternFootWalk(AssyDef, FootWalkLeftInter, Module_Pattern_QTY, Module_Spacing, LeftFootWalkPatternName, LeftFolderName)
+        Component.IsActive(FootWalkRightFemale) = False
+        Component.IsActive(FootWalkRightMale) = False
+        Component.IsActive(FootWalkRightInter) = False
+    ElseIf Footwalk = "Right Side" Then
+        ActuallyDeletePattern(AssyDoc, AssyDef, LeftFootWalkPatternName)
+        ActuallyDeletePattern(AssyDoc, AssyDef, RightFootWalkPatternName)
+        Component.IsActive(FootWalkLeftFemale) = False
+        Component.IsActive(FootWalkLeftMale) = False
+        Component.IsActive(FootWalkLeftInter) = False
+        Component.IsActive(FootWalkRightFemale) = True
+        Component.IsActive(FootWalkRightMale) = True
+        Component.IsActive(FootWalkRightInter) = True
+        PatternFootWalk(AssyDef, FootWalkRightInter, Module_Pattern_QTY, Module_Spacing, RightFootWalkPatternName, RightFolderName)
+    ElseIf Footwalk = "Both" Then
+        ActuallyDeletePattern(AssyDoc, AssyDef, LeftFootWalkPatternName)
+        ActuallyDeletePattern(AssyDoc, AssyDef, RightFootWalkPatternName)
+        Component.IsActive(FootWalkLeftFemale) = True
+        Component.IsActive(FootWalkLeftMale) = True
+        Component.IsActive(FootWalkLeftInter) = True
+        PatternFootWalk(AssyDef, FootWalkLeftInter, Module_Pattern_QTY, Module_Spacing, LeftFootWalkPatternName, LeftFolderName)
+        Component.IsActive(FootWalkRightFemale) = True
+        Component.IsActive(FootWalkRightMale) = True
+        Component.IsActive(FootWalkRightInter) = True
+        PatternFootWalk(AssyDef, FootWalkRightInter, Module_Pattern_QTY, Module_Spacing, RightFootWalkPatternName, RightFolderName)
+    End If
+    RuleParametersOutput()
+    InventorVb.DocumentUpdate()
+    iProperties.Value("Custom", "C360MessageTriggered_RuleFired") = False
+End Sub
+
+'''Needs to use Module_Pattern_QTY for driving the number, Module_Spacing for the distance between
+''' and the Z axis for direction.
+'''
+Public Sub PatternFootWalk(AssyDef As AssemblyComponentDefinition, OccName As String, NumOccs As Integer, OffsetDistance As Double, PatternName As String, FolderName As String)
+    iProperties.Value("Custom", "C360MessageText_RuleFired") = "Pattern Footwalk"
+    iProperties.Value("Custom", "C360MessageTriggered_RuleFired") = True
+    Dim CompOccs As ComponentOccurrences = AssyDef.Occurrences
+    Dim newPatternOcc As RectangularOccurrencePattern
+    Dim compOcc As ComponentOccurrence = CompOccs.ItemByName(OccName)
+    Dim objCol As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+
+    'base work axes - don't need all three but useful to demonstrate
+    Dim XAxis As WorkAxis
+    Dim YAxis As WorkAxis
+    Dim Zaxis As WorkAxis
+    With AssyDef
+        XAxis = .WorkAxes(1)
+        YAxis = .WorkAxes(2)
+        Zaxis = .WorkAxes(3)
+    End With
+
+    objCol.Add(compOcc)
+    newPatternOcc = AssyDef.OccurrencePatterns.AddRectangularPattern(objCol,
+                                                                    Zaxis,
+                                                                    False,
+                                                                    OffsetDistance / 10,
+                                                                    NumOccs)
+    newPatternOcc.Name = PatternName
+    iProperties.Value("Custom", "C360MessageTriggered_RuleFired") = False
+End Sub
+
+Public Sub ActuallyDeletePattern(AssyDoc As AssemblyDocument, AssyDef As AssemblyComponentDefinition, PatternName As String)
+    iProperties.Value("Custom", "C360MessageText_RuleFired") = "Actually Delete Pattern"
+    iProperties.Value("Custom", "C360MessageTriggered_RuleFired") = True
+    '	Try
+    Dim CompOccs As ComponentOccurrences = AssyDef.Occurrences
+    For Each occ As componentoccurrence In CompOccs
+        If occ.isPatternElement Then
+            Dim pattern As RectangularOccurrencePattern = occ.patternelement.parent
+            If pattern.Name = PatternName Then
+                pattern.delete
+            End If
+        End If
+    Next
+    'doesn't work because Inventor server doesn't have a browser
+    ' get the model browser pane
+    '    Dim oPane As BrowserPane
+    '    oPane = AssyDoc.BrowserPanes.Item("Model")
+    '	Dim nodeTodelete As BrowserNode = Nothing
+    '	For Each node As Browsernode In opane.topnode.browsernodes
+    '		If Not node.browsernodedefinition Is Nothing Then
+    '			If node.browsernodedefinition.label = patternName Then
+    '				nodetoDelete = node
+    '			End If
+    '		End If
+    '	Next
+    '    If Not nodeTodelete Is Nothing Then
+    '        Dim PatternOccToDelete As RectangularOccurrencePattern = nodeTodelete.NativeObject
+    '        PatternOccToDelete.Delete()
+    '    End If
+    iProperties.Value("Custom", "C360MessageTriggered_RuleFired") = False
+End Sub

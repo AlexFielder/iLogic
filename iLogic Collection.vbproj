@@ -62,6 +62,7 @@
     <None Include="AddRemove\Remove Unwanted OLE Links in Inventor Files.iLogicVb" />
     <None Include="AddRemove\RemoveColourOverrides.ilogicVb" />
     <None Include="App.config" />
+    <None Include="C360\C360PatternFootwalk.iLogicVb" />
     <None Include="C360\FolderSearching.iLogicVb" />
     <None Include="C360\SuppressOccurrences.iLogicVb" />
     <None Include="CM Examples\Pyramid.iLogicVb" />
