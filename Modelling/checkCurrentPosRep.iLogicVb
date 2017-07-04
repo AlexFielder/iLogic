@@ -18,28 +18,51 @@ Public Sub Main()
 '		DeactivateMatchingJoints("Rigid:" & matchingprefix & ":" & matchingsuffix)
 '	End If
 	'MessageBox.Show(ActivePosRep.Name)
-	If ActivePosRep.Name = "Master" Or ActivePosRep.Name = "Position3" Then
-		'MessageBox.Show("Master or Pos3!")
+	If ActivePosRep.Name = "Master" Or ActivePosRep.Name = "Position7" Then
+		'MessageBox.Show("Master or Pos7!")
 		Component.IsActive("Bolted Connection:1") = True
 		Component.IsActive("Bolted Connection:2") = False
 		Component.IsActive("Bolted Connection:3") = True
 		Component.IsActive("Bolted Connection:4") = False
 		Joint.IsActive("Rigid:Position:Master") = True
-	Else If ActivePosRep.Name = "Position1 (Carriage)" Or ActivePosRep.Name = "Position9 (Carriage)" _
-		Or ActivePosRep.Name = "Position2 (Carriage)" Or ActivePosRep.Name = "Position10 (Carriage)" Then
+	Else If ActivePosRep.Name = "Position1 (Carriage)" _
+	Or ActivePosRep.Name = "Position5 (Carriage)" Then
+		'MessageBox.Show(ActivePosRep.Name)
+		Component.IsActive("Bolted Connection:1") = False
+		Component.IsActive("Bolted Connection:2") = True
+		Component.IsActive("Bolted Connection:3") = False
+		Component.IsActive("Bolted Connection:4") = True
+		Joint.IsActive("Rigid:Position:Master") = False
+	Else If ActivePosRep.Name = "Position2 (Carriage)" Then
 		'MessageBox.Show(ActivePosRep.Name)
 		Component.IsActive("Bolted Connection:1") = False
 		Component.IsActive("Bolted Connection:2") = True
 		Component.IsActive("Bolted Connection:3") = True
 		Component.IsActive("Bolted Connection:4") = False
 		Joint.IsActive("Rigid:Position:Master") = False
-	Else If ActivePosRep.Name = "Position7 (Carriage)"Or ActivePosRep.Name = "Position8 (Carriage)" Then
+	Else If ActivePosRep.Name = "Position3" Then
+		'MessageBox.Show(ActivePosRep.Name)
+		Component.IsActive("Bolted Connection:1") = True
+		Component.IsActive("Bolted Connection:2") = False
+		Component.IsActive("Bolted Connection:3") = True
+		Component.IsActive("Bolted Connection:4") = False
+		Joint.IsActive("Rigid:Position:Master") = False
+	Else If ActivePosRep.Name = "Position4 (Carriage)" Then
+		'MessageBox.Show(ActivePosRep.Name)
 		Component.IsActive("Bolted Connection:1") = True
 		Component.IsActive("Bolted Connection:2") = False
 		Component.IsActive("Bolted Connection:3") = False
 		Component.IsActive("Bolted Connection:4") = True
 		Joint.IsActive("Rigid:Position:Master") = False
+	Else If ActivePosRep.Name = "Position6 (Carriage)" Then
+		'MessageBox.Show(ActivePosRep.Name)
+		Component.IsActive("Bolted Connection:1") = False
+		Component.IsActive("Bolted Connection:2") = True
+		Component.IsActive("Bolted Connection:3") = True
+		Component.IsActive("Bolted Connection:4") = False
+		Joint.IsActive("Rigid:Position:Master") = False
 	Else
+		'MessageBox.Show(ActivePosRep.Name)
 		Component.IsActive("Bolted Connection:1") = True
 		Component.IsActive("Bolted Connection:2") = False
 		Component.IsActive("Bolted Connection:3") = True

@@ -4,9 +4,21 @@ Imports iLogicExternalDebug
 Imports System.IO
 'Imports Microsoft.office.interop.excel
 Private Sub Main()
+	If TypeOf(ThisDoc.Document) Is assemblydocument Then
     xtClass.ThisApplication = ThisApplication
     xtClass.DocToUpdate = ThisDoc
+	xtclass.assydef = ThisDoc.Document.componentdefinition
+	Dim result As dialogresult = MessageBox.Show("Is this the top-level assembly we need to produce a BOM from?", "Title",MessageBoxButtons.YesNo)
+	If result = vbYes Then
+		xtclass.Bomlevels = False
+	Else If result = vbNo Then
+		xtclass.Bomlevels = True
+	End If
+
     Call xtClass.BeginRenumberItems
     'Call insertdummyfiles
+	Else
+		MessageBox.Show("Rule must be run in assembly!", "Error!")
+	End If
 End Sub
 Public xtClass As New iLogicExternalDebug.ExtClass()

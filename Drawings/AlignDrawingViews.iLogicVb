@@ -88,6 +88,10 @@ Private Function DisplayEndPoints(selectedDrawingView As DrawingView, selectedCu
     Dim curve As DrawingCurve = selectedCurve.Parent
     Dim transgeom As TransientGeometry = ThisApplication.TransientGeometry
     Dim clientgraphics1 As ClientGraphics = Nothing
+	'cleanup on aisle three
+	For Each cGfx As clientGraphics in selectedDrawingView.ClientGraphicscollection
+		cGfx.delete
+	Next
     Try
         clientgraphics1 = selectedDrawingView.ClientGraphicsCollection("selectedlineView1")
     Catch ex As Exception
@@ -96,21 +100,23 @@ Private Function DisplayEndPoints(selectedDrawingView As DrawingView, selectedCu
 
     Dim gfxnode1 As GraphicsNode = clientgraphics1.AddNode(1)
     Dim endtxtgfx As TextGraphics = gfxnode1.AddTextGraphics()
-    endtxtgfx.Text = "End point"
+    'endtxtgfx.Text = "End point"
     endtxtgfx.Anchor = transgeom.CreatePoint(selectedCurve.EndPoint.X, selectedCurve.EndPoint.Y, 0)
 
     Dim starttxtgfx As TextGraphics = gfxnode1.AddTextGraphics()
-    starttxtgfx.Text = "Start Point"
+    'starttxtgfx.Text = "Start Point"
     starttxtgfx.Anchor = transgeom.CreatePoint(selectedCurve.StartPoint.X, selectedCurve.StartPoint.Y, 0)
 
     ThisApplication.ActiveView.Update()
 
     Dim result As String = InputBox("Which point?", "1 is start; 2 is end", "1")
+	clientgraphics1.delete
     If result = "1" Then
         Return selectedCurve.StartPoint
     ElseIf result = "2" Then
         Return selectedCurve.EndPoint
     End If
+	
 End Function
 
 Public Sub SetViewVisibility(viewToKeepVisible As DrawingView, Optional viewVis As Boolean = False)
