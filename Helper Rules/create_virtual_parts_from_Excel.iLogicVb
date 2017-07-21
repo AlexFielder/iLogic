@@ -4,9 +4,10 @@ Imports iLogicExternalDebug
 Imports System.IO
 'Imports Microsoft.office.interop.excel
 Private Sub Main()
-xtClass.ThisApplication = ThisApplication
-xtClass.DocToUpdate = ThisDoc
-Call xtClass.Main()
+INSERTDUMMYFILES()
+'xtClass.ThisApplication = ThisApplication
+'xtClass.DocToUpdate = ThisDoc
+'Call xtClass.Main()
 'Call insertdummyfiles
 End Sub
 
@@ -49,6 +50,7 @@ Private Sub insertdummyfiles
 				ItemNo = GetRoundNum(ItemNo,100)
 				Continue For
 			End If
+			If GoExcel.CellValue("E" & MyRow + 1) = "" Then Exit For
 			linereached = 45
 			Dim PartNum as String = COTSPRefix & (Convert.ToInt32(COTSInitialPrefix) + ItemNo)
 			'GoExcel.CellValue("B" & MyRow)	'PART NUMBER
