@@ -1,0 +1,97 @@
+﻿Public Sub Main()
+    Dim sw As New Stopwatch()
+    sw.Start()
+    Dim thisAssy As assemblydocument = ThisApplication.activeDocument
+    'MessageBox.Show(thisAssy.ReferencedDocuments.count, "Referenced Document count")
+    For Each subdoc As Inventor.Document In thisAssy.ReferencedDocuments
+        If TypeOf subdoc Is PartDocument Then
+            If subdoc.componentdefinition.isiPartFactory Then
+                updatestatusbar(subdoc.FullFileName)
+                GenerateFactoryMembers(subdoc)
+            End If
+        Else 'Assembly
+            ProcessSubAssemblies(subdoc)
+        End If
+    Next
+
+    sw.Stop()
+    Dim timeElapsed As Timespan = sw.elapsed
+    MessageBox.Show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                                        timeElapsed.Hours,
+                                                        timeElapsed.Minutes,
+                                                        timeElapsed.Seconds,
+                                                        timeElapsed.Milliseconds / 10))
+End Sub
+
+'this should work recursively but it may take some time...?
+Public Sub ProcessSubAssemblies(ByVal AssyDoc as AssemblyDocument)
+	For Each subdoc as Inventor.Document In AssyDoc.ReferencedDocuments
+        If TypeOf subdoc Is PartDocument Then
+            If subdoc.componentdefinition.isiPartFactory Then
+                updatestatusbar(subdoc.FullFileName)
+                GenerateFactoryMembers(subdoc)
+            End If
+        Else 'Assembly
+            If subdoc.componentdefinition.isiAssemblyFactory Then
+                GenerateFactoryMembers(subdoc)
+                ProcessSubAssemblies(subdoc)
+            Else
+                'ProcessSubAssemblies(subdoc)
+            End If
+        End If
+    Next
+End Sub
+
+Public Sub GenerateFactoryMembers(ByVal doc As Document)
+    If TypeOf (doc) Is partdocument Then
+        Dim oDoc As PartDocument = doc
+        Dim oDef As PartComponentDefinition = oDoc.ComponentDefinition
+        Dim initRowIndex As Integer
+        Dim oFactory As iPartFactory = oDef.iPartFactory
+        ' Edit row 1 & 2 of table
+        'oFactory.TableRows.Item(1).Item(3).Value = 2322
+        'oFactory.TableRows.Item(2).Item(3).Value = 4444
+        ' Iterate All Rows of iPart
+        Dim oRow As iPartTableRow
+        For Each oRow In oFactory.TableRows
+            ' Generate the member and file, (overwrites member file or creates new file)
+            oFactory.CreateMember(oRow)
+        Next
+    ElseIf TypeOf (doc) Is assemblydocument Then
+        Dim oDoc As assemblyDocument = doc
+        Dim oDef As AssemblyComponentDefinition = oDoc.ComponentDefinition
+        Dim initRowIndex As Integer
+        Dim oFactory As iAssemblyFactory = oDef.iassemblyfactory
+        ' Edit row 1 & 2 of table
+        'oFactory.TableRows.Item(1).Item(3).Value = 2322
+        'oFactory.TableRows.Item(2).Item(3).Value = 4444
+        ' Iterate All Rows of iPart
+        For Each oRow As iassemblytablerow In oFactory.TableRows
+            ' Generate the member and file, (overwrites member file or creates new file)
+            oFactory.CreateMember(oRow)
+        Next
+    End If
+    'Dim oDoc As PartDocument = partdoc
+    'Dim oDef As PartComponentDefinition = oDoc.ComponentDefinition
+    'Dim initRowIndex As Integer
+    'Dim oFactory As iPartFactory = oDef.iPartFactory
+    '' Edit row 1 & 2 of table
+    ''oFactory.TableRows.Item(1).Item(3).Value = 2322
+    ''oFactory.TableRows.Item(2).Item(3).Value = 4444
+    '' Iterate All Rows of iPart
+    'Dim oRow As iPartTableRow
+    'For Each oRow In oFactory.TableRows
+    '' Generate the member and file, (overwrites member file or creates new file)
+    'oFactory.CreateMember(oRow)
+    'Next
+    'iLogicVb.UpdateWhenDone = True
+End Sub
+
+
+Sub updatestatusbar(ByVal message As String)
+	ThisApplication.statusbartext = message
+End Sub
+
+Sub updatestatusbar(ByVal percent As Double, ByVal message As String)
+	ThisApplication.statusbartext = message + " (" & percent.tostring("P1") + ")"
+End Sub

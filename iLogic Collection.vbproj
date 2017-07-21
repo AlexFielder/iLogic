@@ -96,6 +96,7 @@
     <None Include="Helper Rules\AlphaSortRepresentations.iLogicVb" />
     <None Include="Helper Rules\create_virtual_parts_from_Excel.iLogicVb" />
     <None Include="Helper Rules\DumpRepresentationNamesToFile.iLogicVb" />
+    <None Include="Helper Rules\Generate iFactory Members from Parent Assemblies.iLogicVb" />
     <None Include="Helper Rules\Ground_and_Root.iLogicVb" />
     <None Include="Helper Rules\iProperties.iLogicVb" />
     <None Include="Helper Rules\Parameters.iLogicVb" />

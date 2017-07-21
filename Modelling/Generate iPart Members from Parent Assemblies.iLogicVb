@@ -1,4 +1,4 @@
-Public Sub Main()
+﻿Public Sub Main()
     Dim sw As New Stopwatch()
     sw.Start()
     Dim thisAssy As assemblydocument = ThisApplication.activeDocument
@@ -16,7 +16,7 @@ Public Sub Main()
 
     sw.Stop()
     Dim timeElapsed As Timespan = sw.elapsed
-    messagebox.show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+    MessageBox.Show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
                                                         timeElapsed.Hours,
                                                         timeElapsed.Minutes,
                                                         timeElapsed.Seconds,
