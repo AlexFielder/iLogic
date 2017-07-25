@@ -90,6 +90,7 @@ Private Function DisplayEndPoints(selectedDrawingView As DrawingView, selectedCu
     Dim clientgraphics1 As ClientGraphics = Nothing
 	'cleanup on aisle three
 	For Each cGfx As clientGraphics in selectedDrawingView.ClientGraphicscollection
+		'this doesn't do anything for some reason?
 		cGfx.delete
 	Next
     Try

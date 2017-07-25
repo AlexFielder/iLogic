@@ -2,7 +2,7 @@
     Dim sw As New Stopwatch()
     sw.Start()
     Dim thisAssy As assemblydocument = ThisApplication.activeDocument
-    'MessageBox.Show(thisAssy.ReferencedDocuments.count, "Referenced Document count")
+    MessageBox.Show(thisAssy.ReferencedDocuments.count, "Referenced Document count")
     For Each subdoc As Inventor.Document In thisAssy.ReferencedDocuments
         If TypeOf subdoc Is PartDocument Then
             If subdoc.componentdefinition.isiPartFactory Then
@@ -24,19 +24,20 @@
 End Sub
 
 'this should work recursively but it may take some time...?
-Public Sub ProcessSubAssemblies(ByVal AssyDoc as AssemblyDocument)
-	For Each subdoc as Inventor.Document In AssyDoc.ReferencedDocuments
+Public Sub ProcessSubAssemblies(ByVal AssyDoc As AssemblyDocument)
+    For Each subdoc As Inventor.Document In AssyDoc.ReferencedDocuments
         If TypeOf subdoc Is PartDocument Then
             If subdoc.componentdefinition.isiPartFactory Then
-                updatestatusbar(subdoc.FullFileName)
+                updatestatusbar("Processing: " & subdoc.FullFileName)
                 GenerateFactoryMembers(subdoc)
             End If
         Else 'Assembly
             If subdoc.componentdefinition.isiAssemblyFactory Then
+                updatestatusbar("Processing: " & subdoc.FullFileName)
                 GenerateFactoryMembers(subdoc)
                 ProcessSubAssemblies(subdoc)
             Else
-                'ProcessSubAssemblies(subdoc)
+                ProcessSubAssemblies(subdoc)
             End If
         End If
     Next
@@ -84,7 +85,7 @@ Public Sub GenerateFactoryMembers(ByVal doc As Document)
     '' Generate the member and file, (overwrites member file or creates new file)
     'oFactory.CreateMember(oRow)
     'Next
-    'iLogicVb.UpdateWhenDone = True
+    iLogicVb.UpdateWhenDone = True
 End Sub
 
 

@@ -78,6 +78,7 @@
     <None Include="Drawings\Drawing Creation Code.iLogicVb" />
     <None Include="Drawings\Drawing Template - Move and Resize View Code.iLogicVb" />
     <None Include="Drawings\Export Open Inventor dwgs to AutoCAD.iLogicVb" />
+    <None Include="Drawings\FindReferencedModels.iLogicVb" />
     <None Include="Drawings\Insert Revision Table.iLogicVb" />
     <None Include="Drawings\Inventor 2014 - View Representations with iLogic – Part 1 – Create – Cadline Community.pdf" />
     <None Include="Drawings\Inventor 2014 - View Representations with iLogic – Part 2 – Update – Cadline Community.pdf" />

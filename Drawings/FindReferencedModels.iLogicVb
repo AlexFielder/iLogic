@@ -1,0 +1,48 @@
+﻿'Imports Autodesk.Inventor
+''' <summary>
+''' getViewsInfo
+''' 
+''' </summary>
+Sub Main()
+    Dim oDoc As Document = ThisApplication.ActiveDocument
+
+    If oDoc.DocumentType = kDrawingDocumentObject Then
+
+        Dim csvFile As System.IO.File
+        csvWriter = csvFile.CreateText(ThisDoc.PathAndFileName(False) & ".csv")
+        csvWriter.WriteLine("Referenced Models present in this Assembly:")
+        csvWriter.WriteLine()
+
+        Dim oDrgDoc As DrawingDocument = oDoc
+
+        Dim oSheets As Sheets = oDrgDoc.Sheets
+        For Each oSheet As Sheet In oSheets
+            Dim oDrgViews As DrawingViews = oSheet.DrawingViews
+            Dim oDrgView As DrawingView
+            Dim msg As String
+            Dim i As Integer
+            i = 1
+            For Each oDrgView In oDrgViews
+                Dim scl As Double
+                scl = oDrgView.Scale
+                Dim oRefFileDesc As ReferencedFileDescriptor = oDrgView.ReferencedFile
+
+
+                If (TypeOf oRefFileDesc.ReferencedDocument Is PartDocument) Then
+                    Dim oPartDoc As PartDocument = oRefFileDesc.ReferencedDocument
+                ElseIf (TypeOf oRefFileDesc.ReferencedDocument Is AssemblyDocument) Then
+                    Dim oAsmDoc As AssemblyDocument = oRefFileDesc.ReferencedDocument
+                Else
+                    Dim oPresDoc As PresentationDocument = oRefFileDesc.ReferencedDocument
+                End If
+
+                csvWriter.WriteLine("Sheet Name" & oSheet.Name & vbCr & "View No: " & i & vbCr & "File Refered: " & oRefFileDesc.FullFileName & vbCr & "View Scale  : " & scl)
+                'msg = "View No: " & i & vbCr & "File Refered: " & oRefFileDesc.FullFileName & vbCr & "View Scale  : " & scl
+                i = i + 1
+            Next
+        Next
+    End If
+End Sub
+
+Public csvWriter As System.IO.StreamWriter
+
