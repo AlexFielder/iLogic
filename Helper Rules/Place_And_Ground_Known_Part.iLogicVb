@@ -1,0 +1,39 @@
+﻿Sub Main
+Dim filename As String = "C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\C360\Part5.ipt"
+If TypeOf ThisDoc.Document Is AssemblyDocument Then
+	Place_and_Ground_Part(ThisApplication, filename)
+ElseIf TypeOf ThisDoc.Document Is DrawingDocument Then
+	PlaceDrawingView(ThisApplication, filename)
+End If
+End Sub
+
+Public Function Place_and_Ground_Part(ByVal invApp As Inventor.Application,
+                                      ByVal path As String) As ComponentOccurrence
+
+    ' Post the filename to the private event queue.
+    invApp.CommandManager.PostPrivateEvent(Inventor.PrivateEventTypeEnum.kFileNameEvent, path)
+
+    ' Get the control definition for the Place Component command.
+    Dim ctrlDef As Inventor.ControlDefinition
+    ctrlDef = invApp.CommandManager.ControlDefinitions.Item("AssemblyPlaceComponentCmd")
+
+    ' Execute the command.
+    ctrlDef.Execute()
+
+    Return Nothing
+End Function
+
+Public Function PlaceDrawingView(ByVal invApp As Inventor.Application,
+                                      ByVal path As String) As DrawingView
+'MessageBox.Show("Filename: " & path)
+' Post the filename to the private event queue.
+    invApp.CommandManager.PostPrivateEvent(Inventor.PrivateEventTypeEnum.kFileNameEvent, path)
+
+    ' Get the control definition for the Place Component command.
+    Dim ctrlDef As Inventor.ControlDefinition
+    ctrlDef = invApp.CommandManager.ControlDefinitions.Item("DrawingBaseViewCmd")
+
+    ' Execute the command.
+    ctrlDef.Execute()
+
+End Function
