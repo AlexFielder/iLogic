@@ -1,0 +1,18 @@
+﻿Option Explicit On
+AddReference "IlogicExternalDebug.dll"
+Imports iLogicExternalDebug
+Imports System.IO
+'Imports Microsoft.office.interop.excel
+Private Sub Main()
+	If TypeOf(ThisDoc.Document) Is assemblydocument Then
+    xtClass.ThisApplication = ThisApplication
+    xtClass.DocToUpdate = ThisDoc
+	xtClass.ThisDoc = ThisDoc
+	xtclass.assydef = ThisDoc.Document.componentdefinition
+    Call xtClass.BatchPDFsFromAssembly
+    'Call insertdummyfiles
+	Else
+		MessageBox.Show("Rule must be run in assembly!", "Error!")
+	End If
+End Sub
+Public xtClass As New iLogicExternalDebug.ExtClass()

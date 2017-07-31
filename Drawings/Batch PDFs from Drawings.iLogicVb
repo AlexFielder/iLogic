@@ -1,131 +1,146 @@
 ﻿Option Explicit On
+Imports System.io
+Imports System.LINQ
+
 Sub Main
-Dim defaultDrawingExtension = ".idw" ' ".dwg"
-Dim JustDoIt As Boolean = True
-Dim newPDFName As String = ""
-'check that the active document is an assembly file
-If ThisApplication.ActiveDocument.DocumentType <> kAssemblyDocumentObject Then
-MessageBox.Show("Please run this rule from the assembly file.", "iLogic")
-Exit Sub
-End If
+Dim extensions As String() = {".dwg", ".idw"}
+    Dim defaultDrawingExtension = ".idw" ' ".dwg"
+    Dim dir As DirectoryInfo = Nothing
+    Dim JustDoIt As Boolean = True
+    Dim newPDFName As String = ""
+    Dim trimmedfilename As String = ""
+    Dim drawingfiles As List(Of FileInfo) = Nothing
 
-'define the active document as an assembly file
-Dim oAsmDoc As AssemblyDocument
-oAsmDoc = ThisApplication.ActiveDocument
-Dim oAsmName As String = System.io.Path.getfilenamewithoutextension(oAsmDoc.FullFilename) 'Left(oAsmDoc.DisplayName, Len(oAsmDoc.DisplayName) -4)
-'MessageBox.Show(oAsmName)
-'get user input
-Dim RUsure As dialogresult = MessageBox.Show ( _
-"This will create a PDF file for all of the assembly components that have drawing files." _
-& vbLf & "This rule expects that the drawing file shares the same name and location as the component." _
-& vbLf & " " _
-& vbLf & "Are you sure you want to create PDF Drawings for all of the assembly components?" _
-& vbLf & "This could take a while.", "iLogic  - Batch Output PDFs ",MessageBoxButtons.YesNo)
+    'check that the active document is an assembly file
+    If ThisApplication.ActiveDocument.DocumentType <> DocumentTypeEnum.kAssemblyDocumentObject Then
+        MessageBox.Show("Please run this rule from the assembly file.", "iLogic")
+        Exit Sub
+    End If
 
-If RUsure = vbNo Then
-Exit Sub
-End If
-'MessageBox.Show("Continuing")
-'- - - - - - - - - - - - -PDF setup - - - - - - - - - - - -
-Dim oPath As String = ThisDoc.Path
-Dim PDFAddIn As TranslatorAddIn = ThisApplication.ApplicationAddIns.ItemById("{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}")
-Dim oContext As TranslationContext = ThisApplication.TransientObjects.CreateTranslationContext
-oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
-Dim oOptions as NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
-Dim oDataMedium as DataMedium = ThisApplication.TransientObjects.CreateDataMedium
-'MessageBox.Show("Continuing")
-If PDFAddIn.HasSaveCopyAsOptions(oAsmDoc, oContext, oOptions) Then
-oOptions.Value("All_Color_AS_Black") = 0
-'oOptions.Value("Remove_Line_Weights") = 0
-'oOptions.Value("Vector_Resolution") = 400
-oOptions.Value("Sheet_Range") = Inventor.PrintRangeEnum.kPrintAllSheets
-'oOptions.Value("Custom_Begin_Sheet") = 2
-'oOptions.Value("Custom_End_Sheet") = 4
-End If
-'MessageBox.Show("Continuing")
-'get PDF target folder path
-Dim oFolder As String = System.IO.Path.GetDirectoryName(oAsmDoc.FullFilename) & "\" ' & oAsmName ' & " PDF Files" <-- no need for a subfolder for ESPS!
+    'define the active document as an assembly file
+    Dim oAsmDoc As AssemblyDocument
+    oAsmDoc = ThisApplication.ActiveDocument
+    Dim oAsmName As String = System.IO.Path.GetFileNameWithoutExtension(oAsmDoc.FullFileName) 'Left(oAsmDoc.DisplayName, Len(oAsmDoc.DisplayName) -4)
+    'MessageBox.Show(oAsmName)
+    'get user input
+    Dim RUsure As DialogResult = MessageBox.Show(
+    "This will create a PDF file for all of the assembly components that have drawing files." _
+    & vbLf & "This rule expects that the drawing file shares the same name and location as the component." _
+    & vbLf & " " _
+    & vbLf & "Are you sure you want to create PDF Drawings for all of the assembly components?" _
+    & vbLf & "This could take a while.", "iLogic  - Batch Output PDFs ", MessageBoxButtons.YesNo)
 
-'Check for the PDF folder and create it if it does not exist
-If Not System.IO.Directory.Exists(oFolder) Then
-    System.IO.Directory.CreateDirectory(oFolder)
-End If
-'- - - - - - - - - - - - -
+    If RUsure = vbNo Then
+        Exit Sub
+    End If
+    'MessageBox.Show("Continuing")
+    '- - - - - - - - - - - - -PDF setup - - - - - - - - - - - -
+    Dim oPath As String = ThisDoc.Path
+    Dim PDFAddIn As TranslatorAddIn = ThisApplication.ApplicationAddIns.ItemById("{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}")
+    Dim oContext As TranslationContext = ThisApplication.TransientObjects.CreateTranslationContext
+    oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
+    Dim oOptions As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
+    Dim oDataMedium As DataMedium = ThisApplication.TransientObjects.CreateDataMedium
+    'MessageBox.Show("Continuing")
+    If PDFAddIn.HasSaveCopyAsOptions(oAsmDoc, oContext, oOptions) Then
+        oOptions.Value("All_Color_AS_Black") = 0
+        'oOptions.Value("Remove_Line_Weights") = 0
+        'oOptions.Value("Vector_Resolution") = 400
+        oOptions.Value("Sheet_Range") = Inventor.PrintRangeEnum.kPrintAllSheets
+        'oOptions.Value("Custom_Begin_Sheet") = 2
+        'oOptions.Value("Custom_End_Sheet") = 4
+    End If
+    'MessageBox.Show("Continuing")
+    'get PDF target folder path
+    Dim oFolder As String = System.IO.Path.GetDirectoryName(oAsmDoc.FullFileName) & "\" & oAsmName & " PDF Files"
+    MessageBox.Show("Looking for: " & oFolder & " & Creating it if it doesn't already exist!")
+    'Check for the PDF folder and create it if it does not exist
+    If Not System.IO.Directory.Exists(oFolder) Then
+        System.IO.Directory.CreateDirectory(oFolder)
+    End If
+    '- - - - - - - - - - - - -
 
-'- - - - - - - - - - - - -Component Drawings - - - - - - - - - - - -
-'look at the files referenced by the assembly
-Dim oRefDocs As DocumentsEnumerator
-oRefDocs = oAsmDoc.AllReferencedDocuments
-Dim oRefDoc As Document
+    '- - - - - - - - - - - - -Component Drawings - - - - - - - - - - - -
+    'look at the files referenced by the assembly
+    Dim oRefDocs As DocumentsEnumerator
+    oRefDocs = oAsmDoc.AllReferencedDocuments
+    Dim oRefDoc As Document
 
-'work the the drawing files for the referenced models
-'this expects that the model has a drawing of the same path and name 
-For Each oRefDoc In oRefDocs
-	Dim filename As String
-	filename = oRefDoc.FullDocumentName
-	'If filename.Contains("*AS-C*") Or filename.Contains("*DT-C*") Then
-		If Not justdoit Then
-			RUSure = MessageBox.Show(filename, "PDF This file?",MessageBoxButtons.YesNo)
-			If RUsure = vbNo Then
-				Continue For
-			End If
-		End If
-		Dim dwgPathName As String = oFolder & "\" & System.io.Path.getfilenamewithoutextension(oRefDoc.FullDocumentName) & defaultDrawingExtension
-		'check to see that the model has a drawing of the same path and name 
-		If(System.IO.File.Exists(dwgPathName)) Then
-			Dim oDrawDoc As DrawingDocument
-			oDrawDoc = ThisApplication.Documents.Open(dwgPathName, True)
-			Dim oFileName As String = System.io.Path.getfilenamewithoutextension(oRefDoc.DisplayName)
-			newPDFName = oFolder & "\" & oFileName & ".pdf"
-			If System.io.file.Exists(newPDFName) Then
-				If checkreadonly(newPDFName) Then
-					MessageBox.Show("PDF Exists and is read only," & vbCrLf & "Suggest you close it or check it out of Vault!" & vbCrLf & "before trying this rule again!")
-					Exit Sub
-				End If
-			End If
-			'On Error Resume Next ' if PDF exists and is open or read only, resume next
-	 		'Set the PDF target file name
-			oDataMedium.FileName = newPDFName
-			'Write out the PDF
-			Call PDFAddIn.SaveCopyAs(oDrawDoc, oContext, oOptions, oDataMedium)
-			'close the file
-			oDrawDoc.Close
-		Else
-			'If the model has no drawing of the same path and name - do nothing
-			MessageBox.Show(dwgPathName & " Does not exist!", "Debugging")
-		End If
-	'End If
-Next
-'- - - - - - - - - - - - -
+    For Each oRefDoc In oRefDocs
+        Dim filename As String = oRefDoc.FullDocumentName
+        Dim ThisFileDir As String = System.IO.Path.GetDirectoryName(oRefDoc.FullDocumentName)
+        If Not JustDoIt Then
+            RUsure = MessageBox.Show(filename, "PDF This file?", MessageBoxButtons.YesNo)
+            If RUsure = vbNo Then
+                Continue For
+            End If
+        End If
+        dir = New DirectoryInfo(ThisFileDir)
+        trimmedfilename = System.IO.Path.GetFileNameWithoutExtension(filename)
+        drawingfiles = GetFilesByExtensions(dir, trimmedfilename, extensions)
+        If drawingfiles.Count = 1 Then
+            Dim oDrawDoc As DrawingDocument
+            oDrawDoc = ThisApplication.Documents.Open(drawingfiles.Item(0).FullName, True)
+            Dim oFileName As String = System.IO.Path.GetFileNameWithoutExtension(oRefDoc.DisplayName)
+            newPDFName = oFolder & "\" & oFileName & ".pdf"
+            If System.IO.File.Exists(newPDFName) Then
+                If CheckReadOnly(newPDFName) Then
+                    MessageBox.Show("PDF Exists and is read only," & vbCrLf & "Suggest you close it or check it out of Vault!" & vbCrLf & "before trying this rule again!")
+                    Exit Sub
+                End If
+            End If
+            oDataMedium.FileName = newPDFName
+            Call PDFAddIn.SaveCopyAs(oDrawDoc, oContext, oOptions, oDataMedium)
+            oDrawDoc.Close()
+        ElseIf drawingfiles.Count > 1 Then
+            MessageBox.Show("We found multiple format drawing files!" & vbCrLf & "Please correct this before trying again!")
+        ElseIf drawingfiles.Count = 0 Then
+            ThisApplication.StatusBarText = "No Matching drawing file found for: " & filename
+        End If
+    Next
+    '- - - - - - - - - - - - -
 
-'- - - - - - - - - - - - -Top Level Drawing - - - - - - - - - - - -
-Dim oAsmDrawing as String = ThisDoc.ChangeExtension(defaultDrawingExtension)
-Dim oAsmDrawingDoc as drawingdocument = ThisApplication.Documents.Open(oAsmDrawing, True)
-Dim oAsmDrawingName As String = System.io.Path.getfilenamewithoutextension(oAsmDrawingDoc.FullFileName)
-newPDFName = oFolder & "\" & oAsmDrawingName & ".pdf"
-'write out the PDF for the Top Level Assembly Drawing file
-On Error Resume Next ' if PDF exists and is open or read only, resume next
- 'Set the PDF target file name
-oDataMedium.FileName = newPDFName
-'Write out the PDF
-'MessageBox.Show("Continuing")
-If System.io.file.Exists(newPDFName) Then
-	If checkreadonly(newPDFName) Then
-		MessageBox.Show("PDF Exists and is read only," & vbCrLf & "Suggest you close it or check it out of Vault!" & vbCrLf & "before trying this rule again!")
-		Exit Sub
-	Else
-		Call PDFAddIn.SaveCopyAs(oAsmDrawingDoc, oContext, oOptions, oDataMedium)	
-	End If
-End If
+    '- - - - - - - - - - - - -Top Level Drawing - - - - - - - - - - - -
+    Dim assyfilename As String = oAsmDoc.FullFileName
+    Dim assyFileDir As String = System.IO.Path.GetDirectoryName(oAsmDoc.FullFileName)
+    dir = New DirectoryInfo(assyFileDir)
+    trimmedfilename = System.IO.Path.GetFileNameWithoutExtension(assyfilename)
+    drawingfiles = GetFilesByExtensions(dir, trimmedfilename, extensions)
+    If drawingfiles.Count = 1 Then
+        Dim oAsmDrawingDoc As DrawingDocument = ThisApplication.Documents.Open(drawingfiles.Item(0).FullName, True)
+        Dim oAsmDrawingName As String = System.IO.Path.GetFileNameWithoutExtension(oAsmDrawingDoc.FullFileName)
+        newPDFName = oFolder & "\" & oAsmDrawingName & ".pdf"
+        oDataMedium.FileName = newPDFName
+        If System.IO.File.Exists(newPDFName) Then
+            If CheckReadOnly(newPDFName) Then
+                MessageBox.Show("PDF Exists and is read only," & vbCrLf & "Suggest you close it or check it out of Vault!" & vbCrLf & "before trying this rule again!")
+                Exit Sub
+            Else
+                Call PDFAddIn.SaveCopyAs(oAsmDrawingDoc, oContext, oOptions, oDataMedium)
+            End If
+        Else
+            Call PDFAddIn.SaveCopyAs(oAsmDrawingDoc, oContext, oOptions, oDataMedium)
+        End If
 
-'Close the top level drawing
-oAsmDrawingDoc.Close
-'- - - - - - - - - - - - -
+        'Close the top level drawing
+        oAsmDrawingDoc.Close()
 
-'MessageBox.Show("New Files Created in: " & vbLf & oFolder, "iLogic")
-'open the folder where the new ffiles are saved
-Shell("explorer.exe " & oFolder,vbNormalFocus)
+    End If
+    '- - - - - - - - - - - - -
+
+    'MessageBox.Show("New Files Created in: " & vbLf & oFolder, "iLogic")
+    'open the folder where the new ffiles are saved
+    Shell("explorer.exe " & oFolder, vbNormalFocus)
 End Sub
+
+Public Function GetFilesByExtensions(dir As DirectoryInfo, filename As String, ParamArray extensions As String()) As List(Of FileInfo)
+    If extensions Is Nothing Then
+        Throw New ArgumentNullException("extensions")
+    End If
+    Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("OldVersions")) And (System.IO.Path.GetFileNameWithoutExtension(s.FullName).ToLower() = filename.ToLower()))
+    'Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) And Not (s.FullName.contains("OldVersions")))
+    Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension)).OrderBy(Function(x As FileInfo) x.Name).ToList()
+End Function
 
 Public Shared Function CheckReadOnly(ByVal doc As String) As Boolean
     Try
@@ -145,5 +160,6 @@ Public Shared Function CheckReadOnly(ByVal doc As String) As Boolean
         End If
     Catch ex As Exception
         MessageBox.Show(ex.Message)
+        Return False
     End Try
 End Function
