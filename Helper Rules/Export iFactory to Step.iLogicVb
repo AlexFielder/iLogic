@@ -1,0 +1,83 @@
+﻿ 
+Sub Main()
+ExportiFactoryToStep()
+End Sub
+Sub ExportiFactoryToStep()
+    Dim oErrorManager As ErrorManager = ThisApplication.ErrorManager
+
+    If TypeOf (ThisApplication.activedocument) Is partdocument Then
+        Dim oDoc As PartDocument = ThisApplication.ActiveDocument
+        Dim oiPart As iPartFactory = oDoc.ComponentDefinition.iPartFactory
+        Dim oTop As BrowserNode = oDoc.BrowserPanes("Model").TopNode
+        Dim bHasErrorOrWarning As Boolean
+        Dim i As Integer
+        InventorVb.DocumentUpdate()
+        ThisApplication.SilentOperation = True
+        For i = 1 To oiPart.TableRows.Count 'use first 10 rows only for debugging purposes!
+            ' Highlight the 3rd iPart table row which has invalid data
+            oTop.BrowserNodes("Table").BrowserNodes.Item(i).DoSelect
+
+            ' Activate the iPart table row
+            Dim oCommand As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("PartComputeiPartRowCtxCmd")
+            oCommand.Execute
+
+            ThisApplication.SilentOperation = False
+            ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
+			ExportToStep(oiPart.TableRows.Item(i).MemberName)
+            If oErrorManager.HasErrors Or oErrorManager.HasWarnings Then
+                MessageBox.Show(oErrorManager.LastMessage, "Title")
+            End If
+        Next i
+        MessageBox.Show("No errors shown = None found!", "Title")
+    ElseIf TypeOf (ThisApplication.activedocument) Is assemblydocument Then
+        Dim odoc As assemblydocument = ThisApplication.activedocument
+        Dim iAssy As iAssemblyFactory = odoc.componentdefinition.iassemblyfactory
+        Dim oTop As BrowserNode = odoc.BrowserPanes("Model").TopNode
+        Dim bHasErrorOrWarning As Boolean
+        Dim i As Integer
+        InventorVb.DocumentUpdate()
+        ThisApplication.SilentOperation = True
+        For rowIndex = 1 To iAssy.tablerows.count
+            oTop.BrowserNodes("Table").BrowserNodes.Item(i).DoSelect
+            Dim oCommand As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("PartComputeiPartRowCtxCmd")
+            oCommand.Execute
+            ThisApplication.SilentOperation = False
+            ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
+			ExportToStep(iassy.TableRows.Item(i).MemberName)
+            If oErrorManager.HasErrors Or oErrorManager.HasWarnings Then
+                MessageBox.Show(oErrorManager.LastMessage, "Title")
+            End If
+
+        Next
+    End If
+End Sub
+
+Private Sub ExportToStep(LastActiveFeatureName As String)
+	' Get the STEP translator Add-In.
+	Dim oSTEPTranslator As TranslatorAddIn
+	oSTEPTranslator = ThisApplication.ApplicationAddIns.ItemById("{90AF7F40-0C01-11D5-8E83-0010B541CD80}")
+	Dim oContext As TranslationContext
+	oContext = ThisApplication.TransientObjects.CreateTranslationContext
+	Dim oOptions As NameValueMap
+	oOptions = ThisApplication.TransientObjects.CreateNameValueMap
+
+	If oSTEPTranslator.HasSaveCopyAsOptions(ThisApplication.ActiveDocument, oContext, oOptions) Then
+		' Set application protocol.
+		' 2 = AP 203 - Configuration Controlled Design
+		' 3 = AP 214 - Automotive Design
+		oOptions.Value("ApplicationProtocolType") = 3
+		' Other options...
+		'oOptions.Value("Author") = ""
+		'oOptions.Value("Authorization") = ""
+		'oOptions.Value("Description") = ""
+		'oOptions.Value("Organization") = ""
+		oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
+		Dim oData As DataMedium
+		oData = ThisApplication.TransientObjects.CreateDataMedium
+		oData.FileName = ThisDoc.PathAndFileName(False) & "_" & LastActiveFeatureName & "-exported.stp"
+		oSTEPTranslator.SaveCopyAs(ThisApplication.ActiveDocument, oContext, oOptions, oData)
+		'OpenAndSaveExportedStep(oData.FileName)
+	End If
+End Sub
+
+
