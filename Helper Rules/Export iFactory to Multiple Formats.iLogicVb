@@ -1,10 +1,16 @@
 ﻿ 
 Sub Main()
-ExportiFactoryToStep()
+ExportiFactoryToMultiple()
 End Sub
-Sub ExportiFactoryToStep()
-    Dim oErrorManager As ErrorManager = ThisApplication.ErrorManager
 
+'A COUPLE OF GLOBAL VARIABLES
+Public CurrentPath As String = ""
+Public NewPath As String = ""
+
+Sub ExportiFactoryToMultiple(Optional ByVal formatInt As Integer = 0)
+    Dim oErrorManager As ErrorManager = ThisApplication.ErrorManager
+	CurrentPath = System.IO.Path.getdirectoryname(ThisApplication.activedocument.fulldocumentname)
+	NewPath = CurrentPath & "\"& System.IO.Path.GetFileNameWithoutExtension(ThisApplication.activedocument.fulldocumentname) & "\"
     If TypeOf (ThisApplication.activedocument) Is partdocument Then
         Dim oDoc As PartDocument = ThisApplication.ActiveDocument
         Dim oiPart As iPartFactory = oDoc.ComponentDefinition.iPartFactory
@@ -24,6 +30,7 @@ Sub ExportiFactoryToStep()
             ThisApplication.SilentOperation = False
             ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
 			ExportToStep(oiPart.TableRows.Item(i).MemberName)
+			ExportDXF(oiPart.TableRows.Item(i).MemberName)
             If oErrorManager.HasErrors Or oErrorManager.HasWarnings Then
                 MessageBox.Show(oErrorManager.LastMessage, "Title")
             End If
@@ -44,6 +51,7 @@ Sub ExportiFactoryToStep()
             ThisApplication.SilentOperation = False
             ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
 			ExportToStep(iassy.TableRows.Item(i).MemberName)
+			ExportDXF(iassy.TableRows.Item(i).MemberName)
             If oErrorManager.HasErrors Or oErrorManager.HasWarnings Then
                 MessageBox.Show(oErrorManager.LastMessage, "Title")
             End If
@@ -74,10 +82,37 @@ Private Sub ExportToStep(LastActiveFeatureName As String)
 		oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
 		Dim oData As DataMedium
 		oData = ThisApplication.TransientObjects.CreateDataMedium
-		oData.FileName = ThisDoc.PathAndFileName(False) & "_" & LastActiveFeatureName & "-exported.stp"
+		oData.FileName = NewPath & LastActiveFeatureName & "-exported.stp"
+		'oData.FileName = ThisDoc.PathAndFileName(False) & "_" & LastActiveFeatureName & "-exported.stp"
 		oSTEPTranslator.SaveCopyAs(ThisApplication.ActiveDocument, oContext, oOptions, oData)
 		'OpenAndSaveExportedStep(oData.FileName)
 	End If
 End Sub
 
+'copied from https://forums.autodesk.com/t5/inventor-customization/ilogic-rule-to-ask-yes-or-no-for-dxf-export-when-saving-idw/td-p/3939068
+Public Sub 	ExportDXF(ByVal outputfilename As String)
+	' Get the DXF translator Add-In.
+	'path_and_nameDXF = ThisDoc.PathAndFileName(False)
+	Dim DXFAddIn As TranslatorAddIn
+	DXFAddIn = ThisApplication.ApplicationAddIns.ItemById("{C24E3AC4-122E-11D5-8E91-0010B541CD80}")
+	'Set a reference to the active document (the document to be published).
+	Dim oDocument As Document
+	oDocument = ThisApplication.ActiveDocument
+	Dim oContext As TranslationContext
+	oContext = ThisApplication.TransientObjects.CreateTranslationContext
+	oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
+	' Create a NameValueMap object
+	Dim oOptions As NameValueMap
+	oOptions = ThisApplication.TransientObjects.CreateNameValueMap
+	' Create a DataMedium object
+	Dim oDataMedium As DataMedium
+	oDataMedium = ThisApplication.TransientObjects.CreateDataMedium
+	'If DXFAddIn.HasSaveCopyAsOptions(oDocument, oContext, oOptions) Then
+	'	Dim strIniFile As String
+	'	strIniFile = "C:\Users\Farr\Documents\Inventor\DXF_EXPORT_INI\DXF_EXPORT.ini"
+	'	oOptions.Value("Export_Acad_IniFile") = strIniFile
+	'End If
+	oDataMedium.FileName = NewPath & outputfilename & ".dxf"
+	Call DXFAddIn.SaveCopyAs(oDocument, oContext, oOptions, oDataMedium)
+End Sub
 
