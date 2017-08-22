@@ -1,14 +1,30 @@
-﻿Imports System
-
+﻿''' <summary>
+''' Demonstrates how to catch errors with a line number for debuggering purposes
+''' </summary>
 Sub Main()
-Try
-	'Do something here that might cause one of the following:
-Catch ArgEx As ArgumentException
-	MessageBox.Show("Caught an Argument Exception: " & Ex.Message, "Title")
-Catch ComEx As COMException
-	MessageBox.Show(Caught a COM Exception: " & ComEx.Message, "Title")
-Catch Ex As Exception
-	MessageBox.Show("Caught a general Exception: " & Ex.Message, "Title")
-End Try
+    Dim exceptionInt As Integer = 5
+    Try
+        'Do something here that might cause one of the following:
+        MessageBox.Show("Boom: " & exceptionInt.ToString())
+        exceptionInt = 9
+        MessageBox.Show("Boom: " & exceptionInt.ToString())
+        exceptionInt = 11
+        Threading.Thread.Sleep(500)
+        MessageBox.Show("Boom: " & exceptionInt.ToString())
+        exceptionInt = 14
+        Threading.Thread.Sleep(500)
+        MessageBox.Show("Boom: " & exceptionInt.ToString())
+        exceptionInt = 17
+        Threading.Thread.Sleep(5000)
+        Parameter(L33thaxxor) = "L33t haxxor"
+        MessageBox.Show("Kaboom: " & exceptionInt.ToString())
+        exceptionInt = 21
+    Catch ArgEx As ArgumentException
+        MessageBox.Show("Caught an Argument Exception after line: " & exceptionInt & " " & ArgEx.Message, "Title")
+        '    Catch ComEx As System.COMException
+        '        MessageBox.Show("Caught a COM Exception after line: " & exceptionInt & " " & ComEx.Message, "Title")
+    Catch Ex As Exception
+        MessageBox.Show("Caught a general Exception after line: " & exceptionInt & " " & Ex.Message, "Title")
+    End Try
 
 End Sub
