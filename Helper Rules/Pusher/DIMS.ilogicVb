@@ -1,0 +1,37 @@
+Sub Main()
+
+    Dim oAsmDoc As Inventor.AssemblyDocument = ThisDoc.Document
+    Dim oPars As Inventor.Parameters = oAsmDoc.ComponentDefinition.Parameters
+
+    Dim oList As Collection = New Collection
+    For Each oPar As Inventor.Parameter In oPars
+        If (Left(oPar.Name, 2) = "A_") Then
+            oList.Add(oPar.Name)
+        End If
+    Next
+
+    If oList.Count = 0 Then
+        MsgBox("Empty list :(")
+    Else
+        'print oList content for debug purposes
+        'Dim sTotal As String = "Found:  " & oList.Count
+        'For Each st As String In oList
+        '   sTotal += vbNewLine & st
+        'Next
+        'MsgBox(sTotal)
+
+        'now we can do something useful with names in the oList
+        For Each oOcc As ComponentOccurrence In oAsmDoc.ComponentDefinition.occurrences
+            For Each ParName As String In oList
+                Try
+                    Parameter(oOcc.Name, ParName) = Parameter(ParName)
+                Catch
+                End Try
+            Next
+        Next
+    End If
+
+    'Update the document to see the changes
+    iLogicVb.UpdateWhenDone = True
+
+End Sub

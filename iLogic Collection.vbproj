@@ -191,6 +191,8 @@
     <Content Include="Drawings\Inventor 2014 - View Representations with iLogic – Part 1 – Create – Cadline Community.txt" />
     <Content Include="Drawings\Inventor 2014 - View Representations with iLogic – Part 2 – Update – Cadline Community.txt" />
     <Content Include="Drawings\Inventor 2014 - View Representations with iLogic – Part 3 – Check – Cadline Community.txt" />
+    <Content Include="Helper Rules\Pusher\DIMS.ilogicVb" />
+    <Content Include="Helper Rules\Pusher\Trigger Generator.iLogicVb" />
     <Content Include="Modelling\PartFeatureNamesList.txt" />
     <Content Include="Modelling\PartFeatureNamesList.xml" />
   </ItemGroup>

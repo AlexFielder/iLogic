@@ -1,0 +1,91 @@
+'%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+' === Generator rule ===
+
+'==========================================
+'This rule Main() creates new trigger rule that is initiated by the
+'all desired parameters changes (model or user)
+'It is convenient to fire this rule by the event BeforeSave
+'==========================================
+
+Sub Main()
+
+  'name of trigger rule
+  Dim TriggerRuleName As String = "Trigger"
+  'name of the rule that should be initiated by the trigger rule
+  Dim FiredRuleName As String = "Dims"
+
+  'reference to iLogic Automation object
+  Dim iLogicAuto As Object  = iLogicVb.Automation
+  
+  'current document 
+  Dim oDoc As Inventor.Document = ThisDoc.Document
+  
+'  Create the trigger rule in auto mode
+  Dim oRule As Object = iLogicAuto.GetRule(oDoc, TriggerRuleName)
+  Dim sText As String = "'create the rule on-the-fly"
+  'if the rule TriggerRuleName is absent then create it
+  If oRule Is Nothing Then 
+    oRule = iLogicAuto.AddRule(oDoc, TriggerRuleName, sText)
+  End If
+  
+  sText = CreateRuleText(oDoc, FiredRuleName)  
+  If sText Is Nothing Then
+        MessageBox.Show("Active document has not key parameters", "Generator", MessageBoxButtons.OK, MessageBoxIcon.Error)
+    Else
+	oRule.Text = sText
+	oDoc.Save  	
+	Call iLogicAuto.RunRule(oDoc, TriggerRuleName)
+  End If  
+End Sub 'Main
+
+
+         
+Function CreateRuleText( _
+              ByVal oDoc As Inventor.Document, _
+              ByVal FiredRuleName As String) As String
+  'get the list of key parameters
+  Dim oColl As Collection = GetParametersList(oDoc)
+  
+  If oColl.Count = 0 Then
+	Return Nothing
+  End If
+  
+''DummyVar = Cross _
+''         & vbNewLine & CrossThickness _
+''         & vbNewLine & material _
+''         & vbNewLine & Ready _
+''         & vbNewLine & InitialLength
+
+  Dim sText As String
+  sText = "'Automatically generated trigger rule" & vbNewLine
+  sText = sText & "DummyVar = "
+  If oColl.Count = 1 Then
+    sText = sText & oColl.Item(1).tostring 
+  Else    
+	For i As Integer = 1 To oColl.Count
+		Dim St As String = oColl.Item(i).tostring
+		If i = 1 Then
+		sText = sText & St & " _"
+		ElseIf i < oColl.Count Then
+		sText = sText & vbNewLine & "        & vbNewLine & " & St & " _"
+		Else
+		sText = sText & vbNewLine & "        & vbNewLine & " & St
+		End If
+	Next
+  End If	
+  Return sText & vbNewLine & "iLogicVb.RunRule(""" & FiredRuleName & """)"
+End Function 'CreateRuleText
+
+
+Function GetParametersList(ByRef oDoc As Inventor.Document) As Collection
+  'creates the list of parameters that must trigger the rule
+  'Criteria is up to you.
+  'In this sample all key parameters are included in the list
+  
+  Dim oColl As New Collection
+  Dim oPar As Inventor.Parameter
+  For Each oPar In oDoc.ComponentDefinition.Parameters
+    If oPar.IsKey Then oColl.Add (oPar.Name)
+  Next
+  Return oColl
+End Function 'GetParametersList
