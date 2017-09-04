@@ -1,37 +1,71 @@
-Sub Main()
-
+﻿Sub Main()
+	
     Dim oAsmDoc As Inventor.AssemblyDocument = ThisDoc.Document
-    Dim oPars As Inventor.Parameters = oAsmDoc.ComponentDefinition.Parameters
-
-    Dim oList As Collection = New Collection
-    For Each oPar As Inventor.Parameter In oPars
-        If (Left(oPar.Name, 2) = "A_") Then
-            oList.Add(oPar.Name)
-        End If
-    Next
-
-    If oList.Count = 0 Then
-        MsgBox("Empty list :(")
-    Else
-        'print oList content for debug purposes
-        'Dim sTotal As String = "Found:  " & oList.Count
-        'For Each st As String In oList
-        '   sTotal += vbNewLine & st
-        'Next
-        'MsgBox(sTotal)
-
-        'now we can do something useful with names in the oList
-        For Each oOcc As ComponentOccurrence In oAsmDoc.ComponentDefinition.occurrences
-            For Each ParName As String In oList
-                Try
-                    Parameter(oOcc.Name, ParName) = Parameter(ParName)
-                Catch
-                End Try
-            Next
-        Next
-    End If
-
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisDoc.Document, "Push Parameter Values to referenced documents")
+    Try
+		Dim oPars As Inventor.Parameters = oAsmDoc.ComponentDefinition.Parameters
+	
+		Dim oList As Collection = New Collection
+		For Each oPar As Inventor.Parameter In oPars
+			If (oPar.Name.StartsWith("A:")) Then
+'			If (Left(oPar.Name, 2) = "A:") Then
+				oList.Add(oPar.Name)
+			End If
+		Next
+	
+		If oList.Count = 0 Then
+			MsgBox("Empty list :(")
+		Else
+			'print oList content for debug purposes
+			'Dim sTotal As String = "Found:  " & oList.Count
+			'For Each st As String In oList
+			'   sTotal += vbNewLine & st
+			'Next
+			'MsgBox(sTotal)
+	
+			'now we can do something useful with names in the oList
+'	        For Each oOcc As ComponentOccurrence In oAsmDoc.ComponentDefinition.occurrences
+'	            For Each ParName As String In oList
+'	                Try
+'	                    Parameter(oOcc.Name, ParName) = Parameter(ParName)
+'	                Catch
+'	                End Try
+'	            Next
+'	        Next
+			For Each oDoc as Document In oAsmDoc.AllReferencedDocuments
+				If Not oDoc.FullFileName.Contains("Content Center") Then 'not CC file
+					If oDoc.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
+						Dim oPartDoc as PartDocument = oDoc
+						Dim partDef as ComponentDefinition = oPartDoc.ComponentDefinition
+						For Each ParName As String In oList
+							Try
+								Dim oParam as Parameter = partDef.Parameters(ParName)
+								oParam.Value = Parameter(ParName) / 10
+'								Parameter(oOcc.Name, ParName) = Parameter(ParName)
+							Catch
+							End Try
+						Next
+					Else If oDoc.DocumentType = DocumentTypeEnum.kAssemblyDocumentObject Then
+						Dim oAssyDoc as AssemblyDocument = oDoc
+						Dim assyDef as ComponentDefinition = oAssyDoc.ComponentDefinition
+						For Each ParName As String In oList
+							Try
+								Dim oParam as Parameter = assyDef.Parameters(ParName)
+								oParam.Value = Parameter(ParName) / 10
+'								Parameter(oOcc.Name, ParName) = Parameter(ParName)
+							Catch
+							End Try
+						Next
+					End If
+				End If
+			Next
+		End If
+	Catch ex As exception
+		MessageBox.Show("Something is broken: " & ex.message & " " & ex.stacktrace)
+		trans.abort()
+	Finally
     'Update the document to see the changes
     iLogicVb.UpdateWhenDone = True
-
+	trans.End()
+	End Try
 End Sub
