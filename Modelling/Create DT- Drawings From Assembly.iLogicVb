@@ -7,93 +7,64 @@ Public Sub Main
 createDrawingsFromAssembly()
 'CreateDrawingsFromAssembly(ThisDoc.Document)
 End Sub
+
+Public DefaultTemplate As String = "C:\Users\Public\Documents\Autodesk\Inventor 2018\Templates\standard.dwg" '<-- Put the path to your template here
+Public ProjectRootFolder As String = String.Empty
+
 Public Sub createDrawingsFromAssembly()
     ' Set reference to active document.
     ' This assumes the active document is an assembly
     Dim oDoc As Inventor.Document = ThisApplication.ActiveDocument
-    
+	ProjectRootFolder = System.IO.Path.GetDirectoryName(oDoc.FullFileName)
+    Dim UseDefaultTemplate As DialogResult = MessageBox.Show("This is the path to the default template, do you wish to use this: " & vbCrLf & DefaultTemplate, "Use Default Template", MessageBoxButtons.YesNo)
+	If UseDefaultTemplate = vbNo Then
+		Dim oFileDlg As inventor.FileDialog = Nothing
+		InventorVb.Application.CreateFileDialog(oFileDlg)
+		oFileDlg.Filter = "Inventor DWG Template(*.dwg)|*.dwg|Inventor IDW Template(*.idw)|*.idw"
+		oFileDlg.InitialDirectory = System.IO.Path.GetDirectoryName(ThisApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kDrawingDocumentObject))
+		oFileDlg.CancelError = True
+		oFileDlg.MultiSelectEnabled = False
+		dim openFileDialog as new OpenFileDialog()
+		
+		openFileDialog.InitialDirectory = System.IO.Path.GetDirectoryName(ThisApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kDrawingDocumentObject))
+		openFileDialog.Filter = "Inventor DWG Template(*.dwg)|*.dwg|Inventor IDW Template(*.idw)|*.idw"
+		if openFileDialog.ShowDialog() = DialogResult.OK then
+			Dim selectedfile1 as String = openFileDialog.FileName
+			If selectedfile1 = String.Empty Then
+				MessageBox.Show("You didn't pick a suitable file!" & vbCrLf & "I am going to exit now. Have a nice day!")
+				Exit Sub
+			Else
+				DefaultTemplate = selectedfile1
+			End If
+		end if
+	End If
+
 	If TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
-		dim oAssyDoc as AssemblyDocument = oDoc
+		Dim oAssyDoc as AssemblyDocument = oDoc
 		Dim oCompDef As Inventor.ComponentDefinition
 		oCompDef = oAssyDoc.ComponentDefinition
 
     	For Each refDoc As Document In oAssyDoc.AllReferencedDocuments
 			If refDoc.FullFileName.Contains("Content Center") Then Continue For
 			BeginCreateDrawing(refDoc)
-        	' Check if it's child occurrence (leaf node)
-'        	If oCompOcc.SubOccurrences.Count = 0 Then
-'				'PART!
-'				oSubDoc = CType(oCompOcc.Definition.Document, Document)
-'				BeginCreateDrawing(oSubDoc)
-'        	Else
-'				'ASSEMBLY!
-'            	oSubDoc = CType(oCompOcc.Definition.Document, Document)
-'				BeginCreateDrawing(oSubDoc)
-'            	Call processAllSubOcc(oCompOcc) ' subassembly
-'        	End If
     	Next
-	Else If TypeOf ThisApplication.ActiveDocument is PartDocument Then
-		dim partDoc as PartDocument = oDoc
+	Else If TypeOf ThisApplication.ActiveDocument Is PartDocument Then
+		Dim partDoc as PartDocument = oDoc
 		BeginCreateDrawing(partDoc)
     End If
 	MessageBox.Show("Done Creating Drawings!","You lucky thing you!")
 End Sub
 
-Public Function GetRootFolder(ByVal path As String) As String
-Dim filepath As String = path
-Dim directoryName As String 
-Dim i As Integer = 0
-
-While i < 2
-'While filepath <> Nothing
-    directoryName = System.IO.Path.GetDirectoryName(filepath)
-	'MessageBox.Show(directoryName, "GetRootFolder")
-
-    'Console.WriteLine("GetDirectoryName('{0}') returns '{1}'", filepath, directoryName)
-    filepath = directoryName
-    If i = 1
-       filepath = directoryName + "\"  ' this will preserve the previous path
-    End If
-    i = i + 1
-End While
-Return filepath
-End Function
-' This function is called for processing sub assembly.  It is called recursively
-' to iterate through the entire assembly tree.
-Private Sub processAllSubOcc(ByVal oCompOcc As ComponentOccurrence)
-   
-    Dim oSubCompOcc As ComponentOccurrence
-    For Each oSubCompOcc In oCompOcc.SubOccurrences
-        ' Check if it's child occurrence (leaf node)
-        If oSubCompOcc.SubOccurrences.Count = 0 Then
-            'PART!
-			oSubDoc = CType(oSubCompOcc.Definition.Document, Document)
-			BeginCreateDrawing(oSubDoc)
-        Else
-            oSubDoc = CType(oSubCompOcc.Definition.Document, Document)
-			BeginCreateDrawing(oSubDoc)
-            Call processAllSubOcc(oSubCompOcc)
-        End If
-    Next
-End Sub
-
 Private Sub BeginCreateDrawing(ByVal oDoc as Inventor.Document)
-	'Dim projectRootFolder= GetRootFolder(oDoc.FullFileName)
-	Dim projectRootFolder= System.IO.Path.GetDirectoryName(oDoc.FullFileName)
 	Dim tmpfile As String = System.IO.Path.GetFileNameWithoutExtension(oDoc.FullFileName)
 	Dim tmpDrawingName As String = projectRootFolder & "\Drgs\" & tmpfile & ".dwg"
-	'Dim tmpDrawingName As String = projectRootFolder & "Drgs\" & tmpfile & ".dwg"
-	'MessageBox.Show(tmpDrawingName, "tmpDrawingName")
 	If Not projectRootFolder.Contains("Content Center Files") Then
     	If Not System.IO.File.Exists(tmpDrawingName) = True Then
-			'make a new drawing!
-			'MessageBox.Show("No existing drawing found, creating one now!", "Go Gadget go!")
 			CreateDrawing(oDoc,tmpDrawingName)
 		Else
 			Dim tmpDrawDoc As DrawingDocument
 			UpdateStatusBar("Opening existing drawing: " & tmpDrawingName) 
 			tmpDrawDoc = ThisApplication.Documents.Open(tmpDrawingName, True)
-			'MessageBox.Show("Existing Drawing found: "& tmpDrawingName, "Title")
 		End If
 	End If
 
@@ -134,6 +105,7 @@ Private Sub CreateDrawing(ByVal oDoc as Inventor.Document,ByVal DrawingName As S
 	oView3 = oSheet.DrawingViews.AddProjectedView(oBaseView,oPoint3, DrawingViewStyleEnum.kFromBaseDrawingViewStyle)
 	oView4 = oSheet.DrawingViews.AddProjectedView(oBaseView,oPoint4, DrawingViewStyleEnum.kFromBaseDrawingViewStyle)
 	oDrawingDoc.SaveAs(DrawingName,False)
+	oDrawingDoc.Close(True)
 	'synchronize drawing properties to the model it's based upon:
 	'these next lines don't work because the code needs to be run from the drawing itself!
 	'iLogicVb.RunExternalRule("C:\VAULT WORKING FOLDER\Designs\Synchronize iProperties between parts and drawings.iLogicVb")
