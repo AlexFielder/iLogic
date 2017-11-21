@@ -29,10 +29,10 @@ Private Sub CreateDrawingsFromAssembly(ByVal oDoc as Inventor.Document)
 		If oDoc.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then
 			oAssy = CType(oDoc, AssemblyDocument)
 
-			For Each oComp In oAssy.ComponentDefinition.Occurrences
-				oSubDoc = CType(oComp.Definition.Document, Document)
+			For Each refDoc As Document In oAssy.AllReferencedDocuments
+				If refDoc.FullFileName.Contains("Content Center") Then Continue For
 				'Define dwg Template File Location
-				oDrawingDoc = ThisApplication.Documents.Add(DocumentTypeEnum.kDrawingDocumentObject, "C:\Users\Public\Documents\Autodesk\Inventor 2017\Templates\APS Standard.dwg", True)
+				oDrawingDoc = ThisApplication.Documents.Add(DocumentTypeEnum.kDrawingDocumentObject, TemplateFileName:= ThisApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kDrawingDocumentObject), CreateVisible:= True)
 				oSheet = oDrawingDoc.Sheets.Item(1)
     
 				'Define 2d view bottom left corner points for four views
@@ -49,7 +49,7 @@ Private Sub CreateDrawingsFromAssembly(ByVal oDoc as Inventor.Document)
 				'DrawingViewStyleEnum.kFromBaseDrawingViewStyle
 				'
 				
-				oBaseView = oSheet.DrawingViews.AddBaseView(oSubDoc,oPoint1, ViewScale,kFrontViewOrientation, DrawingViewStyleEnum.kHiddenLineRemovedDrawingViewStyle)', KTANGENTEDGESON)
+				oBaseView = oSheet.DrawingViews.AddBaseView(refDoc,oPoint1, ViewScale,kFrontViewOrientation, DrawingViewStyleEnum.kHiddenLineRemovedDrawingViewStyle)', KTANGENTEDGESON)
     
 				oView2 = oSheet.DrawingViews.AddProjectedView(oBaseView,oPoint2, DrawingViewStyleEnum.kFromBaseDrawingViewStyle,ViewScale)
 				oView3 = oSheet.DrawingViews.AddProjectedView(oBaseView,oPoint3, DrawingViewStyleEnum.kFromBaseDrawingViewStyle, ViewScale)
