@@ -12,28 +12,25 @@ Public Sub createDrawingsFromAssembly()
     ' This assumes the active document is an assembly
     Dim oDoc As Inventor.Document = ThisApplication.ActiveDocument
     
-	
-    ' Get assembly component definition
-    
-	If TypeOf ThisApplication.ActiveDocument is AssemblyDocument Then
+	If TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
 		dim oAssyDoc as AssemblyDocument = oDoc
 		Dim oCompDef As Inventor.ComponentDefinition
 		oCompDef = oAssyDoc.ComponentDefinition
-		Dim oSubDoc As Inventor.Document
-    	' Get all occurrences from component definition for Assembly document
-    	Dim oCompOcc As ComponentOccurrence
-    	For Each oCompOcc In oCompDef.Occurrences
+
+    	For Each refDoc As Document In oAssyDoc.AllReferencedDocuments
+			If refDoc.FullFileName.Contains("Content Center") Then Continue For
+			BeginCreateDrawing(refDoc)
         	' Check if it's child occurrence (leaf node)
-        	If oCompOcc.SubOccurrences.Count = 0 Then
-				'PART!
-				oSubDoc = CType(oCompOcc.Definition.Document, Document)
-				BeginCreateDrawing(oSubDoc)
-        	Else
-				'ASSEMBLY!
-            	oSubDoc = CType(oCompOcc.Definition.Document, Document)
-				BeginCreateDrawing(oSubDoc)
-            	Call processAllSubOcc(oCompOcc) ' subassembly
-        	End If
+'        	If oCompOcc.SubOccurrences.Count = 0 Then
+'				'PART!
+'				oSubDoc = CType(oCompOcc.Definition.Document, Document)
+'				BeginCreateDrawing(oSubDoc)
+'        	Else
+'				'ASSEMBLY!
+'            	oSubDoc = CType(oCompOcc.Definition.Document, Document)
+'				BeginCreateDrawing(oSubDoc)
+'            	Call processAllSubOcc(oCompOcc) ' subassembly
+'        	End If
     	Next
 	Else If TypeOf ThisApplication.ActiveDocument is PartDocument Then
 		dim partDoc as PartDocument = oDoc
@@ -114,8 +111,8 @@ Private Sub CreateDrawing(ByVal oDoc as Inventor.Document,ByVal DrawingName As S
 	Dim InstNum As String
 
 	'Define dwg Template File Location
-	Dim oDrawingDoc as DrawingDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kDrawingDocumentObject, "C:\Users\Public\Documents\Autodesk\Inventor 2017\Templates\APS Standard.dwg", True)
-	Dim oSheet As sheet = oDrawingDoc.Sheets.Item(1)
+	Dim oDrawingDoc As DrawingDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kDrawingDocumentObject, TemplateFileName:= ThisApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kDrawingDocumentObject), CreateVisible:= True)
+	Dim oSheet As Sheet = oDrawingDoc.Sheets.Item(1)
 
 	'Define 2d view bottom left corner points for four views
 	oPoint1 = ThisApplication.TransientGeometry.CreatePoint2d(11, 11) 'BASE
