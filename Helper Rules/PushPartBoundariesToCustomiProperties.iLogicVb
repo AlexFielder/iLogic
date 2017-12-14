@@ -1,0 +1,75 @@
+Sub Main()
+	oAdoc = ThisApplication.ActiveDocument
+	oAcompdef = oAdoc.ComponentDefinition
+
+	'conversion factor cm to in
+	oCF = 10
+	If oAdoc.DocumentType = DocumentTypeEnum.kAssemblyDocumentObject Then
+		'For Each oOcc In oAcompdef.Occurrences
+		For Each oDoc As Document In oAdoc.AllReferencedDocuments
+			If Not oDoc.FullFileName.Contains("Content Center") Then 'not CC file
+				If oDoc.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
+					Dim PartDoc As PartDocument = oDoc
+					oX = (PartDoc.ComponentDefinition.RangeBox.MaxPoint.X - PartDoc.ComponentDefinition.RangeBox.MinPoint.X)*oCF
+		      		oY = (PartDoc.ComponentDefinition.RangeBox.MaxPoint.Y - PartDoc.ComponentDefinition.RangeBox.MinPoint.Y)*oCF
+		      		oZ = (PartDoc.ComponentDefinition.RangeBox.MaxPoint.Z - PartDoc.ComponentDefinition.RangeBox.MinPoint.Z)*oCF
+		      
+					'[ get middle number
+					If oX > oY And oX < oZ Or oX > oZ And oX < oY Then        
+					     oMiddle = oX
+					     GoTo Set_Width
+					End If 
+
+					If oY > oX And oY < oZ Or oY > oZ And oY < oX Then 
+					     oMiddle = oY
+					     GoTo Set_Width
+					End If 
+
+					If oZ > oX And oZ < oY Or oZ > oY And oZ < oX Then 
+					     oMiddle = oZ
+					     GoTo Set_Width
+					End If 
+					']
+					
+					Set_Width :
+					SetCustomiProperty(oDoc, "Width", Round(oMiddle,3))
+'					iProperties.Value(oOcc.Name, "Custom", "Width") = Round(oMiddle,3)
+
+					'set length
+					SetCustomiProperty(oDoc, "Length", Round(MaxOfMany(oX, oY, oZ),3))
+'					iProperties.Value(oOcc.Name, "Custom", "Length") = Round(MaxOfMany(oX, oY, oZ),3)
+
+					'set Thickness
+					SetCustomiProperty(oDoc, "Thickness", Round(MinOfMany(oX, oY, oZ),3))
+'					iProperties.Value(oOcc.Name, "Custom", "Thickness") = Round(MinOfMany(oX, oY, oZ),3)
+				Else
+					 
+				End If
+			End If
+		Next oDoc
+	End If
+End Sub
+
+Public Function SetCustomiProperty(ByVal oDoc As Inventor.Document, ByVal PropertyName As String, ByVal Optional PropertyValue As Object = Nothing) As Object
+	Dim customPropSet As PropertySet = Nothing
+				Dim customProperty As Object = Nothing
+				customPropSet = oDoc.PropertySets("Inventor User Defined Properties")
+				Dim prop As Inventor.[Property] = Nothing
+				Dim propExists As Boolean = True
+				Try
+					prop = customPropSet(PropertyName)
+				Catch ex As Exception
+					propExists = False
+				End Try
+				
+				If (PropertyValue IsNot Nothing) Then
+					If Not propExists Then
+						prop = customPropSet.Add(PropertyValue, PropertyName)
+					Else
+						prop.Value = PropertyValue
+					End If
+				Else
+					customProperty = prop.Value
+				End If
+				Return customProperty
+End Function
