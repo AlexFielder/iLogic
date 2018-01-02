@@ -1,0 +1,36 @@
+Function _GetHoleCountAndDiameters(oPartDoc As PartDocument) As Double(,)
+	Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
+	Dim oTO As TransientObjects = ThisApplication.TransientObjects
+	Dim oPartDef As PartComponentDefinition = oPartDoc.ComponentDefinition
+	Dim oSizes As New List(Of Double)()
+	Dim oLines As ObjectCollection = oTO.CreateObjectCollection
+	Dim oTestLine As Line
+	Dim oIsExisting As Boolean
+	For Each oFace As Face In oPartDef.SurfaceBodies.Item(1).Faces
+		If oFace.SurfaceType = 5891 Then
+			oTestLine = oTG.CreateLine(oFace.Geometry.BasePoint,oFace.Geometry.AxisVector.AsVector)
+			oIsExisting = False
+			For Each oLine As Line In oLines
+				If oLine.IsColinearTo(oTestLine) Then oIsExisting = True			
+			Next
+			If Not oIsExisting Then
+				oLines.Add(oTestLine)
+				oSizes.Add(oFace.Geometry.Radius*2)
+			End If
+		End If
+	Next
+	Dim oUniqueSizeList As New List(Of Double)()
+	For Each oSize As Double In oSizes
+		If Not oUniqueSizeList.Contains(oSize) Then oUniqueSizeList.Add(oSize)	
+	Next
+	oUniqueSizeList.Sort
+	Dim oHoles(oUniqueSizeList.Count-1,1) As Double
+	For i As Integer = 0 To oUniqueSizeList.Count-1
+		oHoles(i,0) = oUniqueSizeList.Item(i)
+		oHoles(i,1) = 0
+	Next
+	For Each oSize As Double In oSizes
+		oHoles(oUniqueSizeList.IndexOf(oSize),1) = oHoles(oUniqueSizeList.IndexOf(oSize),1) + 1
+	Next
+	Return oHoles
+End Function
