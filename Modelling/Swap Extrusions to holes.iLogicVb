@@ -1,0 +1,69 @@
+Dim oDoc As PartDocument
+oDoc = ThisDoc.Document
+Dim oSK As PlanarSketch
+oSK = oDoc.ComponentDefinition.Sketches(1)
+Dim objCol As ObjectCollection
+objCol = ThisApplication.TransientObjects.CreateObjectCollection
+
+'Store the large circles whose diameter are larger then 50mm
+Dim oLarCircles As ObjectCollection
+'copied from this thread: https://forums.autodesk.com/t5/inventor-customization/ilogic-to-convert-circles-to-holes/td-p/7517075
+oLarCircles = ThisApplication.TransientObjects.CreateObjectCollection
+
+For Each oskarc In oSK.SketchArcs
+    objCol.Add(oskarc)
+Next
+For Each oskline In oSK.SketchLines
+    objCol.Add (oskline)
+Next
+
+Dim oCircleCol(2) As ObjectCollection
+For i = 0 To 2
+    oCircleCol(i) = ThisApplication.TransientObjects.CreateObjectCollection
+Next
+
+Dim oCircle As SketchCircle
+For Each oCircle In oSK.SketchCircles
+'Please modify the radius value according to your need
+    If oCircle.Radius > 2.5 Then
+       oLarCircles.Add( oCircle)
+    Else
+        If Abs(oCircle.Radius - 0.7) < 0.001 Then
+            oCircleCol(0).Add(oCircle)
+        ElseIf Abs(oCircle.Radius - 0.9) < 0.001 Then
+            oCircleCol(1).Add (oCircle)
+        ElseIf Abs(oCircle.Radius - 1.4) < 0.001 Then
+            oCircleCol(2).Add (oCircle)
+        End If
+    End If
+Next
+
+ Dim oP1 As Profile
+ oP1 = oSK.Profiles.AddForSolid(False, objCol)
+ Dim oD1 As FaceFeatureDefinition
+ oD1 = oDoc.ComponentDefinition.Features.FaceFeatures.CreateFaceFeatureDefinition(oP1)
+ 'Create first face feature including the whole block
+ Dim oF1 As FaceFeature
+ oF1 = oDoc.ComponentDefinition.Features.FaceFeatures.Add(oD1)
+
+'Cut the large circles with Extrusion 
+oSK.Shared = True
+Dim oP2 As Profile
+oP2 = oSK.Profiles.AddForSolid(False, oLarCircles)
+oD2 = oDoc.ComponentDefinition.Features.ExtrudeFeatures.CreateExtrudeDefinition(oP2, kCutOperation)
+oF2 = oDoc.ComponentDefinition.Features.ExtrudeFeatures.Add(oD2)
+
+'Create hole feature for the rest center point of the circles
+Dim oTempCol As ObjectCollection
+oTempCol = ThisApplication.TransientObjects.CreateObjectCollection
+Dim oPD As HolePlacementDefinition
+For i = 0 To 2
+    oTempCol.Clear
+    Dim dDiameter As Double
+    For Each oCircle In oCircleCol(i)
+        oTempCol.Add (oCircle.CenterSketchPoint)
+     Next
+     dDiameter = oCircleCol(i).Item(1).Radius * 2
+     oPD = oDoc.ComponentDefinition.Features.HoleFeatures.CreateSketchPlacementDefinition(oTempCol)
+    Call oDoc.ComponentDefinition.Features.HoleFeatures.AddDrilledByThroughAllExtent(oPD, dDiameter, kSymmetricExtentDirection)
+Next
