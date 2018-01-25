@@ -2,6 +2,9 @@
     Dim sw As New Stopwatch()
     sw.Start()
     Dim thisAssy As assemblydocument = ThisApplication.activeDocument
+	If thisAssy.componentdefinition.isiAssemblyFactory Then
+		GenerateFactoryMembers(thisAssy)
+	End If
     MessageBox.Show(thisAssy.ReferencedDocuments.count, "Referenced Document count")
     For Each subdoc As Inventor.Document In thisAssy.ReferencedDocuments
         If TypeOf subdoc Is PartDocument Then
