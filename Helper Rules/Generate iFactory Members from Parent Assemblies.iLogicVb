@@ -5,7 +5,7 @@
 	If thisAssy.componentdefinition.isiAssemblyFactory Then
 		GenerateFactoryMembers(thisAssy)
 	End If
-    MessageBox.Show(thisAssy.ReferencedDocuments.count, "Referenced Document count")
+    'MessageBox.Show(thisAssy.ReferencedDocuments.count, "Referenced Document count")
     For Each subdoc As Inventor.Document In thisAssy.ReferencedDocuments
         If TypeOf subdoc Is PartDocument Then
             If subdoc.componentdefinition.isiPartFactory Then
@@ -19,11 +19,16 @@
 
     sw.Stop()
     Dim timeElapsed As Timespan = sw.elapsed
-    MessageBox.Show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+	updatestatusbar("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
                                                         timeElapsed.Hours,
                                                         timeElapsed.Minutes,
                                                         timeElapsed.Seconds,
                                                         timeElapsed.Milliseconds / 10))
+'    MessageBox.Show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+'                                                        timeElapsed.Hours,
+'                                                        timeElapsed.Minutes,
+'                                                        timeElapsed.Seconds,
+'                                                        timeElapsed.Milliseconds / 10))
 End Sub
 
 'this should work recursively but it may take some time...?
