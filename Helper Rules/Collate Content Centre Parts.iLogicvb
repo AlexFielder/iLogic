@@ -1,0 +1,212 @@
+﻿AddReference "System.Core"
+AddReference "System.Linq"
+
+Imports System.LINQ
+Imports System.Collections.Generic
+
+Public Sub Main()
+	RunRenumberItems()
+End Sub
+
+
+Private Shared ccBomRowItems As List(Of BomRowItem) = Nothing
+
+Private Shared ccPartsList As List(Of PartDocument) = Nothing
+
+Private Shared itemisedPartsList As List(Of Document) = New List(Of Document) 'Nothing
+
+Private Shared ItemNo As Integer = 500
+
+'=======================================================
+'Service provided by Telerik (www.telerik.com)
+'Conversion powered by Refactoring Essentials.
+'Twitter: @telerik
+'Facebook: facebook.com/telerik
+'=======================================================
+
+Private Sub RunRenumberItems()
+    Try
+		'should really check that we're running this in an assembly...
+        Dim AssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
+'        itemisedPartsList =(From referencedItem In AssyDoc.AllReferencedDocuments Order By referencedItem.FullFileName Select referencedItem).ToList()
+		itemisedPartsList = (From referencedItem as Document In AssyDoc.allreferenceddocuments Select referencedItem).ToList()
+        AssySubAssemblies = itemisedPartsList.OfType(Of AssemblyDocument)().ToList()
+        ccPartsList =(From ccDoc In AssyDoc.AllReferencedDocuments Where ccDoc.FullFileName.Contains("Content Center") Let folderName = System.IO.Path.GetDirectoryName(ccDoc.FullFileName) Let nonReferencePartDoc = CType(ccDoc, PartDocument) Where nonReferencePartDoc.ComponentDefinition.BOMStructure <> BOMStructureEnum.kReferenceBOMStructure Order By folderName Select nonReferencePartDoc).Distinct().ToList()
+        Dim tmpBomRowItems As List(Of BomRowItem) = New List(Of BomRowItem)()
+        If ccPartsList IsNot Nothing Then
+            If ccBomRowItems Is Nothing Then
+                ccBomRowItems = New List(Of BomRowItem)()
+                For Each doc As Document In ccPartsList
+                    Dim item As BomRowItem = New BomRowItem With {.ItemNo = ItemNo.ToString(), .Document = doc.FullFileName, .Material = GetorSetStandardiProperty(doc, PropertiesForDesignTrackingPropertiesEnum.kMaterialDesignTrackingProperties, "", ""), .Quantity = 1, .WhereUsed = New List(Of String)()}
+                    ccBomRowItems.Add(item)
+                    ItemNo += 1
+                Next
+            Else
+                ItemNo = Convert.ToInt32((From item In ccBomRowItems Order By item.ItemNo Select item.ItemNo).Last())
+                ItemNo += 1
+                For Each doc As Document In ccPartsList
+                    Dim existingItem As BomRowItem =(From m In ccBomRowItems Where m.Document = doc.FullFileName Select m).FirstOrDefault()
+                    If existingItem Is Nothing Then
+                        ccBomRowItems.Add(New BomRowItem With {.Document = doc.FullFileName, .ItemNo = ItemNo.ToString(), .Material = GetorSetStandardiProperty(doc, PropertiesForDesignTrackingPropertiesEnum.kMaterialDesignTrackingProperties, "", ""), .Quantity = 1, .WhereUsed = New List(Of String)()})
+                        ItemNo += 1
+                    End If
+                Next
+            End If
+
+'            ConvertBomRowItemsToAttributes()
+'            ProcessAllAssemblyOccurrences()
+        End If
+    Catch ex As Exception
+        MessageBox.Show(ex.Message)
+    End Try
+End Sub
+
+'=======================================================
+'Service provided by Telerik (www.telerik.com)
+'Conversion powered by Refactoring Essentials.
+'Twitter: @telerik
+'Facebook: facebook.com/telerik
+'=======================================================
+
+
+
+Public Shared Function GetiPropertyDisplayName(ByVal iProp As [Property]) As String
+    Return iProp.DisplayName
+End Function
+
+Public Shared Function GetiPropertyType(ByVal iProp As [Property]) As ObjectTypeEnum
+    Return iProp.Type
+End Function
+
+Public Shared Function GetiPropertyTypeString(ByVal iProp As [Property]) As String
+    Dim valToTest As String = iProp.Value.ToString()
+    Dim intResult As Integer
+    If Integer.TryParse(valToTest, intResult) Then
+        Return "Number"
+    End If
+
+    Dim doubleResult As Double
+    If Double.TryParse(valToTest, doubleResult) Then
+        Return "Number"
+    End If
+
+    Dim dateResult As System.DateTime
+    If System.DateTime.TryParse(valToTest, dateResult) Then
+        Return "Date"
+    End If
+
+    Dim booleanResult As Boolean
+    If Boolean.TryParse(valToTest, booleanResult) Then
+        Return "Boolean"
+    End If
+
+    Dim strResult As String = String.Empty
+    If Not(iProp.Value.ToString() = String.Empty) Then
+        Return "String"
+    End If
+
+    Return Nothing
+End Function
+
+'=======================================================
+'Service provided by Telerik (www.telerik.com)
+'Conversion powered by Refactoring Essentials.
+'Twitter: @telerik
+'Facebook: facebook.com/telerik
+'=======================================================
+
+
+Public Shared Function GetorSetStandardiProperty(ByVal DocToUpdate As Inventor.Document, ByVal iPropertyTypeEnum As PropertiesForDesignTrackingPropertiesEnum, ByVal Optional newpropertyvalue As String = "", ByVal Optional propertyTypeStr As String = "") As String
+    Dim invProjProperties As PropertySet = DocToUpdate.PropertySets("{32853F0F-3444-11D1-9E93-0060B03C1CA6}")
+    Dim currentvalue As String = String.Empty
+    If Not(newpropertyvalue = String.Empty) Then
+        invProjProperties.ItemByPropId(CInt(iPropertyTypeEnum)).Value = newpropertyvalue.ToString()
+    Else
+        currentvalue = invProjProperties.ItemByPropId(CInt(iPropertyTypeEnum)).Value.ToString()
+        newpropertyvalue = GetiPropertyDisplayName(invProjProperties.ItemByPropId(CInt(iPropertyTypeEnum)))
+    End If
+
+    If propertyTypeStr = String.Empty Then
+        propertyTypeStr = GetiPropertyTypeString(invProjProperties.ItemByPropId(CInt(iPropertyTypeEnum)))
+    End If
+
+    Return currentvalue
+End Function
+
+'=======================================================
+'Service provided by Telerik (www.telerik.com)
+'Conversion powered by Refactoring Essentials.
+'Twitter: @telerik
+'Facebook: facebook.com/telerik
+'=======================================================
+
+
+Public Class BomRowItem
+
+    Public Property ItemNo As String
+        Get
+            Return m_ItemNo
+        End Get
+
+        Set(ByVal value As String)
+            m_ItemNo = value
+        End Set
+    End Property
+
+    Private m_ItemNo As String
+
+    Private m_occurrence As String
+
+    Public Property Document As String
+        Get
+            Return m_occurrence
+        End Get
+
+        Set(ByVal value As String)
+            m_occurrence = value
+        End Set
+    End Property
+
+    Private m_Material As String
+
+    Public Property Material As String
+        Get
+            Return m_Material
+        End Get
+
+        Set(ByVal value As String)
+            m_Material = value
+        End Set
+    End Property
+
+    Private m_Quantity As Integer
+
+    Public Property Quantity As Integer
+        Get
+            Return m_Quantity
+        End Get
+
+        Set(ByVal value As Integer)
+            m_Quantity = value
+        End Set
+    End Property
+
+    Private m_WhereUsed As List(Of String)
+
+    Public Property WhereUsed As List(Of String)
+        Get
+            Return m_WhereUsed
+        End Get
+
+        Set(ByVal value As List(Of String))
+            m_WhereUsed = value
+        End Set
+    End Property
+End Class
+
+'=======================================================
+'Service provided by Telerik (www.telerik.com)
+'Conversion powered by Refactoring Essentials.
+'Twitter: @telerik
+'Facebook: facebook.com/telerik
+'=======================================================

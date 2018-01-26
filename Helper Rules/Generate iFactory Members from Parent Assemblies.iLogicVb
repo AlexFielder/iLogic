@@ -1,22 +1,25 @@
 ﻿Public Sub Main()
     Dim sw As New Stopwatch()
     sw.Start()
-    Dim thisAssy As assemblydocument = ThisApplication.activeDocument
-	If thisAssy.componentdefinition.isiAssemblyFactory Then
-		GenerateFactoryMembers(thisAssy)
+	If TypeOf ThisDoc.Document Is AssemblyDocument Then
+		Dim thisAssy As assemblydocument = ThisApplication.activeDocument
+		If thisAssy.componentdefinition.isiAssemblyFactory Then
+			GenerateFactoryMembers(thisAssy)
+		End If
+		'MessageBox.Show(thisAssy.ReferencedDocuments.count, "Referenced Document count")
+		For Each subdoc As Inventor.Document In thisAssy.ReferencedDocuments
+			If TypeOf subdoc Is PartDocument Then
+				If subdoc.componentdefinition.isiPartFactory Then
+					updatestatusbar(subdoc.FullFileName)
+					GenerateFactoryMembers(subdoc)
+				End If
+			Else 'Assembly
+				ProcessSubAssemblies(subdoc)
+			End If
+		Next
+	Else
+		GenerateFactoryMembers(ThisDoc.Document)
 	End If
-    'MessageBox.Show(thisAssy.ReferencedDocuments.count, "Referenced Document count")
-    For Each subdoc As Inventor.Document In thisAssy.ReferencedDocuments
-        If TypeOf subdoc Is PartDocument Then
-            If subdoc.componentdefinition.isiPartFactory Then
-                updatestatusbar(subdoc.FullFileName)
-                GenerateFactoryMembers(subdoc)
-            End If
-        Else 'Assembly
-            ProcessSubAssemblies(subdoc)
-        End If
-    Next
-
     sw.Stop()
     Dim timeElapsed As Timespan = sw.elapsed
 	updatestatusbar("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
