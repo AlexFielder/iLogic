@@ -6,6 +6,7 @@ Imports System.LINQ
 Imports System.Collections.Generic
 Imports System.IO
 Imports System.Text
+Imports System.Text.RegularExpressions
 
 Public Sub Main()
 	RunRenumberItems()
@@ -40,7 +41,13 @@ Private Sub RunRenumberItems()
 	'       itemisedPartsList =(From referencedItem In AssyDoc.AllReferencedDocuments Order By referencedItem.FullFileName Select referencedItem).ToList()
 			itemisedPartsList = (From referencedItem as Document In AssyDoc.allreferenceddocuments Select referencedItem).ToList()
 			AssySubAssemblies = itemisedPartsList.OfType(Of AssemblyDocument)().ToList()
-			ccPartsList =(From ccDoc In AssyDoc.AllReferencedDocuments Where ccDoc.FullFileName.Contains("Content Center") Let folderName = System.IO.Path.GetDirectoryName(ccDoc.FullFileName) Let nonReferencePartDoc = CType(ccDoc, PartDocument) Where nonReferencePartDoc.ComponentDefinition.BOMStructure <> BOMStructureEnum.kReferenceBOMStructure Order By folderName Select nonReferencePartDoc).Distinct().ToList()
+			ccPartsList =(From ccDoc In AssyDoc.AllReferencedDocuments 
+			Where ccDoc.FullFileName.Contains("Content Center") Or Not SetorCreateCustomiProperty(ccDoc, "ItemNo") = Nothing And SetorCreateCustomiProperty(ccDoc, "ItemNo").ToString().StartsWith("5")
+			Let folderName = System.IO.Path.GetDirectoryName(ccDoc.FullFileName) 
+			Let nonReferencePartDoc = CType(ccDoc, PartDocument) 
+			Where nonReferencePartDoc.ComponentDefinition.BOMStructure <> BOMStructureEnum.kReferenceBOMStructure 
+			Order By folderName 
+			Select nonReferencePartDoc).Distinct().ToList()
 			Dim tmpBomRowItems As List(Of BomRowItem) = New List(Of BomRowItem)()
 			If ccPartsList IsNot Nothing Then
 				If ccBomRowItems Is Nothing Then
@@ -65,7 +72,7 @@ Private Sub RunRenumberItems()
 				End If
 	
 	'            ConvertBomRowItemsToAttributes()
-	'            ProcessAllAssemblyOccurrences()
+	            ProcessAllAssemblyOccurrences()
 			End If
 		End Using
     'Catch ex As Exception
@@ -86,17 +93,182 @@ End Sub
 'Facebook: facebook.com/telerik
 '=======================================================
 
+Private Sub ProcessAllAssemblyOccurrences()
+    Try
+        Dim doc As AssemblyDocument = CType(ThisApplication.ActiveDocument, AssemblyDocument)
+        Dim compDef As AssemblyComponentDefinition = CType(doc.ComponentDefinition, AssemblyComponentDefinition)
+        Dim exportToExcel As Boolean = False
+        Dim result As DialogResult = System.Windows.Forms.MessageBox.Show("Want to export the BOM Views to Excel now?", "Export? This will take a little while because Excel!", MessageBoxButtons.YesNo)
+        If result = DialogResult.Yes Then
+            exportToExcel = True
+        End If
+
+        RenumberBomViews(compDef, BOMLevels, exportToExcel)
+        For Each assy As AssemblyDocument In AssySubAssemblies
+            Dim ThisAssy As AssemblyDocument = assy
+            RenumberBomViews(ThisAssy.ComponentDefinition, True, exportToExcel)
+        Next
+    Catch ex As Exception
+        MessageBox.Show(ex.Message)
+    End Try
+End Sub
+
+Public Sub Updatestatusbar(ByVal message As String)
+    ThisApplication.StatusBarText = message
+End Sub
+
+Public Sub Updatestatusbar(ByVal percent As Double, ByVal message As String)
+    ThisApplication.StatusBarText = message & " (" + percent.ToString("P1") & ")"
+End Sub
+
+'=======================================================
+'Service provided by Telerik (www.telerik.com)
+'Conversion powered by Refactoring Essentials.
+'Twitter: @telerik
+'Facebook: facebook.com/telerik
+'=======================================================
 
 
-Public Shared Function GetiPropertyDisplayName(ByVal iProp As [Property]) As String
+'=======================================================
+'Service provided by Telerik (www.telerik.com)
+'Conversion powered by Refactoring Essentials.
+'Twitter: @telerik
+'Facebook: facebook.com/telerik
+'=======================================================
+
+Private Sub RenumberBomViews(ByVal parentAssyCompDef As AssemblyComponentDefinition, ByVal BOMLevels As Boolean, ByVal Optional ExportToExcelNow As Boolean = False)
+    Try
+        Dim AssyBom As BOM = parentAssyCompDef.BOM
+        Dim ParentAssyDoc As AssemblyDocument = CType(parentAssyCompDef.Document, AssemblyDocument)
+        Dim ParentFolder As String = System.IO.Path.GetDirectoryName(ParentAssyDoc.FullFileName)
+        Dim ExportedBOMFolder As String = System.IO.Path.Combine(ParentFolder, "04 Exported BOMs")
+        Dim ExportedBOMFileName As String = System.IO.Path.Combine(ExportedBOMFolder, System.IO.Path.GetFileNameWithoutExtension(ParentAssyDoc.FullFileName) & ".xlsx")
+        Dim CustomerName As String = System.IO.Path.GetFileName(ParentFolder)
+        Dim BOMCustomFile As String = System.IO.Path.Combine(ParentFolder, CustomerName & "_BOM_Style.xml")
+        AssyBom.ImportBOMCustomization(BOMCustomFile)
+        If Not(AssyBom.StructuredViewEnabled = True) Then
+            'Log.Info("structured bom view disabled: " & ParentAssyDoc.FullFileName)
+        Else
+            Updatestatusbar("Processing: " & ParentAssyDoc.FullFileName)
+            If BOMLevels = False Then
+                AssyBom.StructuredViewFirstLevelOnly = BOMLevels
+            Else
+                AssyBom.StructuredViewFirstLevelOnly = BOMLevels
+            End If
+
+            Dim ThisAssyBOMView As BOMView = AssyBom.BOMViews("Structured")
+            RenumberBOMViewRows(ParentAssyDoc, ThisAssyBOMView.BOMRows)
+            ThisAssyBOMView.Sort("Item", True)
+            If ExportToExcelNow Then
+                ThisAssyBOMView.Export(ExportedBOMFileName, FileFormatEnum.kMicrosoftExcelFormat)
+            End If
+
+            ThisAssyBOMView = AssyBom.BOMViews("Parts Only")
+            RenumberBOMViewRows(ParentAssyDoc, ThisAssyBOMView.BOMRows)
+            ThisAssyBOMView.Sort("Item", True)
+        End If
+    Catch ex As Exception
+        MessageBox.Show(ex.Message)
+    End Try
+End Sub
+
+'=======================================================
+'Service provided by Telerik (www.telerik.com)
+'Conversion powered by Refactoring Essentials.
+'Twitter: @telerik
+'Facebook: facebook.com/telerik
+'=======================================================
+
+
+Private Sub RenumberBOMViewRows(ByVal parentAssyDoc As AssemblyDocument, ByVal BOMRows As BOMRowsEnumerator)
+    Try
+        For Each row As BOMRow In BOMRows
+            Dim rowCompDef As ComponentDefinition = row.ComponentDefinitions(1)
+            Dim ThisDoc As Document = CType(rowCompDef.Document, Document)
+            If row.Promoted Then
+                'Log.Info(ThisDoc.FullFileName & " is Promoted!")
+            End If
+
+            Dim matchingStoredDocument As BomRowItem =(From item In ccBomRowItems Where item.Document = ThisDoc.FullFileName Select item).FirstOrDefault()
+            If row.ChildRows IsNot Nothing Then
+                RenumberBOMViewRows(CType(ThisDoc, AssemblyDocument), row.ChildRows)
+            End If
+
+            If matchingStoredDocument IsNot Nothing Then
+                'Log.Info("Assembly: " & System.IO.Path.GetFileName(parentAssyDoc.FullFileName) & " | Part: " + System.IO.Path.GetFileName(ThisDoc.FullFileName) & " Item No changed from: " + row.ItemNumber & " to: " + matchingStoredDocument.ItemNo)
+                row.ItemNumber = matchingStoredDocument.ItemNo
+                matchingStoredDocument.Quantity = Convert.ToInt32(row.TotalQuantity)
+                matchingStoredDocument.WhereUsed.Add(parentAssyDoc.FullFileName)
+            Else
+                If System.IO.Path.GetFileNameWithoutExtension(ThisDoc.FullFileName).StartsWith("COTS") Then
+                    Dim COTSnumber As String = System.IO.Path.GetFileNameWithoutExtension(ThisDoc.FullFileName)
+                    Dim partnumber As String = GetorSetStandardiProperty(ThisDoc, PropertiesForDesignTrackingPropertiesEnum.kPartNumberDesignTrackingProperties, "", "")
+                    If Not(COTSnumber = partnumber) Then
+                        COTSnumber = partnumber
+                    End If
+
+                    Dim COTSBase As Double = 0
+                    Dim regex As Regex = New Regex("(\d{6}\w.*)|(\d{6})")
+                    Dim f As String = String.Empty
+                    f = regex.Match(COTSnumber).Captures(0).ToString()
+                    Dim doubleValue As Double = 0
+                    Dim COTSNum As Double = 0
+                    Dim newItemNum As String = String.Empty
+                    If Double.TryParse(f, doubleValue) Then
+                        COTSBase = GetRoundNum(doubleValue, 100000)
+                        COTSNum = Convert.ToDouble(f)
+                        newItemNum = Convert.ToString(COTSNum - COTSBase)
+                    Else
+                        Dim pattern As String = "(\d{6})(\w.*)"
+                        Dim matches As MatchCollection = Regex.Matches(f, pattern)
+                        Dim prefix As String = matches(0).Groups(1).ToString()
+                        Dim suffix As String = matches(0).Groups(2).ToString()
+                        COTSBase = GetRoundNum(Convert.ToDouble(prefix), 100000)
+                        COTSNum = Convert.ToDouble(prefix)
+                        newItemNum = Convert.ToString(COTSNum - COTSBase) & suffix
+                    End If
+
+                    row.ItemNumber = newItemNum
+                Else
+                    If Not(SetorCreateCustomiProperty(ThisDoc, "ItemNo").ToString() = String.Empty) Then
+                        row.ItemNumber = SetorCreateCustomiProperty(ThisDoc, "ItemNo").ToString()
+                    End If
+                End If
+            End If
+        Next
+    Catch ex As Exception
+        MessageBox.Show(ex.Message)
+    End Try
+End Sub
+
+Private Function GetRoundNum(ByVal Number As Double, ByVal multiple As Integer) As Double
+    Return Convert.ToInt32(Number / multiple) * multiple
+End Function
+
+'=======================================================
+'Service provided by Telerik (www.telerik.com)
+'Conversion powered by Refactoring Essentials.
+'Twitter: @telerik
+'Facebook: facebook.com/telerik
+'=======================================================
+
+
+'=======================================================
+'Service provided by Telerik (www.telerik.com)
+'Conversion powered by Refactoring Essentials.
+'Twitter: @telerik
+'Facebook: facebook.com/telerik
+'=======================================================
+
+Public Function GetiPropertyDisplayName(ByVal iProp As [Property]) As String
     Return iProp.DisplayName
 End Function
 
-Public Shared Function GetiPropertyType(ByVal iProp As [Property]) As ObjectTypeEnum
+Public Function GetiPropertyType(ByVal iProp As [Property]) As ObjectTypeEnum
     Return iProp.Type
 End Function
 
-Public Shared Function GetiPropertyTypeString(ByVal iProp As [Property]) As String
+Public Function GetiPropertyTypeString(ByVal iProp As [Property]) As String
     Dim valToTest As String = iProp.Value.ToString()
     Dim intResult As Integer
     If Integer.TryParse(valToTest, intResult) Then
@@ -134,7 +306,7 @@ End Function
 '=======================================================
 
 
-Public Shared Function GetorSetStandardiProperty(ByVal DocToUpdate As Inventor.Document, ByVal iPropertyTypeEnum As PropertiesForDesignTrackingPropertiesEnum, ByVal Optional newpropertyvalue As String = "", ByVal Optional propertyTypeStr As String = "") As String
+Public Function GetorSetStandardiProperty(ByVal DocToUpdate As Inventor.Document, ByVal iPropertyTypeEnum As PropertiesForDesignTrackingPropertiesEnum, ByVal Optional newpropertyvalue As String = "", ByVal Optional propertyTypeStr As String = "") As String
     Dim invProjProperties As PropertySet = DocToUpdate.PropertySets("{32853F0F-3444-11D1-9E93-0060B03C1CA6}")
     Dim currentvalue As String = String.Empty
     If Not(newpropertyvalue = String.Empty) Then
@@ -157,6 +329,46 @@ End Function
 'Twitter: @telerik
 'Facebook: facebook.com/telerik
 '=======================================================
+
+
+Public Function SetorCreateCustomiProperty(ByVal Doc As Inventor.Document, ByVal PropertyName As String, ByVal Optional PropertyValue As Object = Nothing) As Object
+    Try
+        Dim customPropSet As PropertySet = Nothing
+        Dim customproperty As Object = Nothing
+        customPropSet = Doc.PropertySets("Inventor User Defined Properties")
+        Dim prop As Inventor.[Property] = Nothing
+        Dim propExists As Boolean = True
+        Try
+            prop = customPropSet(PropertyName)
+        Catch ex As Exception
+            MessageBox.Show(ex.Message)
+            propExists = False
+        End Try
+
+        If(PropertyValue IsNot Nothing) Then
+            If Not propExists Then
+                prop = customPropSet.Add(PropertyValue, PropertyName)
+            Else
+                prop.Value = PropertyValue
+            End If
+        Else
+            customproperty = prop.Value
+        End If
+
+        Return customproperty
+    Catch mainEx As Exception
+        MessageBox.Show("Error: " & mainEx.Message & "in file: " + Doc.FullFileName)
+        Return Nothing
+    End Try
+End Function
+
+'=======================================================
+'Service provided by Telerik (www.telerik.com)
+'Conversion powered by Refactoring Essentials.
+'Twitter: @telerik
+'Facebook: facebook.com/telerik
+'=======================================================
+
 
 
 Public Class BomRowItem
