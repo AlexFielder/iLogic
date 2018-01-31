@@ -1,19 +1,21 @@
 ﻿AddReference "System.Core"
 AddReference "System.Linq"
+AddReference "System.IO"
 
 Imports System.LINQ
 Imports System.Collections.Generic
+Imports System.IO
+Imports System.Text
 
 Public Sub Main()
 	RunRenumberItems()
 End Sub
 
-
 Private Shared ccBomRowItems As List(Of BomRowItem) = Nothing
 
 Private Shared ccPartsList As List(Of PartDocument) = Nothing
 
-Private Shared itemisedPartsList As List(Of Document) = New List(Of Document) 'Nothing
+Private Shared itemisedPartsList As List(Of Document) = Nothing
 
 Private Shared ItemNo As Integer = 500
 
@@ -25,41 +27,57 @@ Private Shared ItemNo As Integer = 500
 '=======================================================
 
 Private Sub RunRenumberItems()
-    Try
+    'Try
+		
 		'should really check that we're running this in an assembly...
         Dim AssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
-'        itemisedPartsList =(From referencedItem In AssyDoc.AllReferencedDocuments Order By referencedItem.FullFileName Select referencedItem).ToList()
-		itemisedPartsList = (From referencedItem as Document In AssyDoc.allreferenceddocuments Select referencedItem).ToList()
-        AssySubAssemblies = itemisedPartsList.OfType(Of AssemblyDocument)().ToList()
-        ccPartsList =(From ccDoc In AssyDoc.AllReferencedDocuments Where ccDoc.FullFileName.Contains("Content Center") Let folderName = System.IO.Path.GetDirectoryName(ccDoc.FullFileName) Let nonReferencePartDoc = CType(ccDoc, PartDocument) Where nonReferencePartDoc.ComponentDefinition.BOMStructure <> BOMStructureEnum.kReferenceBOMStructure Order By folderName Select nonReferencePartDoc).Distinct().ToList()
-        Dim tmpBomRowItems As List(Of BomRowItem) = New List(Of BomRowItem)()
-        If ccPartsList IsNot Nothing Then
-            If ccBomRowItems Is Nothing Then
-                ccBomRowItems = New List(Of BomRowItem)()
-                For Each doc As Document In ccPartsList
-                    Dim item As BomRowItem = New BomRowItem With {.ItemNo = ItemNo.ToString(), .Document = doc.FullFileName, .Material = GetorSetStandardiProperty(doc, PropertiesForDesignTrackingPropertiesEnum.kMaterialDesignTrackingProperties, "", ""), .Quantity = 1, .WhereUsed = New List(Of String)()}
-                    ccBomRowItems.Add(item)
-                    ItemNo += 1
-                Next
-            Else
-                ItemNo = Convert.ToInt32((From item In ccBomRowItems Order By item.ItemNo Select item.ItemNo).Last())
-                ItemNo += 1
-                For Each doc As Document In ccPartsList
-                    Dim existingItem As BomRowItem =(From m In ccBomRowItems Where m.Document = doc.FullFileName Select m).FirstOrDefault()
-                    If existingItem Is Nothing Then
-                        ccBomRowItems.Add(New BomRowItem With {.Document = doc.FullFileName, .ItemNo = ItemNo.ToString(), .Material = GetorSetStandardiProperty(doc, PropertiesForDesignTrackingPropertiesEnum.kMaterialDesignTrackingProperties, "", ""), .Quantity = 1, .WhereUsed = New List(Of String)()})
-                        ItemNo += 1
-                    End If
-                Next
-            End If
-
-'            ConvertBomRowItemsToAttributes()
-'            ProcessAllAssemblyOccurrences()
-        End If
-    Catch ex As Exception
-        MessageBox.Show(ex.Message)
-    End Try
+		Dim OutputFileName As String  = System.IO.Path.GetDirectoryName(AssyDoc.FullFileName) + "\BomRowItems.txt"
+		If (System.IO.File.Exists(OutputFileName))
+			System.IO.File.Delete(OutputFileName)
+		End If
+		
+		Using fs as FileStream = System.IO.File.Create(OutputFileName)
+	'       itemisedPartsList =(From referencedItem In AssyDoc.AllReferencedDocuments Order By referencedItem.FullFileName Select referencedItem).ToList()
+			itemisedPartsList = (From referencedItem as Document In AssyDoc.allreferenceddocuments Select referencedItem).ToList()
+			AssySubAssemblies = itemisedPartsList.OfType(Of AssemblyDocument)().ToList()
+			ccPartsList =(From ccDoc In AssyDoc.AllReferencedDocuments Where ccDoc.FullFileName.Contains("Content Center") Let folderName = System.IO.Path.GetDirectoryName(ccDoc.FullFileName) Let nonReferencePartDoc = CType(ccDoc, PartDocument) Where nonReferencePartDoc.ComponentDefinition.BOMStructure <> BOMStructureEnum.kReferenceBOMStructure Order By folderName Select nonReferencePartDoc).Distinct().ToList()
+			Dim tmpBomRowItems As List(Of BomRowItem) = New List(Of BomRowItem)()
+			If ccPartsList IsNot Nothing Then
+				If ccBomRowItems Is Nothing Then
+					ccBomRowItems = New List(Of BomRowItem)()
+					For Each doc As Document In ccPartsList
+						AddText(fs, ItemNo.ToString() + " - " + GetorSetStandardiProperty(doc, PropertiesForDesignTrackingPropertiesEnum.kMaterialDesignTrackingProperties, "", "") + " - " + doc.FullFileName + vbCrLf)
+						Dim item As BomRowItem = New BomRowItem With {.ItemNo = ItemNo.ToString(), .Document = doc.FullFileName, .Material = GetorSetStandardiProperty(doc, PropertiesForDesignTrackingPropertiesEnum.kMaterialDesignTrackingProperties, "", ""), .Quantity = 1, .WhereUsed = New List(Of String)()}
+						ccBomRowItems.Add(item)
+						ItemNo += 1
+					Next
+				Else
+					ItemNo = Convert.ToInt32((From item In ccBomRowItems Order By item.ItemNo Select item.ItemNo).Last())
+					ItemNo += 1
+					For Each doc As Document In ccPartsList
+						Dim existingItem As BomRowItem =(From m In ccBomRowItems Where m.Document = doc.FullFileName Select m).FirstOrDefault()
+						If existingItem Is Nothing Then
+							AddText(fs, ItemNo.ToString() + " - " + GetorSetStandardiProperty(doc, PropertiesForDesignTrackingPropertiesEnum.kMaterialDesignTrackingProperties, "", "") + " - " + doc.FullFileName + vbCrLf)
+							ccBomRowItems.Add(New BomRowItem With {.Document = doc.FullFileName, .ItemNo = ItemNo.ToString(), .Material = GetorSetStandardiProperty(doc, PropertiesForDesignTrackingPropertiesEnum.kMaterialDesignTrackingProperties, "", ""), .Quantity = 1, .WhereUsed = New List(Of String)()})
+							ItemNo += 1
+						End If
+					Next
+				End If
+	
+	'            ConvertBomRowItemsToAttributes()
+	'            ProcessAllAssemblyOccurrences()
+			End If
+		End Using
+    'Catch ex As Exception
+        'MessageBox.Show(ex.Message)
+    'End Try
 End Sub
+
+Sub AddText(fs as FileStream, value As String)
+	Dim info As Byte() = New UTF8Encoding(True).GetBytes(value)
+    fs.Write(info, 0, info.Length)
+End Sub
+
 
 '=======================================================
 'Service provided by Telerik (www.telerik.com)
