@@ -1,0 +1,34 @@
+﻿Sub Main()
+    BalloonColl = SelectBalloons()
+    
+    MsgBox ("No of balloons selected for attachment : " & BalloonColl.Count)
+    
+    Dim oBalloon As Balloon = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingBalloonFilter, "Select a balloon to attach our group to.")
+    
+    If Not oBalloon Is Nothing And BalloonColl.Count > 0 Then
+		MessageBox.Show("Grouping Balloons")
+        Dim attachBalloon As Balloon
+        For Each attachBalloon In BalloonColl
+            Call oBalloon.BalloonValueSets.Add(attachBalloon.BalloonValueSets(1).ReferencedRow)
+            Call attachBalloon.Delete
+        Next
+    End If
+End Sub
+
+Public BalloonColl as ObjectCollection = Nothing
+
+Function SelectBalloons() As ObjectCollection
+
+    Dim coll As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+	Dim obj As Balloon
+    Do
+        obj = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDrawingBalloonFilter, "Select balloons")
+        
+        If Not obj Is Nothing Then
+            Call coll.Add(obj)
+        End If
+    Loop While Not obj Is Nothing
+    
+    Return coll
+
+End Function
