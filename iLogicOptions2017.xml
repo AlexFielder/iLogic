@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ShareableOptions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ExternalRuleDirectories>
+    <string>F:\Dropbox\iLogic\C360</string>
+    <string>F:\Dropbox\iLogic\AddRemove</string>
+    <string>F:\Dropbox\iLogic\CM Examples</string>
+    <string>F:\Dropbox\iLogic\Drawings</string>
+    <string>F:\Dropbox\iLogic\Helper Rules</string>
+    <string>F:\Dropbox\iLogic\Misc</string>
+    <string>F:\Dropbox\iLogic\Modelling</string>
+    <string>F:\Dropbox\iLogic\Module Rules</string>
+  </ExternalRuleDirectories>
+  <ExternalRuleFilenames />
+  <ExternalRuleDefaultExtension>.iLogicVb</ExternalRuleDefaultExtension>
+</ShareableOptions>

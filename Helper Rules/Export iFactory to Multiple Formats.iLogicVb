@@ -12,6 +12,7 @@ Sub ExportiFactoryToMultiple(Optional ByVal formatInt As Integer = 0)
 	CurrentPath = System.IO.Path.getdirectoryname(ThisApplication.activedocument.fulldocumentname)
 	NewPath = CurrentPath & "\"& System.IO.Path.GetFileNameWithoutExtension(ThisApplication.activedocument.fulldocumentname) & "\"
     If TypeOf (ThisApplication.activedocument) Is partdocument Then
+	
         Dim oDoc As PartDocument = ThisApplication.ActiveDocument
         Dim oiPart As iPartFactory = oDoc.ComponentDefinition.iPartFactory
         Dim oTop As BrowserNode = oDoc.BrowserPanes("Model").TopNode
