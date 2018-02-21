@@ -1,0 +1,101 @@
+﻿
+'by the use of the RuleArguments.Exists() mechanic it is technically possible to call this rule in a loop from a parent assembly
+'therein meaning you can automate placement of these UCS objects
+Sub Main()
+	iLogicVb.UpdateWhenDone = True
+	Dim UCSName As String = String.Empty
+	If Not RuleArguments.Exists("UCSName") Then
+		UCSName = InputBox("UCS Name", "Pick a name for the new UCS", "MyUCS", 0, 0)
+	Else
+		UCSName = RuleArguments.Arguments.Item("UCSName")
+	End If
+	Dim currentDoc As Document = ThisApplication.ActiveDocument
+	
+		If TypeOf currentDoc Is AssemblyDocument Then
+			Dim AssyCompDef As AssemblyComponentDefinition = currentDoc.ComponentDefinition
+			insertUCS(AssyCompDef, UCSName)
+		Else
+			Dim PartCompDef As PartComponentDefinition = currentDoc.ComponentDefinition
+			insertUCS(PartCompDef, UCSName)
+		End If
+		
+End Sub
+
+Public Sub insertUCS(CompDef As ComponentDefinition, UCSName As String)
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(CompDef.Document, "Insert a named UCS")
+	Dim paramlist As List(Of Parameter) = New List(Of Parameter)
+	Try
+		For Each existingParam As Parameter In CompDef.Parameters
+			paramlist.Add(existingParam)
+		Next
+		Dim TransGeom As TransientGeometry = ThisApplication.TransientGeometry
+		Dim newMatrix As Matrix = TransGeom.CreateMatrix
+		Call newMatrix.SetToRotation(0, TransGeom.CreateVector(0, 0, 1), TransGeom.CreatePoint(0, 0, 0))
+		Dim UCSDef As UserCoordinateSystemDefinition = CompDef.UserCoordinateSystems.CreateDefinition
+		UCSDef.Transformation = newMatrix
+		Dim newUCS As UserCoordinateSystem = CompDef.UserCoordinateSystems.Add(UCSDef)
+		
+		newUCS.Name = UCSName
+'		messagebox.Show("Count of existing parameters = " & paramlist.count)
+		trans.End()
+	Catch ex As Exception
+		MessageBox.Show("The UCS name already exists, or there was some other error!")
+		trans.Abort()
+		Exit Sub
+	End Try
+	
+	trans = ThisApplication.TransactionManager.StartTransaction(CompDef.Document, "Update UCS Parameters to named UCS")
+	Try
+		Dim newParamlist As List(Of Parameter) = New List(Of Parameter)
+		For Each newParam As Parameter In CompDef.parameters
+			newParamlist.Add(newParam)
+		Next
+		Dim addedParamlist As List(Of Parameter) = newParamlist.Except(paramlist.[Select](Function(v As Parameter)v)).ToList()
+'		Messagebox.Show("Added parameter count= "& addedParamlist.Count)
+		UpdateNewParametersToUCSName(UCSName, addedParamlist)
+		trans.End()
+	Catch Ex As Exception
+		MessageBox.Show("There was some issue renaming a parameter")
+		trans.Abort()	
+	End Try
+End Sub
+
+Public Sub UpdateNewParametersToUCSName(UCSName As String, newParamlist As List(Of Parameter), Optional delimiter As String = "_")
+	newParamlist.OrderBy(Function(p As Parameter) p.Name)
+	For i = 0 To newParamlist.Count - 1
+		Dim paramToRename As ModelParameter = newParamlist.Item(i)
+		If i = 0 Then
+			paramToRename.Name = UCSName & delimiter & "Xt"
+			paramToRename.Comment = "Translation along the X Axis"
+		Else If i = 1 Then
+			paramToRename.Name = UCSName & delimiter & "Yt"
+			paramToRename.Comment = "Translation along the Y Axis"
+		Else If i = 2 Then
+			paramToRename.Name = UCSName & delimiter & "Zt"
+			paramToRename.Comment = "Translation along the Z Axis"
+		Else If i = 3 Then
+			paramToRename.Name = UCSName & delimiter & "Xr"
+			paramToRename.Comment = "Rotation along the X Axis"
+		Else If i = 4 Then
+			paramToRename.Name = UCSName & delimiter & "Yr"
+			paramToRename.Comment = "Rotation along the Y Axis"
+		Else If i = 5 Then
+			paramToRename.Name = UCSName & delimiter & "Zr"
+			paramToRename.Comment = "Rotation along the Z Axis"
+		Else 
+			'shouldn't be possible!
+		End If
+	Next i
+End Sub
+'unused but useful
+Public Enum axis
+	kXAxis
+	kYAxis
+	kZAxis
+End Enum
+
+Public Enum rotation
+	kXRotation
+	kYRotation
+	kZRotation
+End Enum

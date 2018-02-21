@@ -1,0 +1,50 @@
+﻿'credit goes to this thread: https://forums.autodesk.com/t5/inventor-customization/using-ilogic-to-rename-browser-nodes/m-p/4318636#M44814
+' and PaulM for pointing me towards it.
+Sub Main()
+	'Grab the Assembly Document
+	Dim oDoc As AssemblyDocument = ThisApplication.ActiveDocument
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(oDoc, "Rename Browser Nodes to Description.")
+	Try
+		'Grab the Active Assembly Component Definition
+		Dim oAsmCompDef As AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
+		' Get the model browser
+		Dim oPane As BrowserPane = oDoc.BrowserPanes.Item("Model")
+		' Grab the occurrence of the object
+		For Each oOcc As ComponentOccurrence In oDoc.ComponentDefinition.Occurrences
+			Dim oCCDocument As Document = oOcc.Definition.Document
+			If Not oCCDocument.FullFileName.Contains("Content Center") Then
+				Dim oOccDoc As Document = oOcc.Definition.Document
+				'get design properties set' 
+				Dim invDesignInfo As PropertySet = oOccDoc.PropertySets.Item("Design Tracking Properties")
+				' Get the part number property.
+				Dim invDescrProperty As Inventor.Property = invDesignInfo.Item("Description")
+				' Get the browser node that corresponds to the new item
+				Dim oSubAssyNode As BrowserNode = oPane.GetBrowserNodeFromObject(oOcc)
+				If oSubAssyNode.NativeObject.Name.Contains(":") Then ' is likely one of multiple occurrences
+					'messagebox.Show(oSubAssyNode.NativeObject.Name)
+					Dim oldName As String = oSubAssyNode.NativeObject.Name
+					Dim first As Integer = oldName.IndexOf(":")
+					'MessageBox.Show("first= " & first)
+					Dim last As Integer = oldName.LastIndexOf(":")
+					'MessageBox.Show("last= " & last)
+					Dim occNum As String = oldName.Substring(first, oldName.Length - last)
+					'Messagebox.Show(occNum)
+					If oldName <> invDescrProperty.Value And Not invDescrProperty.Value = String.Empty Then
+						'Set The name 
+						oSubAssyNode.NativeObject.Name = (invDescrProperty.Value) & occNum
+					End If
+				Else
+					If oSubAssyNode.NativeObject.Name <> invDescrProperty.Value And Not invDescrProperty.Value = String.Empty Then
+					'Set The name 
+					oSubAssyNode.NativeObject.Name = (invDescrProperty.Value)
+					End If
+				End If
+				
+			End If
+		Next
+	Catch Ex As Exception
+		trans.Abort()
+	Finally
+		trans.End()
+	End Try
+End Sub
