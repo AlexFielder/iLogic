@@ -1,4 +1,11 @@
-﻿
+﻿'these are only needed on Inventor 2017!
+AddReference "System.Core"
+AddReference "System.Linq"
+AddReference "System.Collections"
+
+Imports System.Core
+Imports System.Linq
+Imports System.Collections.Generic
 'by the use of the RuleArguments.Exists() mechanic it is technically possible to call this rule in a loop from a parent assembly
 'therein meaning you can automate placement of these UCS objects
 Sub Main()
