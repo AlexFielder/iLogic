@@ -11,9 +11,11 @@ Sub Main()
 			If Not oOcc.IsSubstituteOccurrence Then
 				Dim oCCDocument As Document = oOcc.Definition.Document
 				If Not oCCDocument.FullFileName.Contains("Content Center") Then
-					'messagebox.show(oocc.name)
-					Dim invDesignInfo As PropertySet = oCCDocument.PropertySets.Item("Design Tracking Properties")
-					Dim invDescrProperty As Inventor.Property = invDesignInfo.Item("Description")
+					messagebox.show(oocc.name)
+'					Dim invDesignInfo As PropertySet = oCCDocument.PropertySets.Item("Design Tracking Properties")
+'					Dim invDescrProperty As Inventor.Property = invDesignInfo.Item("Description")
+			        Dim summaryPropSet As Inventor.PropertySet = oCCDocument.PropertySets.Item("Inventor Summary Information")
+        			Dim titleProp As Inventor.Property = summaryPropSet.Item("Title")
 					Dim oSubAssyNode As BrowserNode = oPane.GetBrowserNodeFromObject(oOcc)
 					If oSubAssyNode.NativeObject.Name.Contains(":") Then ' is likely one of multiple occurrences
 						'messagebox.Show(oSubAssyNode.NativeObject.Name)
@@ -24,14 +26,14 @@ Sub Main()
 						'MessageBox.Show("last= " & last)
 						Dim occNum As String = oldName.Substring(first, oldName.Length - last)
 						'Messagebox.Show(occNum)
-						If oldName <> invDescrProperty.Value And Not invDescrProperty.Value = String.Empty Then
+						If oldName <> titleProp.Value And Not titleProp.Value = String.Empty Then
 							'Set The name 
-							oSubAssyNode.NativeObject.Name = (invDescrProperty.Value) & occNum
+							oSubAssyNode.NativeObject.Name = (titleProp.Value) & occNum
 						End If
 					Else
-						If oSubAssyNode.NativeObject.Name <> invDescrProperty.Value And Not invDescrProperty.Value = String.Empty Then
+						If oSubAssyNode.NativeObject.Name <> titleProp.Value And Not titleProp.Value = String.Empty Then
 						'Set The name 
-						oSubAssyNode.NativeObject.Name = (invDescrProperty.Value)
+						oSubAssyNode.NativeObject.Name = (titleProp.Value)
 						End If
 					End If
 					
