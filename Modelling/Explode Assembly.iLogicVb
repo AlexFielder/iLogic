@@ -1,0 +1,78 @@
+﻿Sub Main()
+	Dim points As New List(Of KeyValuePair(Of String, Point))
+'Dim points As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+Dim thisAssy As AssemblyDocument = ThisApplication.ActiveDocument
+'points.Add(getBoxCentreFromComponentDefinition(thisAssy.ComponentDefinition))
+
+Dim originMatrix As Matrix = ThisApplication.TransientGeometry.CreateMatrix
+Dim destinationMatrix As Matrix = ThisApplication.TransientGeometry.CreateMatrix
+Dim originPoint As WorkPoint = thisAssy.ComponentDefinition.WorkPoints.Item(1)
+originPoint.Visible = True
+Dim occurrenceYNormal As UnitVector = Nothing
+
+'occurrence rangebox centre points
+For Each occ As ComponentOccurrence In thisAssy.ComponentDefinition.Occurrences
+	Dim oTransform As Matrix = occ.Transformation
+	Dim occDatum As WorkPoint = Nothing
+	If TypeOf (occ.Definition.Document) Is PartDocument Then
+		Dim IsAPart As PartDocument = occ.Definition.Document
+		Dim partXYWorkPlane As WorkPlane = IsAPart.ComponentDefinition.WorkPlanes(1)
+		Dim normalPlane As Plane = partXYWorkPlane.Plane
+		occurrenceYNormal = ThisApplication.TransientGeometry.CreateUnitVector(normalPlane.Normal.X, normalPlane.Normal.Y, normalPlane.Normal.Z)
+		occDatum = IsAPart.ComponentDefinition.WorkPoints(1)
+'		occDatum.Visible = True
+		occDatum.Visible = False
+	Else
+		Dim IsAnAssembly As AssemblyDocument = occ.Definition.Document
+		Dim assyXYWorkPlane As WorkPlane = IsAnAssembly.ComponentDefinition.WorkPlanes(1)
+		Dim normalPlane As Plane = assyXYWorkPlane.Plane
+		occurrenceYNormal = ThisApplication.TransientGeometry.CreateUnitVector(normalPlane.Normal.X, normalPlane.Normal.Y, normalPlane.Normal.Z)
+		occDatum = IsAnAssembly.ComponentDefinition.WorkPoints(1)
+'		occDatum.Visible = True 'turn this on so we can see if this works!
+		occDatum.Visible = False
+	End If
+	Dim compdef As ComponentDefinition = occ.Definition
+'	Dim translatedPoint As Point = ThisApplication.TransientGeometry.CreatePoint(oTransform.Translation.X, oTransform.Translation.Y, oTransform.Translation.Z)
+'	originMatrix.SetTranslation(originPoint.Point.VectorTo(translatedPoint))
+	originMatrix.SetTranslation(originPoint.Point.VectorTo(occDatum.Point))
+'	Break
+	Dim originYVector As Vector  = ThisApplication.TransientGeometry.CreateVector(0, 1, 0)
+	originMatrix.SetToRotateTo(originYVector, occurrenceYNormal.AsVector())
+	Dim tmpPoint As Point = getBoxCentreFromOccurrence(occ)
+'	Break
+'	tmpPoint.TransformBy(originMatrix)
+'	tmpPoint.TransformBy(oTransform)
+'	tmpPoint.TranslateBy(originPoint.Point.VectorTo(occDatum.Point))
+	points.Add(New KeyValuePair(Of String, Point)(occ.Name, tmpPoint))
+	'occ.Visible = False
+	occ.Enabled = False
+Next
+
+'componentdefinition rangebox centre points
+'For Each occ As ComponentOccurrence In thisAssy.ComponentDefinition.Occurrences
+'	points.Add(getBoxCentreFromComponentDefinition(occ.Definition))
+'	'occ.Visible = False
+'Next
+For Each pnt As KeyValuePair(Of String, Point) In points
+'For Each pnt As Point In points
+	Dim point As Point = pnt.Value
+	Dim wp As WorkPoint = thisAssy.ComponentDefinition.WorkPoints.AddFixed(ThisApplication.TransientGeometry.CreatePoint(point.X, point.Y, point.Z))
+	wp.Name = "Work Point: " & pnt.Key
+Next
+
+End Sub
+
+Function getBoxCentreFromComponentDefinition (thiscompDef As ComponentDefinition) As Point
+	Dim centrepoint As Point = ThisApplication.TransientGeometry.CreatePoint((thiscompDef.RangeBox.MaxPoint.X - thiscompDef.RangeBox.MinPoint.X) / 2, 
+	(thiscompDef.RangeBox.MaxPoint.Y - thiscompDef.RangeBox.MinPoint.Y) / 2,
+	(thiscompDef.RangeBox.MaxPoint.Z - thiscompDef.RangeBox.MinPoint.Z) / 2)
+	Return centrepoint
+End Function
+
+Function getBoxCentreFromOccurrence(thisocc As ComponentOccurrence) As Point
+	Dim centrepoint As Point = ThisApplication.TransientGeometry.CreatePoint((thisocc.RangeBox.MaxPoint.X - thisocc.RangeBox.MinPoint.X) / 2 + thisocc.RangeBox.MinPoint.X, 
+	(thisocc.RangeBox.MaxPoint.Y - thisocc.RangeBox.MinPoint.Y) / 2 + thisocc.RangeBox.MinPoint.Y,
+	(thisocc.RangeBox.MaxPoint.Z - thisocc.RangeBox.MinPoint.Z) / 2 + thisocc.RangeBox.MinPoint.Z)
+'	break
+	Return centrepoint
+End Function
