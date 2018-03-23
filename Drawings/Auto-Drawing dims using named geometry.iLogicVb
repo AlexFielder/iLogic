@@ -1,0 +1,80 @@
+﻿'this rule will attempt to look at a supplied assembly and dimensions the extents of a group of objects that are constrained together.
+Sub Main()
+    'This rule will create delete any existing iLogic-created dimensions before replacing them anew
+    Dim oDWG As DrawingDocument = ThisDoc.Document
+
+    Dim oSht As Sheet = oDWG.ActiveSheet
+
+    Dim oView As DrawingView = ActiveSheet.View("VIEW1").View
+
+    Dim oPart As PartDocument = ActiveSheet.View("VIEW1").ModelDocument
+
+    Dim TransG As TransientGeometry = ThisApplication.TransientGeometry
+'break
+    Dim oGenDims As GeneralDimensions = oSht.DrawingDimensions.GeneralDimensions
+    'messagebox.show("Setup complete")
+'	Dim oObjs As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+   	Dim datumObjs As ObjectCollection = oPart.AttributeManager.FindObjects("iLogicEntityNameSet", "iLogicEntityName","END01")
+	Dim outObjs As ObjectCollection = oPart.AttributeManager.FindObjects("iLogicEntityNameSet", "iLogicEntityName","END02") 'ThisApplication.TransientObjects.CreateObjectCollection
+
+'	Dim attribSetsEnum As AttributeSetsEnumerator = oPart.AttributeManager.FindAttributeSets("iLogicEntityNameSet")
+'	For Each attrset As AttributeSet In attribSetsEnum
+'		For Each item As Attribute In attrset
+''			Break
+'			If item.Value = "END01" Then
+'				datumObjs.Add(item)
+'			Else If item.Value = "END02" Then
+'				outObjs.Add(item)
+'			End If
+'		Next
+'	Next
+'Break
+    Dim aoEdge1 As face
+
+    'datumObjs = oPart.AttributeManager.FindObjects(AttributeName="iLogicEntityName", AttributeValue="END01")
+'break
+'	If TypeOf (datumObjs.Item(1)) Is Face Then
+'		break
+    	aoEdge1 = datumObjs.Item(1)
+'		Else
+		Break
+'	End If
+    'messagebox.show("Got face 1")
+
+    Dim aoEdge2 As Face
+
+    'outObjs = oPart.AttributeManager.FindObjects(AttributeName="iLogicEntityName", AttributeValue="END02")
+'break
+    aoEdge2 = outObjs.Item(1)
+
+    'messagebox.show("Got face 2")
+
+    'Dim oDrawingCurves as Object = Nothing
+
+    Dim oDrawCurve1 As DrawingCurve
+
+    oDrawingCurves = oView.DrawingCurves(aoEdge1)
+break
+    oDrawCurve1 = oDrawingCurves.Item(1)
+
+    'messagebox.show("Got first set of drawing curves")
+
+    Dim oDrawCurve2 As drawingcurve
+
+    oDrawingCurves = oview.DrawingCurves(aoEdge2)
+break
+    oDrawCurve2 = oDrawingCurves.Item(1)
+
+    'messagebox.show("Got second set of drawing curves")
+
+    Dim oPt1 As Point2d = TransG.Createpoint2d(oView.left + (oView.Width / 4), oView.Top - (oView.Height) - 1)
+
+    messagebox.show("Got dimension line point position: " & oPt1.X.ToString() & "," & oPt1.Y.ToString())
+
+    Dim oDim1 As GeneralDimension = oGenDims.AddLinear(oPt1, oSht.CreateGeometryintent(oDrawCurve1, PointIntentEnum.kStartPointIntent), oSht.CreateGeometryIntent(oDrawCurve2, PointIntentEnum.kEndPointIntent), DimensionTypeEnum.kHorizontalDimensionType)
+
+    messagebox.show("Dimension Added.")
+
+    Dim odimatt1 As Attributeset = oDim1.Attributesets.add("iLogic_Created")
+
+End Sub

@@ -3,8 +3,8 @@
 Sub Main()
 	'Grab the Assembly Document
 	Dim oDoc As AssemblyDocument = ThisApplication.ActiveDocument
-'	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(oDoc, "Rename Browser Nodes to Description.")
-'	Try
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(oDoc, "Rename Browser Nodes to Description.")
+	Try
 		Dim oAsmCompDef As AssemblyComponentDefinition = oDoc.ComponentDefinition
 		Dim oPane As BrowserPane = oDoc.BrowserPanes.Item("Model")
 		For Each oOcc As ComponentOccurrence In oAsmCompDef.Occurrences
@@ -40,9 +40,8 @@ Sub Main()
 				End If
 			End If
 		Next
-'	Catch Ex As Exception
-'		trans.Abort()
-'	Finally
-'		trans.End()
-'	End Try
+	trans.End()
+	Catch Ex As Exception
+		trans.Abort()
+	End Try
 End Sub
