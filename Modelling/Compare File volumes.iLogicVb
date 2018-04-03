@@ -1,4 +1,4 @@
-﻿ Option Explicit
+﻿ Option Explicit On
  Sub Main()
 'default folder
 	Dim oDesignProjectMgr As DesignProjectManager = ThisApplication.DesignProjectManager
