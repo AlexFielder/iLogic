@@ -1,13 +1,14 @@
 ﻿Public Sub Main()
+	iLogicVb.UpdateWhenDone = True
 	Dim AssyDoc As AssemblyDocument = TryCast(ThisApplication.ActiveDocument, AssemblyDocument)
 	If Not AssyDoc Is Nothing Then
+		currentCOGpoint(ThisApplication.ActiveDocument)
 		For Each Doc As Document In AssyDoc.AllReferencedDocuments
 			currentCOGpoint(Doc)
 		Next
 	Else If TypeOf(ThisApplication.ActiveDocument) Is PartDocument Then
 		currentCOGpoint(ThisApplication.ActiveDocument)
 	End If
-
 End Sub
 
 Public Sub currentCOGpoint(oDoc As Document)
