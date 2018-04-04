@@ -1,0 +1,53 @@
+﻿Public Sub Main()
+	Dim AssyDoc As AssemblyDocument = TryCast(ThisApplication.ActiveDocument, AssemblyDocument)
+	If Not AssyDoc Is Nothing Then
+		For Each Doc As Document In AssyDoc.AllReferencedDocuments
+			currentCOGpoint(Doc)
+		Next
+	Else If TypeOf(ThisApplication.ActiveDocument) Is PartDocument Then
+		currentCOGpoint(ThisApplication.ActiveDocument)
+	End If
+
+End Sub
+
+Public Sub currentCOGpoint(oDoc As Document)
+	Dim COGpresent As Boolean = False
+
+	If ThisApplication.ActiveDocument Is Nothing Then
+	    messagebox.Show( "  ! ! ! no active document ! ! !" & vbCr & "command will be terminated", "! ! unable to proceed ! !", MessageBoxButtons.OK)
+	    Exit Sub
+	End If
+
+'	Dim oDoc As Document = ThisApplication.ActiveDocument
+	If (oDoc.DocumentType = kPartDocumentObject Or oDoc.DocumentType = kAssemblyDocumentObject) Then
+
+		'read center of gravity coordinates
+		Dim oDef As ComponentDefinition = oDoc.ComponentDefinition
+		Dim oMassProperties As MassProperties = oDef.MassProperties
+		Dim oControlDef As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions.Item("AppCenterOfGravityCmd")
+		oControlDef.Execute
+
+		Dim COGx As Double = oMassProperties.CenterOfMass.X
+		Dim COGy As Double = oMassProperties.CenterOfMass.Y
+		Dim COGz As Double = oMassProperties.CenterOfMass.Z
+
+		'update eventually present COG workpoint
+		For Each wp In oDef.WorkPoints
+			If wp.Name = "COG" Then
+				Call wp.SetFixed(ThisApplication.TransientGeometry.CreatePoint(COGx, COGy, COGz))
+				wp.Visible = False
+				COGpresent = True
+				Exit For
+			End If
+		Next
+
+		'create COG point if not present
+		If COGpresent = False Then
+			Dim wp As WorkPoint = oDef.WorkPoints.AddFixed(ThisApplication.TransientGeometry.CreatePoint(COGx, COGy, COGz))
+			wp.Name = "COG"
+			wp.Visible = False
+		End If
+	Else
+	    messagebox.Show( "wrong active document type" & vbCr & "command will be terminated", "! ! unable to proceed ! !", MessageBoxButtons.OK)
+	End If
+End Sub
