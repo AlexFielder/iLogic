@@ -1,0 +1,86 @@
+﻿''' <summary>
+''' Will only run if the activedocument has been saved.
+''' </summary> 
+Sub Main()
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Export and Attach Step file")
+	Try
+		If Not ThisApplication.ActiveDocument.FullFilename = String.Empty Then 'won't run if the active document isn't saved.
+			Dim filenameToAttach As String = ExportToStep()
+			If Not filenameToAttach = String.Empty Then
+				Dim doc As Document = ThisApplication.ActiveDocument
+				AddReferences(doc, filenameToAttach)
+			End If
+		Else
+			MessageBox.Show("File not saved; save the file and try again!")
+			trans.Abort()
+		End If
+		trans.End()
+	Catch
+		trans.Abort()
+	End Try
+End Sub
+
+''' <summary>
+''' Returns an empty string if the stp file didn't save for some reason.
+''' </summary>
+''' <returns></returns>
+Function ExportToStep() As String
+	Dim filename As String
+	' Get the STEP translator Add-In.
+	Dim oSTEPTranslator As TranslatorAddIn
+	oSTEPTranslator = ThisApplication.ApplicationAddIns.ItemById("{90AF7F40-0C01-11D5-8E83-0010B541CD80}")
+	Dim oContext As TranslationContext
+	oContext = ThisApplication.TransientObjects.CreateTranslationContext
+	Dim oOptions As NameValueMap
+	oOptions = ThisApplication.TransientObjects.CreateNameValueMap
+
+	oStepFileName = iProperties.Value("Project", "Part Number")
+
+	If oSTEPTranslator.HasSaveCopyAsOptions(ThisApplication.ActiveDocument, oContext, oOptions) Then
+	    ' Set application protocol.
+	    ' 2 = AP 203 - Configuration Controlled Design
+	    ' 3 = AP 214 - Automotive Design
+	    oOptions.Value("ApplicationProtocolType") = 3
+	    ' Other options...
+	    'oOptions.Value("Author") = ""
+	    'oOptions.Value("Authorization") = ""
+	    'oOptions.Value("Description") = ""
+	    'oOptions.Value("Organization") = ""
+	    oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
+	    Dim oData As DataMedium
+	    oData = ThisApplication.TransientObjects.CreateDataMedium
+		oData.FileName = ThisDoc.Path & "\" & oStepFileName & ".stp"
+		oSTEPTranslator.SaveCopyAs(ThisApplication.ActiveDocument, oContext, oOptions, oData)
+		filename = oData.FileName
+	End If
+	If System.IO.File.Exists(filename) Then
+		Return filename
+	Else
+		Return ""
+	End If
+End Function
+
+''' <summary>
+''' Attaches any file using the fully c:\path\to\your\file.extension format.
+''' </summary>
+''' <param name="odoc"></param>
+''' <param name="selectedfile"></param>
+Public Sub AddReferences(ByVal odoc As Inventor.Document, ByVal selectedfile As String)
+	Dim oleReference As ReferencedOLEFileDescriptor
+	If selectedfile.Contains("|") Then ' we have multiple files selected.
+		Dim file As String() = selectedfile.Split("|")
+		For Each s As String In file
+			oleReference = odoc.ReferencedOLEFileDescriptors _
+				.Add(s, OLEDocumentTypeEnum.kOLEDocumentLinkObject)
+			oleReference.BrowserVisible = True
+			oleReference.Visible = False
+			oleReference.DisplayName = Mid$(s, InStrRev(s, "\") + 1)
+		Next
+	Else
+		oleReference = odoc.ReferencedOLEFileDescriptors _
+				.Add(selectedfile,OLEDocumentTypeEnum.kOLEDocumentLinkObject)
+		oleReference.BrowserVisible = True
+		oleReference.Visible = False
+		oleReference.DisplayName = Mid$(selectedfile, InStrRev(selectedfile, "\") + 1)
+	End If
+End Sub

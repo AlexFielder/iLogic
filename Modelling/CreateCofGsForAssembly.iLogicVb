@@ -4,7 +4,9 @@
 	If Not AssyDoc Is Nothing Then
 		currentCOGpoint(ThisApplication.ActiveDocument)
 		For Each Doc As Document In AssyDoc.AllReferencedDocuments
-			currentCOGpoint(Doc)
+			If Not TypeOf(doc) Is PartDocument Then
+				currentCOGpoint(Doc)
+			End If
 		Next
 	Else If TypeOf(ThisApplication.ActiveDocument) Is PartDocument Then
 		currentCOGpoint(ThisApplication.ActiveDocument)
