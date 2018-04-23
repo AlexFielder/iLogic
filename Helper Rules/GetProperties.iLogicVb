@@ -1,4 +1,5 @@
-﻿Imports System.Reflection
+﻿Imports Inventor
+Imports System.Reflection
 Imports System
 Sub Main()
 	GetProperties(ThisApplication.ActiveDocument)
@@ -7,19 +8,26 @@ End Sub
 Sub GetProperties(myObject As Object)
 	Dim typename As String = Microsoft.VisualBasic.Information.TypeName(myObject)
 	MessageBox.Show(typename)
-	Dim myType As Type = myObject.[GetType]()
-	Dim props As IList(Of PropertyInfo) = New List(Of PropertyInfo)(myType.GetProperties())
-	Dim propstr As String = String.Empty
-	MessageBox.Show(props.Count)
-	For Each prop As PropertyInfo In props
-		Dim propValue As Object = prop.GetValue(myObject, Nothing)
-		If propstr = String.Empty Then
-			propstr = propValue.ToString()
-		Else
-			propstr = propstr & vbCrLf & propValue.ToString()
-		End If
-	Next
-	MessageBox.Show("Resultant properties of myobject: " & myObject.ToString() & " were: " & propstr)
+'	typename = "Inventor." & typename
+	'Dim myType = Type.GetType(typename) ' myObject.[GetType]()
+	Dim myType As Type = Type.GetType(typename,True)
+	'Dim myType As Type = Type.GetType(typename, True) ' myObject.[GetType]()
+	If Not myType = Nothing Then
+		Dim props As IList(Of PropertyInfo) = New List(Of PropertyInfo)(myType.GetProperties())
+		Dim propstr As String = String.Empty
+		MessageBox.Show(props.Count)
+		For Each prop As PropertyInfo In props
+			Dim propValue As Object = prop.GetValue(myObject, Nothing)
+			If propstr = String.Empty Then
+				propstr = propValue.ToString()
+			Else
+				propstr = propstr & vbCrLf & propValue.ToString()
+			End If
+		Next
+		MessageBox.Show("Resultant properties of myobject: " & myObject.ToString() & " were: " & propstr)
+	Else
+		Messagebox.Show("we broke it.")
+	End If
 End Sub
 
 'Private Sub SurroundingSub()
