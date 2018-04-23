@@ -6,12 +6,12 @@ Sub Main()
 End Sub
 
 Sub GetProperties(myObject As Object)
+	MessageBox.Show(myObject.DocumentType)
 	Dim typename As String = Microsoft.VisualBasic.Information.TypeName(myObject)
 	MessageBox.Show(typename)
-'	typename = "Inventor." & typename
-	'Dim myType = Type.GetType(typename) ' myObject.[GetType]()
-	Dim myType As Type = Type.GetType(typename,True)
-	'Dim myType As Type = Type.GetType(typename, True) ' myObject.[GetType]()
+	Dim myType As Type = Type.GetType(typename, True)
+	'Dim currentNamespace As String = Type.GetType(typename, True).Namespace
+	'MessageBox.Show(currentNamespace & " " & typename)
 	If Not myType = Nothing Then
 		Dim props As IList(Of PropertyInfo) = New List(Of PropertyInfo)(myType.GetProperties())
 		Dim propstr As String = String.Empty
