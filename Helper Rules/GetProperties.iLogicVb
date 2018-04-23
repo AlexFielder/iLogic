@@ -1,0 +1,20 @@
+﻿Imports System.Reflection
+Sub Main()
+	GetProperties(ThisApplication.ActiveDocument)
+End Sub
+
+Sub GetProperties(myObject As Object)
+	Dim myType As Type = myObject.[GetType]()
+	Dim props As IList(Of PropertyInfo) = New List(Of PropertyInfo)(myType.GetProperties())
+	Dim propstr As String = String.Empty
+	MessageBox.Show(props.Count)
+	For Each prop As PropertyInfo In props
+		Dim propValue As Object = prop.GetValue(myObject, Nothing)
+		If propstr = String.Empty Then
+			propstr = propValue.ToString()
+		Else
+			propstr = propstr & vbCrLf & propValue.ToString()
+		End If
+	Next
+	MessageBox.Show("Resultant properties of myobject: " & myObject.ToString() & " were: " & propstr)
+End Sub

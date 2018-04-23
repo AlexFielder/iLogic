@@ -1,0 +1,67 @@
+Public Sub RecomputeToFailure()
+    Dim partDoc As PartDocument = ThisApplication.ActiveDocument
+    Dim partDef As PartComponentDefinition = partDoc.ComponentDefinition
+    
+    ' Reposition the stop node to the top.
+    Call partDef.SetEndOfPartToTopOrBottom(True)
+    
+    ' Get the browser.
+    Dim browser As BrowserPane = partDoc.BrowserPanes.Item(1)
+    
+    Dim topNode As BrowserNode = browser.topNode
+    
+    Dim childNode As BrowserNode
+    For Each childNode In topNode.BrowserNodes
+        Dim ent As Object = childNode.NativeObject
+        
+        ' Check to see if it's an entity type that the stop node can be positioned to.
+        If Not ent Is Nothing Then
+            If TypeOf ent Is PartFeature Then
+                Dim feature As PartFeature = ent
+                
+                Call feature.SetEndOfPart(False)
+                
+                If feature.HealthStatus <> HealthStatusEnum.kUpToDateHealth Then
+                    MsgBox feature.name & " Failed to successfully compute."
+                    Exit Sub
+                End If
+            ElseIf TypeOf ent Is WorkPlane Then
+                Dim wPlane As WorkPlane = ent
+                
+                Call wPlane.SetEndOfPart(False)
+                If wPlane.HealthStatus <> HealthStatusEnum.kUpToDateHealth Then
+                    MsgBox wPlane.name & " Failed to successfully compute."
+                    Exit Sub
+                End If
+            ElseIf TypeOf ent Is WorkAxis Then
+                Dim wAxis As WorkAxis = ent
+                
+                Call wAxis.SetEndOfPart(False)
+                If wAxis.HealthStatus <> HealthStatusEnum.kUpToDateHealth Then
+                    MsgBox wAxis.name & " Failed to successfully compute."
+                    Exit Sub
+                End If
+            ElseIf TypeOf ent Is WorkPoint Then
+                Dim wPoint As WorkPoint = ent
+                
+                Call wPoint.SetEndOfPart(False)
+                If wPoint.HealthStatus <> HealthStatusEnum.kUpToDateHealth Then
+                    MsgBox wPoint.name & " Failed to successfully compute."
+                    Exit Sub
+                End If
+            ElseIf TypeOf ent Is sketch Then
+                Dim sk As PlanarSketch = ent
+                
+                Call sk.SetEndOfPart(False)
+                If sk.HealthStatus <> HealthStatusEnum.kUpToDateHealth Then
+                    MsgBox sk.name & " Failed to successfully compute."
+                    Exit Sub
+                End If
+            End If
+        End If
+        
+        ThisApplication.ActiveView.Update
+    Next
+    
+    MsgBox "Successfully computed model."
+End Sub
