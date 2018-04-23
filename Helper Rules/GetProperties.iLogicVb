@@ -1,9 +1,12 @@
 ﻿Imports System.Reflection
+Imports System
 Sub Main()
 	GetProperties(ThisApplication.ActiveDocument)
 End Sub
 
 Sub GetProperties(myObject As Object)
+	Dim typename As String = Microsoft.VisualBasic.Information.TypeName(myObject)
+	MessageBox.Show(typename)
 	Dim myType As Type = myObject.[GetType]()
 	Dim props As IList(Of PropertyInfo) = New List(Of PropertyInfo)(myType.GetProperties())
 	Dim propstr As String = String.Empty
@@ -18,3 +21,20 @@ Sub GetProperties(myObject As Object)
 	Next
 	MessageBox.Show("Resultant properties of myobject: " & myObject.ToString() & " were: " & propstr)
 End Sub
+
+'Private Sub SurroundingSub()
+'    Dim prop As System.Reflection.PropertyInfo = GetType(PartDocument).GetProperty("FullFilename")
+'    query = query.OrderBy(Function(x) prop.GetValue(x, Nothing))
+'End Sub
+
+' not sure this will work: ?
+'Private Sub SurroundingSub()
+'    typeName = Microsoft.VisualBasic.Information.TypeName(someCOMObject)
+
+'    For Each assembly As System.Reflection.Assembly In AppDomain.CurrentDomain.GetAssemblies()
+
+'        For Each type As Type In assembly.GetTypes()
+'            If (TryCast(someCOMObject, type)) IsNot Nothing Then fullTypeName = type.FullName
+'        Next
+'    Next
+'End Sub
