@@ -6,29 +6,72 @@ Sub Main()
 End Sub
 
 Sub GetProperties(myObject As Object)
-	MessageBox.Show(myObject.DocumentType)
+	Dim myType As Type = myObject.[GetType]()
+	Dim props As IList(Of PropertyInfo) = Nothing
 	Dim typename As String = Microsoft.VisualBasic.Information.TypeName(myObject)
-	MessageBox.Show(typename)
-	Dim myType As Type = Type.GetType(typename, True)
-	'Dim currentNamespace As String = Type.GetType(typename, True).Namespace
-	'MessageBox.Show(currentNamespace & " " & typename)
-	If Not myType = Nothing Then
-		Dim props As IList(Of PropertyInfo) = New List(Of PropertyInfo)(myType.GetProperties())
-		Dim propstr As String = String.Empty
-		MessageBox.Show(props.Count)
-		For Each prop As PropertyInfo In props
-			Dim propValue As Object = prop.GetValue(myObject, Nothing)
+	If typename = "AssemblyDocument" Then
+		Dim assyDoc As AssemblyDocument = TryCast(myType, AssemblyDocument)
+		props = GetType(AssemblyDocument).GetProperties().ToList()
+	Else If typename = "PartDocument" Then
+		Dim partDoc As PartDocument = TryCast(myType, PartDocument)
+		props = GetType(PartDocument).GetProperties().ToList()
+	Else
+		Exit Sub
+	End If
+'	If TypeOf myType Is AssemblyDocument Then
+'		Dim assyDoc As AssemblyDocument = myType		
+'	Else If TypeOf myType Is PartDocument Then
+'		Dim partDoc As PartDocument = myType
+'	Else
+'		messagebox.Show(mytype.ToString())
+'		exit sub	
+'	End If
+	'PartDocument
+'	Dim props As IList(Of PropertyInfo) = New List(Of PropertyInfo)(myType.GetProperties())
+	Dim propstr As String = String.Empty
+	MessageBox.Show(props.Count)
+	For Each prop As PropertyInfo In props
+		If Not prop.Name = Nothing Then
+			MessageBox.Show(prop.Name)
+		Else
+			MessageBox.Show(prop.ToString())
+		End If
+		Dim propValue As Object = prop.GetValue(myObject, Nothing)
+		If Not propValue Is Nothing Then
 			If propstr = String.Empty Then
 				propstr = propValue.ToString()
 			Else
 				propstr = propstr & vbCrLf & propValue.ToString()
 			End If
-		Next
-		MessageBox.Show("Resultant properties of myobject: " & myObject.ToString() & " were: " & propstr)
-	Else
-		Messagebox.Show("we broke it.")
-	End If
+		End If
+	Next
+	MessageBox.Show("Resultant properties of myobject: " & myObject.ToString() & " were: " & propstr)
 End Sub
+
+'Sub GetProperties(myObject As Object)
+'	MessageBox.Show(myObject.DocumentType)
+'	Dim typename As String = Microsoft.VisualBasic.Information.TypeName(myObject)
+'	MessageBox.Show(typename)
+'	Dim myType As Type = Type.GetType(typename, True)
+'	'Dim currentNamespace As String = Type.GetType(typename, True).Namespace
+'	'MessageBox.Show(currentNamespace & " " & typename)
+'	If Not myType = Nothing Then
+'		Dim props As IList(Of PropertyInfo) = New List(Of PropertyInfo)(myType.GetProperties())
+'		Dim propstr As String = String.Empty
+'		MessageBox.Show(props.Count)
+'		For Each prop As PropertyInfo In props
+'			Dim propValue As Object = prop.GetValue(myObject, Nothing)
+'			If propstr = String.Empty Then
+'				propstr = propValue.ToString()
+'			Else
+'				propstr = propstr & vbCrLf & propValue.ToString()
+'			End If
+'		Next
+'		MessageBox.Show("Resultant properties of myobject: " & myObject.ToString() & " were: " & propstr)
+'	Else
+'		Messagebox.Show("we broke it.")
+'	End If
+'End Sub
 
 'Private Sub SurroundingSub()
 '    Dim prop As System.Reflection.PropertyInfo = GetType(PartDocument).GetProperty("FullFilename")
