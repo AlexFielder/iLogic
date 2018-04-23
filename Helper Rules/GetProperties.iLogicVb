@@ -6,46 +6,42 @@ Sub Main()
 End Sub
 
 Sub GetProperties(myObject As Object)
-	Dim myType As Type = myObject.[GetType]()
-	Dim props As IList(Of PropertyInfo) = Nothing
-	Dim typename As String = Microsoft.VisualBasic.Information.TypeName(myObject)
-	If typename = "AssemblyDocument" Then
-		Dim assyDoc As AssemblyDocument = TryCast(myType, AssemblyDocument)
-		props = GetType(AssemblyDocument).GetProperties().ToList()
-	Else If typename = "PartDocument" Then
-		Dim partDoc As PartDocument = TryCast(myType, PartDocument)
-		props = GetType(PartDocument).GetProperties().ToList()
-	Else
-		Exit Sub
-	End If
-'	If TypeOf myType Is AssemblyDocument Then
-'		Dim assyDoc As AssemblyDocument = myType		
-'	Else If TypeOf myType Is PartDocument Then
-'		Dim partDoc As PartDocument = myType
-'	Else
-'		messagebox.Show(mytype.ToString())
-'		exit sub	
-'	End If
-	'PartDocument
-'	Dim props As IList(Of PropertyInfo) = New List(Of PropertyInfo)(myType.GetProperties())
 	Dim propstr As String = String.Empty
-	MessageBox.Show(props.Count)
-	For Each prop As PropertyInfo In props
-		If Not prop.Name = Nothing Then
-			MessageBox.Show(prop.Name)
+	Try
+		Dim myType As Type = myObject.[GetType]()
+		Dim props As IList(Of PropertyInfo) = Nothing
+		Dim typename As String = Microsoft.VisualBasic.Information.TypeName(myObject)
+		If typename = "AssemblyDocument" Then
+			Dim assyDoc As AssemblyDocument = TryCast(myType, AssemblyDocument)
+			props = GetType(AssemblyDocument).GetProperties().ToList()
+		Else If typename = "PartDocument" Then
+			Dim partDoc As PartDocument = TryCast(myType, PartDocument)
+			props = GetType(PartDocument).GetProperties().ToList()
 		Else
-			MessageBox.Show(prop.ToString())
+			Exit Sub
 		End If
-		Dim propValue As Object = prop.GetValue(myObject, Nothing)
-		If Not propValue Is Nothing Then
-			If propstr = String.Empty Then
-				propstr = propValue.ToString()
+		
+		MessageBox.Show(props.Count)
+		For Each prop As PropertyInfo In props
+			If Not prop.Name = Nothing Then
+				MessageBox.Show(prop.Name)
 			Else
-				propstr = propstr & vbCrLf & propValue.ToString()
+				MessageBox.Show(prop.ToString())
 			End If
-		End If
-	Next
-	MessageBox.Show("Resultant properties of myobject: " & myObject.ToString() & " were: " & propstr)
+			Dim propValue As Object = prop.GetValue(myObject, Nothing)
+			If Not propValue Is Nothing Then
+				If propstr = String.Empty Then
+					propstr = propValue.ToString()
+				Else
+					propstr = propstr & vbCrLf & propValue.ToString()
+				End If
+			End If
+		Next
+	Catch ex As Exception
+		MessageBox.Show("Exception was: " & ex.Message & ex.StackTrace)
+	Finally
+		MessageBox.Show("Resultant properties of myobject: " & myObject.ToString() & " were: " & propstr)
+	End Try
 End Sub
 
 'Sub GetProperties(myObject As Object)
