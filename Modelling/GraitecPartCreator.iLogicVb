@@ -1,14 +1,23 @@
 ﻿Option Explicit On
+Imports System.Linq
+Imports System.Collections.Generic
 Public Sub Main()
-    If ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
-        ExtrudeFeature(ThisApplication.ActiveDocument)
-        'Draw_Rectangle()
-    Else
-        MsgBox("This rule does not work in an Assembly!")
-    End If
-    'not implemented yet=
-    'RunForm()
-    'CreateGeometry
+If ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Auto Extrude")
+	Try
+	ExtrudeFeature(ThisApplication.ActiveDocument)
+	trans.End()
+	Catch ex As Exception
+		trans.Abort
+		MessageBox.Show("the error was: " & ex.Message)
+	End Try
+	'Draw_Rectangle()
+Else
+	MsgBox("This rule does not work in an Assembly!")
+End If
+'not implemented yet=
+'RunForm()
+'CreateGeometry
 End Sub
 
 '''This method is cobbled together mostly from the API help.
@@ -16,160 +25,259 @@ End Sub
 '''
 '''
 Public Sub ExtrudeFeature(ByVal ActiveDoc As Document)
-
-    Dim StartTime As DateTime = Now
-    Dim ElapsedTime As TimeSpan
-
+	
+	Dim StartTime As DateTime = Now
+	Dim ElapsedTime As TimeSpan
+	
     ' Create a new part document, using the default part template.
     'ONLY REQUIRED IF WE WANT TO CREATE A NEW PART FILE
-    'Dim oPartDoc As PartDocument = ThisApplication.Documents.Add(kPartDocumentObject, ThisApplication.FileManager.GetTemplateFile(kPartDocumentObject))
+	'Dim oPartDoc As PartDocument = ThisApplication.Documents.Add(kPartDocumentObject, ThisApplication.FileManager.GetTemplateFile(kPartDocumentObject))
 
     ' Set a reference to the component definition.
     'Dim oCompDef As PartComponentDefinition = oPartDoc.ComponentDefinition
-    'Gets the activedocument componentdefinition.
-    Dim oCompDef As PartComponentDefinition = ActiveDoc.ComponentDefinition
-
+	'Gets the activedocument componentdefinition.
+	Dim oCompDef As PartComponentDefinition = ActiveDoc.ComponentDefinition
+	
     ' Create a new sketch on the X-Y work plane.
-    Dim oSketch As PlanarSketch = oCompDef.Sketches.Add(oCompDef.WorkPlanes(3))
+    Dim Sketch1 As PlanarSketch = oCompDef.Sketches.Add(oCompDef.WorkPlanes(3))
 
     ' Set a reference to the transient geometry object.
     Dim oTransGeom As TransientGeometry = ThisApplication.TransientGeometry
 
-    ' Check to see if there's a point in the sketch that represents the origin.
-    Dim oOriginWP As WorkPoint = oCompDef.WorkPoints.Item(1)
+	' Check to see if there's a point in the sketch that represents the origin.
+    Dim oOriginWP As WorkPoint  = oCompDef.WorkPoints.Item(1)
     'set as global above
     Dim oOriginSketchPoint As SketchPoint
-    Dim oSketchPoint As SketchPoint
-    For Each oSketchPoint In oSketch.SketchPoints
+    For Each oSketchPoint As SketchPoint In Sketch1.SketchPoints
         If oSketchPoint.ReferencedEntity Is oOriginWP Then
             oOriginSketchPoint = oSketchPoint
             Exit For
         End If
     Next
-
+   
     ' Create the sketch point for the origin, if it doesn't already exist.
     If oOriginSketchPoint Is Nothing Then
         ' Project the origin point onto the sketch.
-        oOriginSketchPoint = oSketch.AddByProjectingEntity(oCompDef.WorkPoints.Item(1))
+        oOriginSketchPoint = Sketch1.AddByProjectingEntity(oCompDef.WorkPoints.Item(1))
     End If
-
+	
     ' Draw a 4cm x 3cm rectangle with the corner at (0,0)
-    'NEED TO USE LENGTH AND WIDTH PARAMETERS HERE:
-    'THE PARAMETER VALUES ARE METRIC mm NOT cm AS EXPECTED BY THE CODE.
-    Dim olength As Double = Parameter("Length") / 10
-    Dim owidth As Double = Parameter("Width") / 10
-    Dim oRectangleLines As SketchEntitiesEnumerator = oSketch.SketchLines.AddAsTwoPointCenteredRectangle(oOriginSketchPoint.Geometry, oTransGeom.CreatePoint2d(olength / 2, owidth / 2))
+	'NEED TO USE LENGTH AND WIDTH PARAMETERS HERE:
+	'THE PARAMETER VALUES ARE METRIC mm NOT cm AS EXPECTED BY THE CODE.
+	Dim olength As Double = Parameter("Length") /10
+	Dim owidth As Double = Parameter("Width") /10
+	Dim oRectangleLines As SketchEntitiesEnumerator = Sketch1.SketchLines.AddAsTwoPointCenteredRectangle(oOriginSketchPoint.Geometry, oTransGeom.CreatePoint2d(olength / 2, owidth / 2))
     'Dim oRectangleLines As SketchEntitiesEnumerator = oSketch.SketchLines.AddAsTwoPointCenteredRectangle(oTransGeom.CreatePoint2d(0, 0), oTransGeom.CreatePoint2d(olength / 2, owidth / 2))
-
-    'ADD COINCIDENT CONSTRAINT BETWEEN RECTANGLE CENTRE AND ORIGIN
-    Dim oRectangCentrePnt As SketchPoint = oSketch.SketchPoints(6)
-    oSketch.GeometricConstraints.AddCoincident(oRectangCentrePnt, oOriginSketchPoint)
-
-
-    'NEED TO ITERATE THROUGH THE CREATED LINES AND ADD DIMENSIONS/CONSTRAINTS WHERE APPROPRIATE
-    Dim oLine As Sketchline
-    '	For Each oLine In oRectangleLines
-    'only useful for debugging!
-    For i As Integer = 1 To oRectangleLines.Count
-        ElapsedTime = Now().Subtract(StartTime)
-        ThisApplication.StatusBarText = oRectangleLines.Count
-
-        'ThisApplication.StatusBarText = MessageBox.Show("Operation took " & ElapsedTime.TotalSeconds & " Seconds", "Graitec iLogic")
-        oLine = oRectangleLines(i)
-        If Parameter("HighlightSketchLines") Then
-            Dim oColor As Color = ThisApplication.TransientObjects.CreateColor(255, 0, 0) 'Red
-
-            Dim originalcolour As Color = oLine.OverrideColor
-            oLine.OverrideColor = oColor
-            MessageBox.Show("Operation took " & ElapsedTime.TotalSeconds & " Seconds", "Graitec iLogic")
-            oLine.OverrideColor = originalcolour
-        End If
-
-    Next
-    Dim oConstraint As TwoPointDistanceDimConstraint
-
-    Dim TextPoint As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(0, ((Parameter("Width") / 10) + 10) / 2)
-    oConstraint = oSketch.DimensionConstraints.AddTwoPointDistance(oRectangleLines(1).EndSketchPoint, oRectangleLines(3).EndSketchPoint, DimensionOrientationEnum.kHorizontalDim, TextPoint, False)
-    TextPoint = ThisApplication.TransientGeometry.CreatePoint2d(-((Parameter("Length") / 10) / 2) - 10, 0)
-    oConstraint = oSketch.DimensionConstraints.AddTwoPointDistance(oRectangleLines(2).EndSketchPoint, oRectangleLines(4).EndSketchPoint, DimensionOrientationEnum.kVerticalDim, TextPoint, False)
-    '	oRectangleLines(1)
-    '	oRectangleLines(3)
-    '	oRectangleLines(2)
-    '	oRectangleLines(4)
+	
+	'ADD COINCIDENT CONSTRAINT BETWEEN RECTANGLE CENTRE AND ORIGIN
+	Dim oRectangCentrePnt As SketchPoint = Sketch1.SketchPoints(6)
+	Sketch1.GeometricConstraints.AddCoincident( oRectangCentrePnt,oOriginSketchPoint)
+	debugrectanglelines(oRectangleLines, StartTime)
+	
+	'null oOriginSketchPoint so we can reassign it later
+	oOriginSketchPoint = Nothing
+	
+	'NEED TO ITERATE THROUGH THE CREATED LINES AND ADD DIMENSIONS/CONSTRAINTS WHERE APPROPRIATE
+	
+'	For Each oLine In oRectangleLines
+	
+'ADD CONSTRAINTS TO FIRST SKETCH:
+	Dim oConstraint As TwoPointDistanceDimConstraint
+	
+	Dim TextPoint As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(0, ((Parameter("Width") /10)+10) / 2)
+	oConstraint = Sketch1.DimensionConstraints.AddTwoPointDistance(oRectangleLines(1).EndSketchPoint, oRectangleLines(3).EndSketchPoint, DimensionOrientationEnum.kHorizontalDim, TextPoint, False)
+	oConstraint.Parameter.Expression = "Width"
+	TextPoint = ThisApplication.TransientGeometry.CreatePoint2d(- ((Parameter("Length") / 10) / 2) - 10, 0)
+	oConstraint = Sketch1.DimensionConstraints.AddTwoPointDistance(oRectangleLines(2).EndSketchPoint, oRectangleLines(4).EndSketchPoint, DimensionOrientationEnum.kVerticalDim, TextPoint, False)
+	oConstraint.Parameter.Expression = "Length"
+'	oRectangleLines(1)
+'	oRectangleLines(3)
+'	oRectangleLines(2)
+'	oRectangleLines(4)
 
     ' Create a profile.
-    Dim oProfile As Profile = oSketch.Profiles.AddForSolid
+    Dim oProfile As Profile = Sketch1.Profiles.AddForSolid
 
-    ' NEED TO USE THE THICKNESS PARAMETER TO DRIVE THE EXTRUSION THICKNESS HERE - DIMENSION IS PROBABLY IN cm, NOT mm.
+    ' NEED TO USE THE THICKNESS PARAMETER TO DRIVE THE EXTRUSION THICKNESS HERE - DIMENSION IS IN cm, NOT mm.
     Dim oExtrudeDef As ExtrudeDefinition = oCompDef.Features.ExtrudeFeatures.CreateExtrudeDefinition(oProfile, PartFeatureOperationEnum.kJoinOperation)
-    Dim oThickness As Double = Parameter("Thickness") / 10
-    Call oExtrudeDef.SetDistanceExtent(oThickness, PartFeatureExtentDirectionEnum.kSymmetricExtentDirection)
+	Dim oThickness As Double = Parameter("Thickness") / 10
+	Call oExtrudeDef.SetDistanceExtent("Thickness", PartFeatureExtentDirectionEnum.kNegativeExtentDirection)
+'    Call oExtrudeDef.SetDistanceExtent(oThickness, PartFeatureExtentDirectionEnum.kNegativeExtentDirection) ' PartFeatureExtentDirectionEnum.kSymmetricExtentDirection)
     Dim oExtrude1 As ExtrudeFeature = oCompDef.Features.ExtrudeFeatures.Add(oExtrudeDef)
+	oExtrude1.SetEndOfPart(True)
+	'Dim thick As UserParameter = oCompDef.Parameters("Thickness")
+	
+	oCompDef.SetEndOfPartToTopOrBottom(False)
 
-    ' NOT REQUIRED AT THIS STAGE.
-    '    ' Get the top face of the extrusion to use for creating the new sketch.
-    '    Dim oFrontFace As Face = oExtrude1.StartFaces.Item(1)
-    '
-    '    ' Create a new sketch on this face, but use the method that allows you to
-    '    ' control the orientation and orgin of the new sketch.
-    '    Set oSketch = oCompDef.Sketches.AddWithOrientation(oFrontFace, _
-    '    oCompDef.WorkAxes.Item(1), True, True, oCompDef.WorkPoints(1))
-    '
-    '    ' Determine where in sketch space the point (0.5,0.5,0) is.
-    '    Dim oCorner As Point2d = oSketch.ModelToSketchSpace(oTransGeom.CreatePoint(0.5, 0.5, 0))
-    '
-    '    ' Create the interior 3cm x 2cm rectangle for the pocket.
-    '    Set oRectangleLines = oSketch.SketchLines.AddAsTwoPointRectangle( _
-    '    oCorner, oTransGeom.CreatePoint2d(oCorner.X + 3, oCorner.Y + 2))
-    '
-    '    ' Create a profile.
-    '    Set oProfile = oSketch.Profiles.AddForSolid
-    '
-    '    ' Create a pocket .25 cm deep (using distance extent).
-    '    Set oExtrudeDef = oCompDef.Features.ExtrudeFeatures.CreateExtrudeDefinition(oProfile, kCutOperation)
-    '    Call oExtrudeDef.SetDistanceExtent(0.25, kNegativeExtentDirection)
-    '    Dim oExtrude2 As ExtrudeFeature = oCompDef.Features.ExtrudeFeatures.Add(oExtrudeDef)
-    '
-    '    ' Move the end of part above this extrude feature since the edit
-    '    ' we are going to perform on this feature involves BREP input.
-    '    Call oExtrude2.SetEndOfPart(True)
-    '
-    '    ' Get the back face of the first extrusion to use as termination plane.
-    '    Dim oBackFace As Face = oExtrude1.EndFaces.Item(1)
-    '
-    '    ' Change the extent type of the feature.
-    '    Call oExtrude2.Definition.SetToExtent(oBackFace, False)
-    '
-    '    ' Move the end of part back to bottom of the feature tree.
-    '    Call oCompDef.SetEndOfPartToTopOrBottom(False)
-    '
-    '    ' The following edit of the feature does not involve BREP input.
-    '    ' Hence, no need to move the end of part.
-    '    Call oExtrude2.Definition.SetDistanceExtent(0.25, kNegativeExtentDirection)
+' Extrusion 2
+    ' Get the top face of the extrusion to use for creating the new sketch.
+    Dim oFrontFace As Face = oExtrude1.StartFaces.Item(1)
 
-    iProperties.Value("Custom", "Vault Category") = Parameter("VaultCategory")
-    iProperties.Value("Custom", "MFG Code") = Parameter("MFGCode")
-    iProperties.Value("Custom", "Customer Name") = Parameter("CustomerName")
-
-
-    ThisApplication.ActiveView.Fit
-
-    'Opens iProperties dialogue
-    If Parameter("DisplayiPropertiesAfterFormFilled") Then
-        Dim iPropertiesCtrldef As Inventor.controldefinition = ThisApplication.CommandManager.ControlDefinitions.Item("PartiPropertiesCmd")
-        iPropertiesCtrldef.Execute()
-'	Else
-'		ActiveDoc.Save()
+    ' Create a new sketch on this face, but use the method that allows you to
+    ' control the orientation and orgin of the new sketch.
+    Dim Sketch2 As PlanarSketch = oCompDef.Sketches.AddWithOrientation(oFrontFace, oCompDef.WorkAxes.Item(1), True, True, oCompDef.WorkPoints(1))
+	' Create the sketch point for the origin, if it doesn't already exist.
+    
+	For Each oSketchPoint As SketchPoint In Sketch2.SketchPoints
+        If oSketchPoint.ReferencedEntity Is oOriginWP Then
+            oOriginSketchPoint = oSketchPoint
+            Exit For
+        End If
+    Next
+	
+	
+	If oOriginSketchPoint Is Nothing Then
+		messagebox.Show("Creating sketch origin")
+        ' Project the origin point onto the sketch.
+        oOriginSketchPoint = Sketch2.AddByProjectingEntity(oOriginWP)
     End If
+
+    ' Determine where in sketch space the point (0.5,0.5,0) is.
+    Dim oCorner As Point2d = Sketch2.ModelToSketchSpace(oTransGeom.CreatePoint((- Parameter("CutoutWidth") / 10) / 2, ((Parameter("Length") / 10) / 2) - (Parameter("CutoutDepth") / 10), 0)) ' Thickness))
+	
+	oRectangleLines = Nothing
+	
+    ' Create the interior 3cm x 2cm rectangle for the pocket.
+    oRectangleLines = Sketch2.SketchLines.AddAsTwoPointRectangle(oCorner, oTransGeom.CreatePoint2d(oCorner.X + 1, oCorner.Y + 0.5))
+	
+	debugrectanglelines(oRectangleLines, StartTime)
+	
+	TextPoint = ThisApplication.TransientGeometry.CreatePoint2d(0, ((Parameter("CutoutWidth") /10)+ 1 +((Parameter("Length") / 10) / 2)) / 2)
+	oConstraint = Sketch2.DimensionConstraints.AddTwoPointDistance(oRectangleLines(1).EndSketchPoint, oRectangleLines(3).EndSketchPoint, _
+																	DimensionOrientationEnum.kHorizontalDim, TextPoint)
+	oConstraint.Parameter.Expression = "CutoutWidth"
+	TextPoint = ThisApplication.TransientGeometry.CreatePoint2d(- ((Parameter("Length") / 10) / 2) - 10, ((Parameter("Length") / 10) / 2) + (Parameter("CutoutDepth") /10))
+	oConstraint = Sketch2.DimensionConstraints.AddTwoPointDistance(oRectangleLines(2).EndSketchPoint, oRectangleLines(4).EndSketchPoint, _
+																	DimensionOrientationEnum.kVerticalDim, TextPoint)
+	oConstraint.Parameter.Expression = "CutoutDepth"
+	TextPoint = ThisApplication.TransientGeometry.CreatePoint2d(- ((Parameter("CutoutWidth") / 10) / 2) - 10, (((Parameter("Length") / 10) / 2) - (Parameter("CutoutDepth") /10)) / 2)
+	Sketch2.DimensionConstraints.AddTwoPointDistance(oRectangleLines(2).StartSketchPoint, oOriginSketchPoint, DimensionOrientationEnum.kVerticalDim, TextPoint)
+
+	TextPoint = ThisApplication.TransientGeometry.CreatePoint2d(0, ((((Parameter("Length") / 10) / 2) - (Parameter("CutoutDepth") /10)) / 2) - 1)
+	oConstraint = Sketch2.DimensionConstraints.AddTwoPointDistance(oOriginSketchPoint, oRectangleLines(1).StartSketchPoint, DimensionOrientationEnum.kHorizontalDim, TextPoint)
+
+    ' Create a profile.
+    oProfile = Sketch2.Profiles.AddForSolid
+
+    ' Create a pocket .25 cm deep (using distance extent).
+    Dim oExtrudeDef2 As ExtrudeDefinition = oCompDef.Features.ExtrudeFeatures.CreateExtrudeDefinition(oProfile, PartFeatureOperationEnum.kCutOperation)
+    'Call oExtrudeDef.SetDistanceExtent(oThickness, PartFeatureExtentDirectionEnum.kNegativeExtentDirection)
+	Call oExtrudeDef2.SetThroughAllExtent(PartFeatureExtentDirectionEnum.kNegativeExtentDirection)
+'	
+    Dim oExtrude2 As ExtrudeFeature = oCompDef.Features.ExtrudeFeatures.Add(oExtrudeDef2)
+'	oExtrude2.SetEndofPart(True)
+'	oExtrude2.
+'	oCompDef.SetEndOfPartToTopOrBottom(False)
+'CIRCULAR PATTERN
+	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+	objColl.Add(oExtrude2)
+
+	Dim oRotation As String = PatternRotation '360 * 0.0174533
+	'MessageBox.Show(oRotation)
+	Dim circularPatternDef As CircularPatternFeatureDefinition = oCompDef.Features.CircularPatternFeatures.CreateDefinition( _
+																objColl, oCompDef.WorkAxes("Z Axis"), False, 4, "PatternRotation") 'oRotation)
+	Parameter.UpdateAfterChange = True
+	Dim circularPat As CircularPatternFeature = oCompDef.Features.CircularPatternFeatures.AddByDefinition(circularPatternDef)
+	circularPat.SetEndOfPart(True)
+'	circularPat.Definition.Angle = "PatternRotation"
+	'THIS IS A KLUDGE TO FIX AUTODESK'S BUG AND SHOULDN'T BE NECESSARY!:
+	'ALSO NOW NEED TO FIGURE OUT THE HIGHEST PARAMETER NUMBER AND USE THAT INSTEAD OF THE PREVIOUS d142!
+	Dim ModelParamList As List(Of ModelParameter) = New List(Of ModelParameter)
+	For Each MParameter As ModelParameter In oCompDef.Parameters.ModelParameters
+		ModelParamList.Add(MParameter)	
+	Next
+	
+	'debug
+	MessageBox.Show(ModelParamList.Count)
+	Dim maxParam As Parameter = Nothing
+	Dim maxParamNum As Integer = 0
+	If ModelParamList.Count > 0 Then
+		ModelParamList.Sort(Function(x As ModelParameter, y As ModelParameter) x.Name.CompareTo(y.Name))
+		'DEBUG:
+'		For Each mParam As ModelParameter In ModelParamList
+'			MessageBox.Show(mParam.Name)
+'		Next
+		maxParam = (From param As ModelParameter In ModelParamList Select param).Last()
+	End If
+	Dim p As ModelParameter = maxParam 'oCompDef.Parameters("d142") 'Parameter.Param("d142")
+	p.Expression = "PatternRotation"
+	oCompDef.SetEndOfPartToTopOrBottom(False)
+	
+'Centre Hole
+	Dim holeDef As HolePlacementDefinition = oCompDef.Features.HoleFeatures.CreatePointPlacementDefinition(oOriginWP, oCompDef.WorkAxes(3))
+	Dim ThruHole As HoleFeature = oCompDef.Features.HoleFeatures.AddDrilledByThroughAllExtent(holeDef, HoleDia / 10, PartFeatureExtentDirectionEnum.kPositiveExtentDirection)
+	Dim bodiesColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+	bodiesColl.Add(oCompDef.SurfaceBodies(1))
+	ThruHole.SetAffectedBodies(bodiesColl)
+	ThruHole.SetEndOfPart(True)
+	ThruHole.HoleDiameter.Expression = "HoleDia"
+	oCompDef.SetEndOfPartToTopOrBottom(False)
+' NOT SURE WHAT THIS IS FOR..?
+    ' Move the end of part above this extrude feature since the edit
+    ' we are going to perform on this feature involves BREP input.
+'    Call oExtrude2.SetEndOfPart(True)
+
+'    ' Get the back face of the first extrusion to use as termination plane.
+'    Dim oBackFace As Face = oExtrude1.EndFaces.Item(1)
+
+'    ' Change the extent type of the feature.
+'    Call oExtrude2.Definition.SetToExtent(oBackFace, False)
+
+'    ' Move the end of part back to bottom of the feature tree.
+'    Call oCompDef.SetEndOfPartToTopOrBottom(False)
+
+'    ' The following edit of the feature does not involve BREP input.
+'    ' Hence, no need to move the end of part.
+'    Call oExtrude2.Definition.SetDistanceExtent(0.25, kNegativeExtentDirection)
+
+iProperties.Value("Custom", "Vault Category") = Parameter("VaultCategory")
+iProperties.Value("Custom", "MFG Code") = Parameter("MFGCode")
+iProperties.Value("Custom", "Customer Name") = Parameter("CustomerName")
+
+
+ThisApplication.ActiveView.Fit
+
+'Opens iProperties dialogue
+If Parameter("DisplayiPropertiesAfterFormFilled") Then
+	Dim iPropertiesCtrldef As Inventor.ControlDefinition = ThisApplication.CommandManager.ControlDefinitions.Item("PartiPropertiesCmd")
+	iPropertiesCtrldef.Execute()
+End If
 
 End Sub
 
 Dim oOriginSketchPoint As SketchPoint
 
+''' <summary>
+''' only useful for debugging!
+''' </summary>
+''' <param name="oRectangleLines"></param>
+''' <param name="StartTime"></param>
+Public Sub debugrectanglelines(oRectangleLines As SketchEntitiesEnumerator, StartTime As DateTime)
+	Dim ElapsedTime As TimeSpan
+	Dim oLine As SketchLine
+	
+	For i As Integer = 1 To oRectangleLines.Count
+		ElapsedTime = Now().Subtract(StartTime)
+		ThisApplication.StatusBarText = oRectangleLines.Count
+		
+		'ThisApplication.StatusBarText = MessageBox.Show("Operation took " & ElapsedTime.TotalSeconds & " Seconds", "Graitec iLogic")
+		oLine = oRectangleLines(i)
+		If Parameter("HighlightSketchLines") Then
+			Dim oColor As Color = ThisApplication.TransientObjects.CreateColor(255, 0, 0) 'Red
+
+			Dim originalcolour As Color = oLine.OverrideColor
+			oLine.OverrideColor = oColor
+			MessageBox.Show("Operation took " & ElapsedTime.TotalSeconds & " Seconds", "Graitec iLogic")
+			oLine.OverrideColor = originalcolour
+		End If
+		
+	Next	
+End Sub
+
 Public Sub Draw_Rectangle()
     ' Check to make sure a sketch is open.
     If Not TypeOf ThisApplication.ActiveEditObject Is PlanarSketch Then
-        MsgBox("A sketch must be active.")
+        MsgBox ("A sketch must be active.")
         Exit Sub
     End If
 
@@ -178,29 +286,29 @@ Public Sub Draw_Rectangle()
 
     ' Set a reference to the transient geometry collection.
     Dim oTransGeom As TransientGeometry = ThisApplication.TransientGeometry
-
+     
     'Gets user input for size and converts english to metric (since the default input for making lines is metric)
     Dim oUOM As UnitsOfMeasure = ThisApplication.ActiveDocument.UnitsOfMeasure
     Dim x1, y1, x2, y2 As Double
-    Dim x, y As Double
+	Dim x,y As Double
     x = CDbl(InputBox(Prompt:="X dimension.", Title:="X", DefaultResponse:="1"))
     y = CDbl(InputBox(Prompt:="Y dimension.", Title:="Y", DefaultResponse:="1"))
     x1 = oUOM.GetValueFromExpression(-x / 2, "in")
     y1 = oUOM.GetValueFromExpression(-y / 2, "in")
     x2 = oUOM.GetValueFromExpression(x / 2, "in")
     y2 = oUOM.GetValueFromExpression(y / 2, "in")
-
+    
     'undo stuff
     Dim oTransMgr As TransactionManager = ThisApplication.TransactionManager
-    Dim oTrans As Transaction = oTransMgr.StartTransaction(ThisApplication.ActiveDocument, "undo rectangle")
+    Dim oTrans As Transaction  = oTransMgr.StartTransaction(ThisApplication.ActiveDocument, "undo rectangle")
     'undo stuff
-
+    
     'Drawing the lines
     'Dim oLines(1 To 4) As SketchLine
-    Dim oLine1 As Sketchline = oSketch.SketchLines.AddByTwoPoints(oTransGeom.CreatePoint2d(x1, y1), oTransGeom.CreatePoint2d(x1, y2))
-    Dim oLine2 As Sketchline = oSketch.SketchLines.AddByTwoPoints(oLine1.EndSketchPoint, oTransGeom.CreatePoint2d(x2, y2))
-    Dim oLine3 As Sketchline = oSketch.SketchLines.AddByTwoPoints(oLine2.EndSketchPoint, oTransGeom.CreatePoint2d(x2, y1))
-    Dim oLine4 As Sketchline = oSketch.SketchLines.AddByTwoPoints(oLine3.EndSketchPoint, oLine1.StartSketchPoint)
+    Dim oLine1 As SketchLine = oSketch.SketchLines.AddByTwoPoints(oTransGeom.CreatePoint2d(x1, y1), oTransGeom.CreatePoint2d(x1, y2))
+    Dim oLine2 As SketchLine = oSketch.SketchLines.AddByTwoPoints(oLine1.EndSketchPoint, oTransGeom.CreatePoint2d(x2, y2))
+    Dim oLine3 As SketchLine = oSketch.SketchLines.AddByTwoPoints(oLine2.EndSketchPoint, oTransGeom.CreatePoint2d(x2, y1))
+    Dim oLine4 As SketchLine = oSketch.SketchLines.AddByTwoPoints(oLine3.EndSketchPoint, oLine1.StartSketchPoint)
 
     'Setting up the constraints for the size of the rectangle
     Dim oConstraint As TwoPointDistanceDimConstraint
@@ -210,26 +318,26 @@ Public Sub Draw_Rectangle()
     oConstraint = oSketch.DimensionConstraints.AddTwoPointDistance(oLine2.StartSketchPoint, oLine2.EndSketchPoint, DimensionOrientationEnum.kHorizontalDim, TextPoint, False)
 
     'subroutine to make point on origin (couldn't find a way to just reference origin point)
-    Call Origin()
-
+    Call Origin
+    
     'Sets up getting parameters, so contraints from origin to rectangle can be turned into functions of the side lengths to keep the rectangle centered
     ' Get the Parameters object. Assumes a part or assembly document is active.
     Dim oParameters As Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
-
+    
     TextPoint = ThisApplication.TransientGeometry.CreatePoint2d(x1 / 2, y2 / 2)
     oConstraint = oSketch.DimensionConstraints.AddTwoPointDistance(oLine1.EndSketchPoint, oOriginSketchPoint, DimensionOrientationEnum.kVerticalDim, TextPoint, False)
 
     TextPoint = ThisApplication.TransientGeometry.CreatePoint2d(x2 / 2, y2 / 2)
     oConstraint = oSketch.DimensionConstraints.AddTwoPointDistance(oLine2.EndSketchPoint, oOriginSketchPoint, DimensionOrientationEnum.kHorizontalDim, TextPoint, False)
-
+    
     ' Get the parameter.
     Dim oLengthParam As Parameter = oParameters.Item("d2")
     oLengthParam.Expression = "d0/2"
     oLengthParam = oParameters.Item("d3")
     oLengthParam.Expression = "d1/2"
-
+    
     oTrans.End 'end undo
-
+    
     ' Update the document.
     ThisApplication.ActiveDocument.Update
     'Zoom to fit
@@ -245,9 +353,9 @@ Private Sub Origin()
 
     ' Get an existing sketch.  This arbitrarily gets the first sketch.
     Dim oSketch As PlanarSketch = oPartDef.Sketches.Item(1)
-
+   
     ' Check to see if there's a point in the sketch that represents the origin.
-    Dim oOriginWP As WorkPoint = oPartDef.WorkPoints.Item(1)
+    Dim oOriginWP As WorkPoint  = oPartDef.WorkPoints.Item(1)
     'set as global above
     'Dim oOriginSketchPoint As SketchPoint
     Dim oSketchPoint As SketchPoint
@@ -257,11 +365,11 @@ Private Sub Origin()
             Exit For
         End If
     Next
-
+   
     ' Create the sketch point for the origin, if it doesn't already exist.
     If oOriginSketchPoint Is Nothing Then
         ' Project the origin point onto the sketch.
         oOriginSketchPoint = oSketch.AddByProjectingEntity(oPartDef.WorkPoints.Item(1))
     End If
-
+   
 End Sub
