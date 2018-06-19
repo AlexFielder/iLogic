@@ -1,0 +1,40 @@
+﻿Sub Main()
+Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument,"Pattern Tunnel Segments and Stuff")
+Try
+	Dim AssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
+	Dim AssyDef As AssemblyComponentDefinition = AssyDoc.ComponentDefinition
+	Dim CompOccs As ComponentOccurrences = AssyDef.Occurrences
+	Dim compSegment As ComponentOccurrence = CompOccs.ItemByName("Segment1:1")
+	Dim compKeyStone As ComponentOccurrence = CompOccs.ItemByName("Keystone:1")
+	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+
+	Dim XAxis As WorkAxis
+	Dim YAxis As WorkAxis
+	Dim ZAxis As WorkAxis
+
+	With AssyDef
+		XAxis = .WorkAxes(1)
+		YAxis = .WorkAxes(2)
+		ZAxis = .WorkAxes(3)
+	End With
+
+	objColl.Add(compSegment)
+
+	Dim PatternAngleRads As Double = (Parameter("Segment1:1", "LargeSegmentAngle") * 0.0174533)
+	Dim CircOccPattern As CircularOccurrencePattern = AssyDef.OccurrencePatterns.AddCircularPattern(objColl, ZAxis, True, PatternAngleRads, Parameter("Segment1:1", "NumLargeSegments"))
+
+	CircOccPattern.Name = "TBMSegmentPattern"
+	objColl.Clear()
+	objColl.Add(CircOccPattern)
+	objColl.Add(compKeyStone)
+	Dim PatternLength As Double = Parameter("Segment1:1", "SegmentLength") / 10
+	Dim RectOccPattern As RectangularOccurrencePattern = AssyDef.OccurrencePatterns.AddRectangularPattern(objColl, ZAxis, False, PatternLength, 10)
+	
+	trans.End()
+Catch ex As Exception
+	trans.Abort()
+	MessageBox.Show("Failed with the following error: " & ex.Message)
+End Try
+	
+
+End Sub
