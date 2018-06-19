@@ -4,8 +4,11 @@ Try
 	Dim AssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
 	Dim AssyDef As AssemblyComponentDefinition = AssyDoc.ComponentDefinition
 	Dim CompOccs As ComponentOccurrences = AssyDef.Occurrences
-	Dim compSegment As ComponentOccurrence = CompOccs.ItemByName("Segment1:1")
-	Dim compKeyStone As ComponentOccurrence = CompOccs.ItemByName("Keystone:1")
+	'this is a bit of a kludge since we should be able to 
+	Dim compSegment1 As ComponentOccurrence = CompOccs.ItemByName("Segment1:1")
+	Dim compSegment2 As ComponentOccurrence = CompOccs.ItemByName("Segment2:1")
+	Dim compKeyStone1 As ComponentOccurrence = CompOccs.ItemByName("Keystone:1")
+	Dim compKeyStone2 As ComponentOccurrence = CompOccs.ItemByName("Keystone2:1")
 	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
 
 	Dim XAxis As WorkAxis
@@ -18,7 +21,8 @@ Try
 		ZAxis = .WorkAxes(3)
 	End With
 
-	objColl.Add(compSegment)
+	objColl.Add(compSegment1)
+	objColl.Add(compSegment2)
 
 	Dim PatternAngleRads As Double = (Parameter("Segment1:1", "LargeSegmentAngle") * 0.0174533)
 	Dim CircOccPattern As CircularOccurrencePattern = AssyDef.OccurrencePatterns.AddCircularPattern(objColl, ZAxis, True, PatternAngleRads, Parameter("Segment1:1", "NumLargeSegments"))
@@ -26,14 +30,23 @@ Try
 	CircOccPattern.Name = "TBMSegmentPattern"
 	objColl.Clear()
 	objColl.Add(CircOccPattern)
-	objColl.Add(compKeyStone)
-	Dim PatternLength As Double = Parameter("Segment1:1", "SegmentLength") / 10
+	objColl.Add(compKeyStone1)
+	objColl.Add(compKeyStone2)
+	Dim PatternLength As Double = (Parameter("Segment1:1", "SegmentLength") / 10) * 2
 	Dim RectOccPattern As RectangularOccurrencePattern = AssyDef.OccurrencePatterns.AddRectangularPattern(objColl, ZAxis, False, PatternLength, 10)
+	RectOccPattern.Name = "PatternedTunnelSegments"
+	objColl.Clear()
+	'doesn't work yet!
+'	objColl.Add(RectOccPattern)
+'	p = Parameter("Segment1:1", "ExteriorSprayedLength")
+'	Dim TunnelLength As Double = Parameter("Segment1:1", "ExteriorSprayedLength") / 10
+'	Dim TunnelOppositeLength As Double = (TunnelLength + RectOccPattern.ColumnOffset.Value) / 10
+'	Dim RectPatternPattern As RectangularOccurrencePattern = AssyDef.OccurrencePatterns.AddRectangularPattern(objColl, ZAxis, True, TunnelLength, 2)
 	
 	trans.End()
 Catch ex As Exception
 	trans.Abort()
-	MessageBox.Show("Failed with the following error: " & ex.Message)
+	MessageBox.Show("Failed with the following error: " & ex.Message & " " & ex.StackTrace)
 End Try
 	
 
