@@ -18,17 +18,23 @@ Sub Main()
 
 	for each derivedPartComp as DerivedPartComponent in DerivedCompList
 		Dim listofObjectsToPush as List(Of Object) = new List(Of Object)
-		listofObjectsToPush.Add(GetNamedEntity(derivedPartComp.Document, ""))
-		If listofObjectsToPush.count > 0
-			
-		then
-	next
+		listofObjectsToPush.Add(GetNamedGeometry(derivedPartComp.Document, ""))
+		If listofObjectsToPush.Count > 0 Then
+			PushNamedGeometryToDerivedParts(listofObjectsToPush)
+		Else
+			MessageBox.Show("No Named Geometry found to push in: " & derivedPartComp.Name)
+		End If
+	Next
 	
 	'Attempting to get the named geometry from the derived part file in each component.
-	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
-	Dim DerivedColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+'	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+'	Dim DerivedColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
 	
 	
+	
+End Sub
+
+Public Sub PushNamedGeometryToDerivedParts(listToPush As List(Of Object))
 	
 End Sub
 
@@ -40,6 +46,24 @@ Public Sub GetNameTest()
     Dim doc As PartDocument = ThisApplication.ActiveDocument
     Dim faceOrEdge As Object = GetNamedEntity(doc, "Brian")
 End Sub
+
+''' <summary>
+''' Returns a list of objects from the supplied document
+''' </summary>
+''' <param name="doc"></param>
+''' <param name="name"></param>
+''' <returns></returns>
+Public Function GetNamedGeometry(doc As Document, name As String) As List(Of Object)
+	Dim listofNamedGeom As List(Of Object) = New List(Of Object)
+	
+	
+	
+	If listofNamedGeom.Count > 0 Then
+		Return listofNamedGeom
+	Else
+		Return Nothing
+	End If
+End Function
 
 ''' <summary>
 ''' This method copied from here:
