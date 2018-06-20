@@ -1,0 +1,20 @@
+imports System
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisDoc.Document,"Stack boxes")
+	Try
+		For i As Integer = 1 To 9
+			If (i < 9)
+				Constraints.AddMate("Mate:" & i.ToString(), "Snow Box:" & i.ToString(), "Top","Snow Box:" & (i+1).ToString(), "Bottom",
+	            offset := 0.0, e1InferredType := InferredTypeEnum.kNoInference, e2InferredType := InferredTypeEnum.kNoInference,
+	            solutionType := MateConstraintSolutionTypeEnum.kNoSolutionType,
+	            biasPoint1 := Nothing, biasPoint2 := Nothing)
+				Constraints.AddFlush("FlushXY:" & i.ToString(), "Snow Box:" & i.ToString(), "XY Plane", "Snow Box:" & (i+1).ToString(), "XY Plane",
+		        offset := 0.0, biasPoint1 := Nothing, biasPoint2 := Nothing)
+				Constraints.AddFlush("FlushYZ:" & i.ToString(), "Snow Box:" & i.ToString(), "YZ Plane", "Snow Box:" & (i+1).ToString(), "YZ Plane",
+		        offset := 0.0, biasPoint1 := Nothing, biasPoint2 := Nothing)
+			End If
+		Next i
+		trans.End()
+	Catch ex As Exception
+		trans.Abort()
+	End Try
+	

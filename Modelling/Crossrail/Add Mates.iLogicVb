@@ -1,0 +1,9 @@
+Dim NumBlocksHigh As Integer = Convert.ToInt32(InputBox("How many rows high?", "Num blocks high", "3"))
+Dim numrows As Integer = Convert.ToInt32(InputBox("Number of Rows?", "Number of rows high", "3"))
+Dim staggeredbuild As Boolean = MessageBox.Show("Number of Rows?", "Number of rows high", MessageBoxButtons.YesNo)
+break '< use this With Visual Studio To debug iLogic!
+Console.WriteLine("Hello World!")
+Debug.Print(NumBlocksHigh & " " & numrows & " " & staggeredbuild)
+
+Constraints.AddMate("Mate:11", "Snow Block:12", "SIDE01", "Snow Box:10",
+                    "BOTTOM")

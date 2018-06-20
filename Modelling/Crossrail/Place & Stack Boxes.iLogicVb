@@ -1,0 +1,22 @@
+Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisDoc.Document, "Place & Stack blocks")
+Dim numblocks As Integer = Convert.ToInt32(InputBox("How many blocks?", "Number of blocks", 10))
+	Try
+		For i As Integer = 1 To numblocks
+			Dim componentA = Components.Add("Snow Block:" & (i).ToString(), "Snow Block.ipt", position := Nothing, grounded := False, visible := True, appearance := Nothing)
+			componentA = Components.Add("Snow Block:" & (i+1).ToString(), "Snow Block.ipt", position := Nothing, grounded := False, visible := True, appearance := Nothing)
+			If (i < numblocks + 1)
+				Constraints.AddMate("Mate:" & i.ToString(), "Snow Block:" & i.ToString(), "Top","Snow Block:" & (i+1).ToString(), "Bottom",
+	            offset := 0.0, e1InferredType := InferredTypeEnum.kNoInference, e2InferredType := InferredTypeEnum.kNoInference,
+	            solutionType := MateConstraintSolutionTypeEnum.kNoSolutionType,
+	            biasPoint1 := Nothing, biasPoint2 := Nothing)
+				Constraints.AddFlush("FlushXY:" & i.ToString(), "Snow Block:" & i.ToString(), "XY Plane", "Snow Block:" & (i+1).ToString(), "XY Plane",
+		        offset := 0.0, biasPoint1 := Nothing, biasPoint2 := Nothing)
+				Constraints.AddFlush("FlushYZ:" & i.ToString(), "Snow Block:" & i.ToString(), "YZ Plane", "Snow Block:" & (i+1).ToString(), "YZ Plane",
+		        offset := 0.0, biasPoint1 := Nothing, biasPoint2 := Nothing)
+			End If
+		Next i
+		trans.End()
+	Catch ex As Exception
+		MessageBox.Show(ex.Message)
+		trans.Abort()
+	End Try

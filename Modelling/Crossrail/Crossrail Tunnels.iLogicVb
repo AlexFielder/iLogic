@@ -1,14 +1,21 @@
-﻿Sub Main()
+﻿Imports System.Linq
+Sub Main()
 Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument,"Pattern Tunnel Segments and Stuff")
 Try
 	Dim AssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
 	Dim AssyDef As AssemblyComponentDefinition = AssyDoc.ComponentDefinition
 	Dim CompOccs As ComponentOccurrences = AssyDef.Occurrences
-	'this is a bit of a kludge since we should be able to 
+	'this is a bit of a kludge since we should be able to constrain the initial elements in the assembly to copies of themselves without patterning.
 	Dim compSegment1 As ComponentOccurrence = CompOccs.ItemByName("Segment1:1")
 	Dim compSegment2 As ComponentOccurrence = CompOccs.ItemByName("Segment2:1")
 	Dim compKeyStone1 As ComponentOccurrence = CompOccs.ItemByName("Keystone:1")
 	Dim compKeyStone2 As ComponentOccurrence = CompOccs.ItemByName("Keystone2:1")
+	Dim SprayedBlend As ComponentOccurrence = CompOccs.ItemByName("Sprayed Blend:1")
+	Dim ExteriorSprayedConc As ComponentOccurrence = CompOccs.ItemByName("Exterior Sprayed Concrete:1")
+	Dim ExtSprayedConcDoc As PartDocument = ExteriorSprayedConc.Definition.Document
+	Dim MirrorWP As WorkPlane = (From wp As WorkPlane In ExtSprayedConcDoc.ComponentDefinition.WorkPlanes
+								Where wp.name = "Work Plane Midplane Sprayed"
+								Select wp).FirstOrDefault()
 	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
 
 	Dim XAxis As WorkAxis
@@ -36,6 +43,18 @@ Try
 	Dim RectOccPattern As RectangularOccurrencePattern = AssyDef.OccurrencePatterns.AddRectangularPattern(objColl, ZAxis, False, PatternLength, 10)
 	RectOccPattern.Name = "PatternedTunnelSegments"
 	objColl.Clear()
+	objColl.Add(RectOccPattern)
+	objColl.Add(SprayedBlend)
+	'no guarantees this will work - may need to unwrap all occurrencepattern collections...?
+'	For Each obj As Object In objColl
+'		If TypeOf (obj) Is RectangularOccurrencePattern Then
+'			MirrorPartInAssy(AssyDoc, MirrorWP, obj)
+'		Else If TypeOf (obj) Is ComponentOccurrence Then
+			
+'		Else
+				
+'		End If
+'	Next
 	'doesn't work yet!
 '	objColl.Add(RectOccPattern)
 '	p = Parameter("Segment1:1", "ExteriorSprayedLength")
@@ -50,4 +69,81 @@ Catch ex As Exception
 End Try
 	
 
+End Sub
+
+''' <summary>
+''' ''' copied from here:
+''' http://adndevblog.typepad.com/manufacturing/2014/02/mirror-component-in-assembly.html
+''' </summary>
+''' <param name="oMirrorWP">One of our origin workplanes</param>
+Sub MirrorPartInAssy(ByVal oAssDoc As AssemblyDocument, ByVal oMirrorWP As WorkPlane, ByVal oOcc1 As ComponentOccurrence)
+
+    'Dim oAssDoc As AssemblyDocument = g_inventorApplication.ActiveDocument
+
+    'mirror plane 
+    'Dim oMirrorWP As WorkPlane = oAssDoc.SelectSet(1)
+
+    Dim oPlane As Plane = oMirrorWP.Plane
+
+    'get normal of the plane 
+    Dim oNormalX As Double
+    oNormalX = oPlane.Normal.X
+
+    Dim oNormalY As Double
+    oNormalY = oPlane.Normal.Y
+
+    Dim oNormalZ As Double
+    oNormalZ = oPlane.Normal.Z
+
+    'create the mirroring matrix 
+    Dim oMirrorMatrix As Matrix = ThisApplication.TransientGeometry.CreateMatrix()
+    Dim oMatrixData(15) As Double
+    oMatrixData(0) = 1 - 2 * oNormalX * oNormalX
+    oMatrixData(1) = -2 * oNormalX * oNormalY
+    oMatrixData(2) = -2 * oNormalX * oNormalZ
+    oMatrixData(3) = 0
+
+    oMatrixData(4) = -2 * oNormalX * oNormalY
+    oMatrixData(5) = 1 - 2 * oNormalY * oNormalY
+    oMatrixData(6) = -2 * oNormalZ * oNormalY
+    oMatrixData(7) = 0
+
+    oMatrixData(8) = -2 * oNormalX * oNormalZ
+    oMatrixData(9) = -2 * oNormalZ * oNormalY
+    oMatrixData(10) = 1 - 2 * oNormalZ * oNormalZ
+    oMatrixData(11) = 0
+
+    oMatrixData(12) = 0
+    oMatrixData(13) = 0
+    oMatrixData(14) = 0
+    oMatrixData(15) = 1
+
+    Call oMirrorMatrix.PutMatrixData(oMatrixData)
+
+    'get the first component 
+    'Dim oOcc As ComponentOccurrence = oAssDoc.ComponentDefinition.Occurrences(1)
+
+    'multiply with the transformation of the parent component 
+    oMirrorMatrix.PostMultiplyBy(oOcc1.Transformation)
+
+    Dim oParentPartPath As String
+    oParentPartPath = oOcc1.Definition.Document.FullFileName
+
+    ' Create a new part file to derive the  part in. 
+    Dim oPartDoc As PartDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject, ThisApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kPartDocumentObject))
+
+    ' Create a derived definition for the  part. 
+    Dim oDerivedPartDef As DerivedPartTransformDef = oPartDoc.ComponentDefinition.ReferenceComponents.DerivedPartComponents.CreateTransformDef(oParentPartPath)
+
+    ' Create the derived part. 
+    Call oPartDoc.ComponentDefinition.ReferenceComponents.DerivedPartComponents.Add(oDerivedPartDef)
+    'save the derived part. 
+
+    Dim mirroredpartname As String = IO.Path.GetDirectoryName(oParentPartPath) & "\" & IO.Path.GetFileNameWithoutExtension(oParentPartPath) & "_MIR.ipt"
+    Call oPartDoc.SaveAs(mirroredpartname, False)
+    'add the derived part as a component 
+    Call oAssDoc.ComponentDefinition.Occurrences.Add(oPartDoc.FullFileName, oMirrorMatrix)
+    oPartDoc.Close()
+    'activate the assembly document 
+    oAssDoc.Activate()
 End Sub
