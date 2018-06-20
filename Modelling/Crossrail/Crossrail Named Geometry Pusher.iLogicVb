@@ -6,36 +6,46 @@ Sub Main()
 	Dim AssyDef As AssemblyComponentDefinition = AssyDoc.ComponentDefinition
 	
 	Dim CompOccs As ComponentOccurrences = AssyDef.Occurrences
-	Dim DerivedCompList As List(Of DerivedPartComponent) = (From tmpDoc As Document In AssyDoc.AllReferencedDocuments
-															Where TypeOf tmpDoc Is PartDocument
-															Let partDoc As PartDocument = tmpDoc
-															Let partDef As PartComponentDefinition = partDoc.ComponentDefinition
-															Where Not partDef.ReferenceComponents.DerivedPartComponents Is Nothing
-															Where Not partDef.ReferenceComponents.DerivedPartComponents.Count = 0
-															Let derivedPartComp As DerivedPartComponent = partDef.ReferenceComponents.DerivedPartComponents(1)
-															Select derivedPartComp).ToList()
-	MessageBox.Show("Count of derived components = " & DerivedCompList.Count)
+	DerivedCompList = (From tmpDoc As Document In AssyDoc.AllReferencedDocuments
+						Where TypeOf tmpDoc Is PartDocument
+						Let partDoc As PartDocument = tmpDoc
+						Let partDef As PartComponentDefinition = partDoc.ComponentDefinition
+						Where Not partDef.ReferenceComponents.DerivedPartComponents Is Nothing
+						Where Not partDef.ReferenceComponents.DerivedPartComponents.Count = 0
+						Let derivedPartComp As DerivedPartComponent = partDef.ReferenceComponents.DerivedPartComponents(1)
+						Select derivedPartComp).ToList()
+	If DerivedCompList.Count > 0 Then
+		MessageBox.Show("Count of derived components = " & DerivedCompList.Count)
 
-	For Each derivedPartComp As DerivedPartComponent In DerivedCompList
-		Dim listofObjectsToPush As List(Of Object) = New List(Of Object)
-		listofObjectsToPush.AddRange(GetNamedGeometry(tmpDoc, "*"))
-		If listofObjectsToPush.Count > 0 Then
-			PushNamedGeometryToDerivedParts(listofObjectsToPush)
-		Else
-			MessageBox.Show("No Named Geometry found to push in: " & derivedPartComp.Name)
-		End If
-	Next
-	
-	'Attempting to get the named geometry from the derived part file in each component.
-'	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
-'	Dim DerivedColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
-	
+		For Each derivedPartComp As DerivedPartComponent In DerivedCompList
+			Dim tmpDef As DerivedPartDefinition = derivedPartComp.Definition
+			Dim tmpDoc As PartDocument = derivedPartComp.ReferencedDocumentDescriptor.ReferencedDocument
+			Dim listofObjectsToPush As List(Of Object) = New List(Of Object)
+			listofObjectsToPush.AddRange(GetNamedGeometry(tmpDoc, "*"))
+			If listofObjectsToPush.Count > 0 Then
+				PushNamedGeometryToDerivedParts(listofObjectsToPush)
+			Else
+				MessageBox.Show("No Named Geometry found to push in: " & derivedPartComp.Name)
+			End If
+		Next
+		
+		'Attempting to get the named geometry from the derived part file in each component.
+	'	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+	'	Dim DerivedColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+	End If
 	
 	
 End Sub
 
+Public DerivedCompList As List(Of DerivedPartComponent) = New List(Of DerivedPartComponent)
+
 Public Sub PushNamedGeometryToDerivedParts(listToPush As List(Of Object))
-	
+	For Each derivedComp As DerivedPartComponent In DerivedCompList
+			
+	Next
+'	For Each obj As Object In listToPush
+		
+'	Next
 End Sub
 
 ''' <summary>
@@ -56,7 +66,11 @@ End Sub
 Public Function GetNamedGeometry(doc As Document, name As String) As List(Of Object)
 	Dim listofNamedGeom As List(Of Object) = New List(Of Object)
 	Dim attribMgr As AttributeManager = doc.AttributeManager
+    Dim objsFound As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
     objsFound = attribMgr.FindObjects("iLogicEntityNameSet", "iLogicEntityName", name)
+	If Not objsFound.Count = 0 Then
+		'debug
+		MessageBox.Show("Count of items found in iLogicEntityNameSet = " & objsFound.Count)
 		For i = 1 To objsFound.Count
 			listofNamedGeom.Add(objsFound.Item(i))		
 		Next i
