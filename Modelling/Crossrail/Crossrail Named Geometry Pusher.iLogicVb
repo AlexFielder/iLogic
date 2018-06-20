@@ -1,1 +1,53 @@
-﻿
+﻿Imports System.Linq
+Imports System.Collections.Generic
+
+Sub Main()
+	Dim AssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
+	Dim AssyDef As AssemblyComponentDefinition = AssyDoc.ComponentDefinition
+	
+	Dim CompOccs As ComponentOccurrences = AssyDef.Occurrences
+	Dim DerivedCompList As List(Of DerivedPartComponent) = (From tmpDoc As Document In AssyDoc.AllReferencedDocuments
+															Where TypeOf tmpDoc Is PartDocument
+															Let partDoc As PartDocument = tmpDoc
+															Let partDef As PartComponentDefinition = partDoc.ComponentDefinition
+															Where Not partDef.ReferenceComponents.DerivedPartComponents Is Nothing
+															Where Not partDef.ReferenceComponents.DerivedPartComponents.Count = 0
+															Let derivedPartComp As DerivedPartComponent = partDef.ReferenceComponents.DerivedPartComponents(1)
+															Select derivedPartComp).ToList()
+	MessageBox.Show("Count of derived components = " & DerivedCompList.Count)
+
+	'Attempting to get the named geometry from the derived part file in each component.
+	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+	Dim DerivedColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+	
+	
+	
+End Sub
+
+''' <summary>
+''' This method copied from here:
+''' https://forums.autodesk.com/t5/inventor-customization/vb-net-find-face-by-face-name/m-p/7950234/highlight/true#M83557
+''' </summary>
+Public Sub GetNameTest()
+    Dim doc As PartDocument = ThisApplication.ActiveDocument
+    Dim faceOrEdge As Object = GetNamedEntity(doc, "Brian")
+End Sub
+
+''' <summary>
+''' This method copied from here:
+''' https://forums.autodesk.com/t5/inventor-customization/vb-net-find-face-by-face-name/m-p/7950234/highlight/true#M83557
+''' </summary>
+''' <param name="doc">Document to search</param>
+''' <param name="name">Object To look for</param>
+''' <returns></returns>
+Public Function GetNamedEntity(doc As Inventor.Document, name As String) As Object
+    Dim attribMgr As AttributeManager = doc.AttributeManager
+    Dim objsFound As ObjectCollection
+    objsFound = attribMgr.FindObjects("iLogicEntityNameSet", "iLogicEntityName", name)
+    
+    If objsFound.Count > 0 Then
+        Return(objsFound.Item(1))
+    Else
+        Return(Nothing)
+    End If
+End Function
