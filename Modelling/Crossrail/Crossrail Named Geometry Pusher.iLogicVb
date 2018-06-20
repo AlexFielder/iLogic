@@ -16,9 +16,9 @@ Sub Main()
 															Select derivedPartComp).ToList()
 	MessageBox.Show("Count of derived components = " & DerivedCompList.Count)
 
-	for each derivedPartComp as DerivedPartComponent in DerivedCompList
-		Dim listofObjectsToPush as List(Of Object) = new List(Of Object)
-		listofObjectsToPush.Add(GetNamedGeometry(derivedPartComp.Document, ""))
+	For Each derivedPartComp As DerivedPartComponent In DerivedCompList
+		Dim listofObjectsToPush As List(Of Object) = New List(Of Object)
+		listofObjectsToPush.AddRange(GetNamedGeometry(tmpDoc, "*"))
 		If listofObjectsToPush.Count > 0 Then
 			PushNamedGeometryToDerivedParts(listofObjectsToPush)
 		Else
@@ -55,8 +55,12 @@ End Sub
 ''' <returns></returns>
 Public Function GetNamedGeometry(doc As Document, name As String) As List(Of Object)
 	Dim listofNamedGeom As List(Of Object) = New List(Of Object)
-	
-	
+	Dim attribMgr As AttributeManager = doc.AttributeManager
+    objsFound = attribMgr.FindObjects("iLogicEntityNameSet", "iLogicEntityName", name)
+		For i = 1 To objsFound.Count
+			listofNamedGeom.Add(objsFound.Item(i))		
+		Next i
+	End If
 	
 	If listofNamedGeom.Count > 0 Then
 		Return listofNamedGeom
@@ -76,7 +80,8 @@ Public Function GetNamedEntity(doc As Inventor.Document, name As String) As Obje
     Dim attribMgr As AttributeManager = doc.AttributeManager
     Dim objsFound As ObjectCollection
     objsFound = attribMgr.FindObjects("iLogicEntityNameSet", "iLogicEntityName", name)
-    
+    'debug
+	MessageBox.Show("Count of items found in iLogicEntityNameSet = " & objsFound.Count)
     If objsFound.Count > 0 Then
         Return(objsFound.Item(1))
     Else
