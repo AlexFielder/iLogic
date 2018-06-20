@@ -16,6 +16,14 @@ Sub Main()
 															Select derivedPartComp).ToList()
 	MessageBox.Show("Count of derived components = " & DerivedCompList.Count)
 
+	for each derivedPartComp as DerivedPartComponent in DerivedCompList
+		Dim listofObjectsToPush as List(Of Object) = new List(Of Object)
+		listofObjectsToPush.Add(GetNamedEntity(derivedPartComp.Document, ""))
+		If listofObjectsToPush.count > 0
+			
+		then
+	next
+	
 	'Attempting to get the named geometry from the derived part file in each component.
 	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
 	Dim DerivedColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
