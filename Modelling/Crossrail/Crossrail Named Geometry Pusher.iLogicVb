@@ -25,7 +25,7 @@ Sub Main()
 			Dim listofObjectsToPush As List(Of Object) = New List(Of Object)
 			listofObjectsToPush.AddRange(GetNamedGeometry(tmpDoc, "*"))
 			If listofObjectsToPush.Count > 0 Then
-				PushNamedGeometryToDerivedParts(listofObjectsToPush)
+				PushNamedGeometryToDerivedParts(AssyDoc, listofObjectsToPush)
 			Else
 				MessageBox.Show("No Named Geometry found to push in: " & derivedPartComp.Name)
 			End If
@@ -41,20 +41,47 @@ End Sub
 
 Public DerivedCompList As List(Of DerivedPartComponent) = New List(Of DerivedPartComponent)
 
-Public Sub PushNamedGeometryToDerivedParts(listToPush As List(Of Object))
+Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPush As List(Of Object))
 	
 	For Each derivedComp As DerivedPartComponent In DerivedCompList
 		'Dim referencedDoc As Document = derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
-		Dim docToEdit As PartDocument = derivedComp.ReferencedDocumentDescriptor.ReferencedDocument 'CType(referencedDoc, PartDocument)
-		Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
-		'Edges
-		For Each edgeToCheck As Edge In surfacebodyToEdit.Edges
+		'this next line needs to get the derived document from the allreferenceddocuments collection otherwise we're just checking the original Multi-Body Part file again.
+		Dim defToEdit As DerivedPartDefinition = derivedComp.Definition
+		Dim docToEdit As PartDocument = (From doc As Document In AssyDoc.AllReferencedDocuments
+										Where TypeOf doc Is PartDocument
+										Let partDoc As PartDocument = doc
+										Where partDoc Is derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
+										Select partDoc).FirstOrDefault()
+		If Not docToEdit Is Nothing Then											
+	'		Dim docToEdit As PartDocument = derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
+			Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
+			'Split the listToPush into faces or edges lists
+			Dim edgesToEditList As List(Of Edge) = (From x As Object In listToPush
+													Where TypeOf x Is Edge
+													Let thisEdge As Edge = x
+													Select thisEdge).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Edge).Tolist(Of Edge)
+			Dim facesToEditList As List(Of Face) = (From x As Object In listToPush
+													Where TypeOf x Is Face
+													Let thisFace As Face = x
+													Select thisFace).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Face).Tolist(Of Face)
 			Break
-		Next
-		'Faces
-		For Each faceToCheck As Face In surfacebodyToEdit.Faces
-			Break
-		Next
+			'Edges
+			For Each edgeToCheck As Edge In surfacebodyToEdit.Edges
+				Dim edgeToEdit As Edge = edgesToEditList.Find(Function(matchEdge As Edge) matchEdge.TransientKey = edgeToCheck.TransientKey)
+				If Not edgeToEdit Is Nothing Then
+					Break
+				End If
+			Next
+			'Faces
+			For Each faceToCheck As Face In surfacebodyToEdit.Faces
+				Dim faceToEdit As Edge = facesToEditList.Find(Function(matchface As Face) matchface.TransientKey = faceToCheck.TransientKey)
+				If Not faceToEdit Is Nothing Then
+					Break
+				End If
+			Next
+		Else
+			messagebox.Show("Something broke!")
+		End If
 	Next
 '	For Each obj As Object In listToPush
 		
