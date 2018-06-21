@@ -1,4 +1,6 @@
-﻿Imports System.Linq
+﻿Option Explicit On
+
+Imports System.Linq
 Imports System.Collections.Generic
 
 Sub Main()
@@ -40,8 +42,19 @@ End Sub
 Public DerivedCompList As List(Of DerivedPartComponent) = New List(Of DerivedPartComponent)
 
 Public Sub PushNamedGeometryToDerivedParts(listToPush As List(Of Object))
+	
 	For Each derivedComp As DerivedPartComponent In DerivedCompList
-			
+		'Dim referencedDoc As Document = derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
+		Dim docToEdit As PartDocument = derivedComp.ReferencedDocumentDescriptor.ReferencedDocument 'CType(referencedDoc, PartDocument)
+		Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
+		'Edges
+		For Each edgeToCheck As Edge In surfacebodyToEdit.Edges
+			Break
+		Next
+		'Faces
+		For Each faceToCheck As Face In surfacebodyToEdit.Faces
+			Break
+		Next
 	Next
 '	For Each obj As Object In listToPush
 		
