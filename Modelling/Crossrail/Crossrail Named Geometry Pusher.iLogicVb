@@ -47,14 +47,28 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 		'Dim referencedDoc As Document = derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
 		'this next line needs to get the derived document from the allreferenceddocuments collection otherwise we're just checking the original Multi-Body Part file again.
 		Dim defToEdit As DerivedPartDefinition = derivedComp.Definition
-		Dim docToEdit As PartDocument = (From doc As Document In AssyDoc.AllReferencedDocuments
-										Where TypeOf doc Is PartDocument
-										Let partDoc As PartDocument = doc
-										Where partDoc Is derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
-										Select partDoc).FirstOrDefault()
-		If Not docToEdit Is Nothing Then											
+		'this works but gets the parent MBPart file instead!
+'		Dim docToEdit As PartDocument = (From doc As Document In AssyDoc.AllReferencedDocuments
+'										Where TypeOf doc Is PartDocument
+'										Let partDoc As PartDocument = doc
+'										Where partDoc Is derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
+'										Select partDoc).FirstOrDefault()
+'		If Not docToEdit Is Nothing Then
+			'check for and add if not existing the iLogicEntityNameSet attributeset
+'			Dim iLogicAttSet As AttributeSet = docToEdit.AttributeSets("")
+			Dim existingAttSets As Boolean = derivedComp.AttributeSets.NameIsUsed("iLogicEntityNameSet")
+			If existingAttSets Then
+				Break
+				Dim attribSetsEnum As AttributeSetsEnumerator = derivedComp.AttributeSets("iLogicEntityNameSet") 'docToEdit.AttributeManager.FindAttributeSets("iLogicEntityNameSet")
+				If Not attribSetsEnum Is Nothing Then
+					For Each attset As AttributeSet In attribSetsEnum
+						attset.Delete()
+					Next
+				End If
+			End If
 	'		Dim docToEdit As PartDocument = derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
-			Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
+'	Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
+			Dim surfacebodyToEdit As SurfaceBody = derivedComp.SurfaceBodies.Item(1)
 			'Split the listToPush into faces or edges lists
 			Dim edgesToEditList As List(Of Edge) = (From x As Object In listToPush
 													Where TypeOf x Is Edge
@@ -69,6 +83,11 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 			For Each edgeToCheck As Edge In surfacebodyToEdit.Edges
 				Dim edgeToEdit As Edge = edgesToEditList.Find(Function(matchEdge As Edge) matchEdge.TransientKey = edgeToCheck.TransientKey)
 				If Not edgeToEdit Is Nothing Then
+					Dim iLogicGeometrySetName As String = GetAttributeValueFromObject(edgeToCheck, "iLogicEntityNameSet", "default")
+					If Not iLogicGeometrySetName = String.Empty Then
+						Dim newAttSet As AttributeSet = edgeToEdit.AttributeSets.Add("iLogicEntityNameSet")
+						Dim edgeAtt As Attribute = newAttSet.Add(iLogicGeometrySetName, ValueTypeEnum.kStringType, "Something")
+					End If
 					Break
 				End If
 			Next
@@ -76,17 +95,44 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 			For Each faceToCheck As Face In surfacebodyToEdit.Faces
 				Dim faceToEdit As Edge = facesToEditList.Find(Function(matchface As Face) matchface.TransientKey = faceToCheck.TransientKey)
 				If Not faceToEdit Is Nothing Then
+					Dim iLogicGeometrySetName As String = GetAttributeValueFromObject(faceToCheck, "iLogicEntityNameSet", "default")
+					If Not iLogicGeometrySetName = String.Empty Then
+						Dim newAttSet As AttributeSet = faceToEdit.AttributeSets.Add("iLogicEntityNameSet")
+						Dim faceAtt As Attribute = newAttSet.Add(iLogicGeometrySetName, ValueTypeEnum.kStringType, "Something")
+					End If
 					Break
 				End If
 			Next
-		Else
-			messagebox.Show("Something broke!")
-		End If
+'		Else
+'			messagebox.Show("Something broke!")
+'		End If
 	Next
 '	For Each obj As Object In listToPush
 		
 '	Next
 End Sub
+
+''' <summary>
+''' Gets a named attribute from an object
+''' </summary>
+''' <param name="attributedObject"></param>
+''' <param name="attSetName"></param>
+''' <param name="attName"></param>
+''' <returns></returns>
+Function GetAttributeValueFromObject(ByVal attributedObject As Object, ByVal attSetName As String, ByVal attName As String) As String
+    Dim existingAttSet As AttributeSet = attributedObject.AttributeSets(attSetName)
+	Dim value As String = String.Empty
+	If attName = "default" Then
+		value = (From oAtt In existingAttSet Select oAtt).FirstOrDefault().Value
+	Else
+    	value = (From oAtt In existingAttSet Where oAtt.Name = attName Select oAtt).FirstOrDefault().Value
+	End If
+    If value IsNot Nothing Then
+        Return value
+    Else
+        Return String.Empty
+    End If
+End Function
 
 ''' <summary>
 ''' This method copied from here:
