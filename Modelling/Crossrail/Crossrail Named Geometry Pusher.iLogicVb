@@ -56,53 +56,61 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 '		If Not docToEdit Is Nothing Then
 			'check for and add if not existing the iLogicEntityNameSet attributeset
 '			Dim iLogicAttSet As AttributeSet = docToEdit.AttributeSets("")
-			Dim existingAttSets As Boolean = derivedComp.AttributeSets.NameIsUsed("iLogicEntityNameSet")
-			If existingAttSets Then
+Break
+'these lines don't do anything because there aren't any attributesets in the derived component at this stage!
+'			If Not derivedComp.AttributeSets.Count = 0 Then
+'				Dim existingAttSets As Boolean = derivedComp.AttributeSets.NameIsUsed("iLogicEntityNameSet")
+'				If existingAttSets Then
+'					Break
+'					Dim attribSetsEnum As AttributeSetsEnumerator = derivedComp.AttributeSets("iLogicEntityNameSet") 'docToEdit.AttributeManager.FindAttributeSets("iLogicEntityNameSet")
+'					If Not attribSetsEnum Is Nothing Then
+'						For Each attset As AttributeSet In attribSetsEnum
+'							attset.Delete()
+'						Next
+'					End If
+'				End If
+'			End If
+Break
+			Dim docToEdit As PartDocument = derivedComp.Parent.Document 'derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
+			Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
+			'Dim surfacebodyToEdit As SurfaceBody = derivedComp.SurfaceBodies.Item(1)
+			break
+			If Not surfacebodyToEdit Is Nothing Then
+				'Split the listToPush into faces or edges lists
+				Dim edgesToEditList As List(Of Edge) = (From x As Object In listToPush
+														Where TypeOf x Is Edge
+														Let thisEdge As Edge = x
+														Select thisEdge).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Edge).Tolist(Of Edge)
+				Dim facesToEditList As List(Of Face) = (From x As Object In listToPush
+														Where TypeOf x Is Face
+														Let thisFace As Face = x
+														Select thisFace).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Face).Tolist(Of Face)
 				Break
-				Dim attribSetsEnum As AttributeSetsEnumerator = derivedComp.AttributeSets("iLogicEntityNameSet") 'docToEdit.AttributeManager.FindAttributeSets("iLogicEntityNameSet")
-				If Not attribSetsEnum Is Nothing Then
-					For Each attset As AttributeSet In attribSetsEnum
-						attset.Delete()
-					Next
-				End If
+				'Edges
+				For Each edgeToCheck As Edge In surfacebodyToEdit.Edges
+					Dim edgeToEdit As Edge = edgesToEditList.Find(Function(matchEdge As Edge) matchEdge.TransientKey = edgeToCheck.TransientKey)
+					If Not edgeToEdit Is Nothing Then
+						Dim iLogicGeometrySetName As String = GetAttributeValueFromObject(edgeToCheck, "iLogicEntityNameSet", "default")
+						If Not iLogicGeometrySetName = String.Empty Then
+							Dim newAttSet As AttributeSet = edgeToEdit.AttributeSets.Add("iLogicEntityNameSet")
+							Dim edgeAtt As Attribute = newAttSet.Add(iLogicGeometrySetName, ValueTypeEnum.kStringType, "Something")
+						End If
+						Break
+					End If
+				Next
+				'Faces
+				For Each faceToCheck As Face In surfacebodyToEdit.Faces
+					Dim faceToEdit As Edge = facesToEditList.Find(Function(matchface As Face) matchface.TransientKey = faceToCheck.TransientKey)
+					If Not faceToEdit Is Nothing Then
+						Dim iLogicGeometrySetName As String = GetAttributeValueFromObject(faceToCheck, "iLogicEntityNameSet", "default")
+						If Not iLogicGeometrySetName = String.Empty Then
+							Dim newAttSet As AttributeSet = faceToEdit.AttributeSets.Add("iLogicEntityNameSet")
+							Dim faceAtt As Attribute = newAttSet.Add(iLogicGeometrySetName, ValueTypeEnum.kStringType, "Something")
+						End If
+						Break
+					End If
+				Next
 			End If
-	'		Dim docToEdit As PartDocument = derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
-'	Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
-			Dim surfacebodyToEdit As SurfaceBody = derivedComp.SurfaceBodies.Item(1)
-			'Split the listToPush into faces or edges lists
-			Dim edgesToEditList As List(Of Edge) = (From x As Object In listToPush
-													Where TypeOf x Is Edge
-													Let thisEdge As Edge = x
-													Select thisEdge).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Edge).Tolist(Of Edge)
-			Dim facesToEditList As List(Of Face) = (From x As Object In listToPush
-													Where TypeOf x Is Face
-													Let thisFace As Face = x
-													Select thisFace).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Face).Tolist(Of Face)
-			Break
-			'Edges
-			For Each edgeToCheck As Edge In surfacebodyToEdit.Edges
-				Dim edgeToEdit As Edge = edgesToEditList.Find(Function(matchEdge As Edge) matchEdge.TransientKey = edgeToCheck.TransientKey)
-				If Not edgeToEdit Is Nothing Then
-					Dim iLogicGeometrySetName As String = GetAttributeValueFromObject(edgeToCheck, "iLogicEntityNameSet", "default")
-					If Not iLogicGeometrySetName = String.Empty Then
-						Dim newAttSet As AttributeSet = edgeToEdit.AttributeSets.Add("iLogicEntityNameSet")
-						Dim edgeAtt As Attribute = newAttSet.Add(iLogicGeometrySetName, ValueTypeEnum.kStringType, "Something")
-					End If
-					Break
-				End If
-			Next
-			'Faces
-			For Each faceToCheck As Face In surfacebodyToEdit.Faces
-				Dim faceToEdit As Edge = facesToEditList.Find(Function(matchface As Face) matchface.TransientKey = faceToCheck.TransientKey)
-				If Not faceToEdit Is Nothing Then
-					Dim iLogicGeometrySetName As String = GetAttributeValueFromObject(faceToCheck, "iLogicEntityNameSet", "default")
-					If Not iLogicGeometrySetName = String.Empty Then
-						Dim newAttSet As AttributeSet = faceToEdit.AttributeSets.Add("iLogicEntityNameSet")
-						Dim faceAtt As Attribute = newAttSet.Add(iLogicGeometrySetName, ValueTypeEnum.kStringType, "Something")
-					End If
-					Break
-				End If
-			Next
 '		Else
 '			messagebox.Show("Something broke!")
 '		End If
