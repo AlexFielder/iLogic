@@ -74,7 +74,7 @@ Break
 			Dim docToEdit As PartDocument = derivedComp.Parent.Document 'derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
 			Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
 			'Dim surfacebodyToEdit As SurfaceBody = derivedComp.SurfaceBodies.Item(1)
-			break
+			Break
 			If Not surfacebodyToEdit Is Nothing Then
 				'Split the listToPush into faces or edges lists
 				Dim edgesToEditList As List(Of Edge) = (From x As Object In listToPush
@@ -88,29 +88,48 @@ Break
 				Break
 				'Edges
 				For Each edgeToCheck As Edge In surfacebodyToEdit.Edges
-					Dim edgeToEdit As Edge = edgesToEditList.Find(Function(matchEdge As Edge) matchEdge.TransientKey = edgeToCheck.TransientKey)
+'					Dim edgeToEdit As Edge = edgesToEditList.Find(Function(matchEdge As Edge) matchEdge.TransientKey = edgeToCheck.TransientKey)
+					Dim matchedPair As MatchingGeom = (From matchEdge As Edge In edgesToEditList
+														Where matchEdge.TransientKey = edgeToCheck.TransientKey
+														Select New MatchingGeom With {
+															.CheckObj = edgeToCheck,
+															.MatchingObj = matchEdge }).FirstOrDefault()
+Break
+					Dim edgeToEdit As Edge = matchedPair.MatchingObj
 					If Not edgeToEdit Is Nothing Then
-						Dim iLogicGeometrySetName As String = GetAttributeValueFromObject(edgeToCheck, "iLogicEntityNameSet", "default")
-						If Not iLogicGeometrySetName = String.Empty Then
+						Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
+						If Not iLogicEntityName = String.Empty Then
+							MessageBox.Show("iLogicEntityName" = iLogicEntityName)
 							Dim newAttSet As AttributeSet = edgeToEdit.AttributeSets.Add("iLogicEntityNameSet")
-							Dim edgeAtt As Attribute = newAttSet.Add(iLogicGeometrySetName, ValueTypeEnum.kStringType, "Something")
+							Dim edgeAtt As Attribute = newAttSet.Add("iLogicEntityName", ValueTypeEnum.kStringType, iLogicEntityName)
 						End If
 						Break
 					End If
 				Next
 				'Faces
-				For Each faceToCheck As Face In surfacebodyToEdit.Faces
-					Dim faceToEdit As Edge = facesToEditList.Find(Function(matchface As Face) matchface.TransientKey = faceToCheck.TransientKey)
+				For Each faceTocheck As Face In surfacebodyToEdit.Faces
+					Dim matchedPair As MatchingGeom = (From matchface As Face In facesToEditList
+														Where matchface.TransientKey = faceToCheck.TransientKey
+														Select New MatchingGeom With {
+															.CheckObj = faceToCheck,
+															.MatchingObj = matchface }).FirstOrDefault()
+Break
+					Dim faceToEdit As Face = matchedPair.MatchingObj
 					If Not faceToEdit Is Nothing Then
-						Dim iLogicGeometrySetName As String = GetAttributeValueFromObject(faceToCheck, "iLogicEntityNameSet", "default")
-						If Not iLogicGeometrySetName = String.Empty Then
+						Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
+						If Not iLogicEntityName = String.Empty Then
+							MessageBox.Show("iLogicEntityName" = iLogicEntityName)
 							Dim newAttSet As AttributeSet = faceToEdit.AttributeSets.Add("iLogicEntityNameSet")
-							Dim faceAtt As Attribute = newAttSet.Add(iLogicGeometrySetName, ValueTypeEnum.kStringType, "Something")
+							Dim faceAtt As Attribute = newAttSet.Add("iLogicEntityName", ValueTypeEnum.kStringType, iLogicEntityName)
 						End If
 						Break
 					End If
 				Next
 			End If
+			'need to add the iLogicEntityNameSet to the document so iLogic picks it up.
+			docToEdit.AttributeSets.Add("iLogicEntityNameSet")
+			Dim attribSetEnum As AttributeSetsEnumerator = docToEdit.AttributeManager.FindAttributeSets("iLogicEntityNameSet*")
+			
 '		Else
 '			messagebox.Show("Something broke!")
 '		End If
@@ -196,3 +215,8 @@ Public Function GetNamedEntity(doc As Inventor.Document, name As String) As Obje
         Return(Nothing)
     End If
 End Function
+
+Public Class MatchingGeom
+	Public CheckObj As Object
+	Public MatchingObj As Object
+End Class
