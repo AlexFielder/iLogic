@@ -1,0 +1,363 @@
+﻿Option Explicit On
+Imports System.Linq
+Imports System.Collections.Generic
+
+''' <summary>
+''' Inspired by this video by TFICADTips: https://www.youtube.com/watch?v=aq8rRc9H_TI
+''' </summary>
+Public Sub Main()
+If ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "TFI Dome Thingy")
+	Try
+	CreateDome(ThisApplication.ActiveDocument)
+	trans.End()
+	Catch ex As Exception
+		trans.Abort
+		MessageBox.Show("the error was: " & ex.Message)
+	End Try
+Else
+	MsgBox("This rule does not work in an Assembly!")
+End If
+End Sub
+'public reusable objects
+Public OriginSketchPoint As SketchPoint = Nothing
+Public transObjs As TransientObjects = Nothing
+Public transGeom As TransientGeometry = Nothing
+Public debuggingGraphics As ClientGraphics = Nothing
+
+Public Sub CreateDome(ByVal PartDoc As Document, Optional Diameter As String = "4m")
+	Dim partCompDef As PartComponentDefinition = PartDoc.ComponentDefinition
+	'set up public (shared) objects
+	transObjs = ThisApplication.TransientObjects
+	transGeom = ThisApplication.TransientGeometry
+	debuggingGraphics = DrawingDebuggingGraphics(partCompDef)
+	Dim Sketch1 As PlanarSketch = CreateSketch(partCompDef, partCompDef.WorkPlanes(3))
+'	p = Parameter.Param("d0")
+	'add a diameter parameter
+	Dim userParams As UserParameters = partCompDef.Parameters.UserParameters
+	Dim diamParam As Parameter = Nothing
+	Try
+	diamParam = Parameter.Param("diameter")
+	Catch
+		diamParam = userParams.AddByExpression("diameter", "4m", UnitsTypeEnum.kMillimeterLengthUnits)
+	End Try
+	If diamParam Is Nothing Then
+		If Not diamParam.Param.InUse Then
+			userParams.Item("diameter").Delete()
+			diamParam = userParams.AddByExpression("diameter", Diameter, UnitsTypeEnum.kMillimeterLengthUnits)
+		End If
+	End If
+	Sketch1.SketchLines.AddAsPolygon(6, OriginSketchPoint, transGeom.CreatePoint2d(diamParam.Value() / 2), True)
+	
+	'ADD Constraints to polygon:
+	'ADD COINCIDENT CONSTRAINT BETWEEN RECTANGLE CENTRE AND ORIGIN
+	Dim PolygonCentrePoint As SketchPoint = Sketch1.SketchPoints(2)
+	Sketch1.GeometricConstraints.AddCoincident(PolygonCentrePoint, OriginSketchPoint)
+	Dim PolygonVerticalPoint As SketchPoint = Sketch1.SketchLines(2).EndSketchPoint ' Sketch1.SketchPoints(5)
+	Sketch1.GeometricConstraints.AddVerticalAlign(PolygonVerticalPoint, OriginSketchPoint)
+	Dim oConstraint As TwoPointDistanceDimConstraint
+	Dim TextPoint As Point2d = transGeom.CreatePoint2d(0, ((Parameter("diameter") /10)+10) / 2)
+	oConstraint = Sketch1.DimensionConstraints.AddTwoPointDistance(Sketch1.SketchLines(1).StartSketchPoint, 
+																	Sketch1.SketchLines(4).EndSketchPoint, 
+																	DimensionOrientationEnum.kHorizontalDim, 
+																	TextPoint, 
+																	False)
+	oConstraint.Parameter.Expression = "diameter"
+	Sketch1.SetEndOfPart(True)
+	partCompDef.SetEndOfPartToTopOrBottom(False)
+	'DebugSketchPointsEtc(Sketch1)
+	OriginSketchPoint = Nothing
+	'offset workplane and sketch 2
+	Dim OffsetWorkPlane As WorkPlane = partCompDef.WorkPlanes.AddByPlaneAndOffset(partCompDef.WorkPlanes(3), (Parameter("diameter") / 10) / 2)
+	Dim Sketch2 As PlanarSketch = CreateSketch(partCompDef, OffsetWorkPlane)
+	Sketch2.SketchLines.AddAsPolygon(6, OriginSketchPoint, transGeom.CreatePoint2d(diamParam.Value() / 2), True)
+	PolygonCentrePoint = Sketch2.SketchPoints(2)
+	
+	Sketch2.GeometricConstraints.AddCoincident(PolygonCentrePoint, OriginSketchPoint)
+	Dim PolygonHorizontalPoint As SketchPoint = Sketch2.SketchLines(1).EndSketchPoint
+	Sketch2.GeometricConstraints.AddHorizontalAlign(PolygonHorizontalPoint, OriginSketchPoint)
+	TextPoint = transGeom.CreatePoint2d(((Parameter("diameter") / 10) + 10) / 2, 0)
+	oConstraint = Sketch2.DimensionConstraints.AddTwoPointDistance(Sketch2.SketchLines(1).StartSketchPoint, 
+																	Sketch2.SketchLines(3).StartSketchPoint, 
+																	DimensionOrientationEnum.kVerticalDim, 
+																	TextPoint, 
+																	False)
+	oConstraint.Parameter.Expression = "diameter"
+	'DebugSketchPointsEtc(Sketch2)
+	Sketch2.SetEndOfPart(True)
+	partCompDef.SetEndOfPartToTopOrBottom(False)
+	'calculate centre and endpoints of lines for new workplane set:
+	Dim Sketch1CornerPoints As List(Of Point) = (From skline As SketchLine In Sketch1.SketchLines
+													Select skLine.StartSketchPoint.Geometry3d).ToList()
+	Dim Sketch1MidPoints As List(Of Point) = (From skline As SketchLine In Sketch1.SketchLines
+													Select GetSketchLineMidPoint(skline)).ToList()
+	
+	Dim Sketch2CornerPoints As List(Of Point) = (From skline As SketchLine In Sketch2.SketchLines
+													Select skLine.StartSketchPoint.Geometry3d).ToList()
+	Dim Sketch2MidPoints As List(Of Point) = (From skline As SketchLine In Sketch2.SketchLines
+													Select GetSketchLineMidPoint(skline)).ToList()
+	
+	For Each skLine As SketchLine In Sketch1.SketchLines
+		Dim startPoint As Point = skLine.Geometry3d.StartPoint
+		Dim endPoint As Point = skLine.Geometry3d.EndPoint
+		Dim startTransLines As List(Of LineSegment) = New List(Of LineSegment)
+		Dim endTransLines As List(Of LineSegment) = New List(Of LineSegment)
+		For Each pnt As Point In Sketch2CornerPoints
+			startTransLines.Add(transGeom.CreateLineSegment(startPoint, pnt))
+			endTransLines.Add(transGeom.CreateLineSegment(endPoint, pnt))
+		Next
+		'debugging:
+		DrawDebugGraphicsLineList(startTransLines)
+		DrawDebugGraphicsLineList(endTransLines)
+	Next
+'	Dim ActualSketch1CornerPoints As List(Of Point) = New List(Of Point)
+	
+'	For Each skPoint As Point2d In Sketch1CornerPoints
+'		ActualSketch1CornerPoints.Add(skPoint.)
+'	Next
+
+End Sub
+
+Public Function CalculateGroupsOfPointsForWorkplanes(ByVal sketch As PlanarSketch, 
+														ByVal cornerpoints As List(Of Point), 
+														ByVal endpoints As List(Of Point))
+	For Each skLine As SketchLine In sketch.SketchLines
+		Dim startPoint As Point = skLine.Geometry3d.StartPoint
+		Dim endPoint As Point = skLine.Geometry3d.EndPoint
+		Dim startTransLines As List(Of LineSegment) = New List(Of LineSegment)
+		Dim endTransLines As List(Of LineSegment) = New List(Of LineSegment)
+		For Each pnt As Point In CornerPoints
+			startTransLines.Add(transGeom.CreateLineSegment(startPoint, pnt))
+			endTransLines.Add(transGeom.CreateLineSegment(endPoint, pnt))
+		Next
+		'debugging:
+		DrawDebugGraphicsLineList(startTransLines)
+		DrawDebugGraphicsLineList(endTransLines)
+	Next
+	Return Nothing
+End Function
+
+''' <summary>
+''' Populates our public object
+''' </summary>
+Public Function DrawingDebuggingGraphics(ByVal partCompDef As PartComponentDefinition) As ClientGraphics
+    Dim NewDebuggingGraphics = Nothing
+
+    Try
+        NewDebuggingGraphics = partCompDef.ClientGraphicsCollection("debuggingGraphics")
+        If NewDebuggingGraphics IsNot Nothing Then
+            NewDebuggingGraphics.Delete()
+            NewDebuggingGraphics = partCompDef.ClientGraphicsCollection.Add("debuggingGraphics")
+        End If
+		Return NewDebuggingGraphics
+    Catch __unusedException1__ As Exception
+        NewDebuggingGraphics = partCompDef.ClientGraphicsCollection.Add("debuggingGraphics")
+		Return NewDebuggingGraphics
+    End Try
+End Function
+
+Public Sub DrawDebugGraphicsLineList(ByVal list As List(Of LineSegment))
+	For Each lineSeg As LineSegment In list
+		DrawDebugLineGraphics(lineSeg)
+	Next
+End Sub
+
+Public Sub DrawDebugGraphicsList(ByVal list As Object)
+	For Each obj As Object In list
+		DrawDebugGraphics(obj)
+	Next
+End Sub
+
+Public Sub DrawDebugGraphics(ByVal obj As Object)
+	Dim graphicsNode As GraphicsNode = debuggingGraphics.AddNode(1)
+	Dim lineGraphics As CurveGraphics = graphicsNode.AddCurveGraphics(obj)
+End Sub
+
+''' <summary>
+''' Draws our transient line objects on-screen to aid debugging.
+''' </summary>
+''' <param name="lineSeg"></param>
+Public Sub DrawDebuglineGraphics(ByVal lineSeg As LineSegment)
+	Dim graphicsNode As GraphicsNode = debuggingGraphics.AddNode(1)
+	Dim lineGraphics As CurveGraphics = graphicsNode.AddCurveGraphics(lineSeg)
+End Sub
+
+
+''' <summary>
+''' Allows us to make "Is Equal To" tests ignoring the floating point problem whereby 
+''' numbers that appear exact are actually different by a small margin.
+''' </summary>
+''' <param name="Value1"></param>
+''' <param name="Value2"></param>
+''' <param name="Tolerance"></param>
+''' <returns></returns>
+Public Function IsEqual(ByVal Value1 As Double, ByVal Value2 As Double, ByVal Optional Tolerance As Double = 1E-12) As Boolean
+    Dim functionReturnValue As Boolean = False
+
+    If Math.Abs(Value1 - Value2) < Tolerance Then
+        functionReturnValue = True
+    Else
+        functionReturnValue = False
+    End If
+
+    Return functionReturnValue
+End Function
+
+Public Sub DebugSketchPointsEtc(ByVal SketchToDebug As PlanarSketch)
+	Dim objColl As ObjectCollection = transObjs.CreateObjectCollection()
+	For Each skline As SketchLine In SketchToDebug.SketchLines
+		objColl.Add(skline)
+	Next
+	Call AnnotateSketchObjectsForDebug(SketchToDebug, objColl, 10) 'Sketch1.SketchLines)
+	objColl.Clear()
+	For Each skPoint As SketchPoint In SketchToDebug.SketchPoints
+		objColl.Add(skPoint)
+	Next
+	Call AnnotateSketchObjectsForDebug(SketchToDebug, objColl, 10) 'Sketch1.SketchPoints)
+End Sub
+
+Public Function CreateSketch(ByVal compDef As ComponentDefinition, ByVal plane As WorkPlane) As PlanarSketch
+	Dim newSketch As PlanarSketch = compDef.Sketches.Add(plane)
+	Call CorrectForMissingOriginPoint(compDef, newSketch)
+	If Not newSketch Is Nothing Then
+		Return newSketch
+	Else
+		Return Nothing
+	End If
+End Function
+
+Public Sub CorrectForMissingOriginPoint(ByVal compDef As ComponentDefinition, ByRef thisSketch As PlanarSketch)
+	Dim oOriginWP As WorkPoint  = compDef.WorkPoints.Item(1)
+    'set as global above
+'    Dim oOriginSketchPoint As SketchPoint
+    For Each oSketchPoint As SketchPoint In thisSketch.SketchPoints
+        If oSketchPoint.ReferencedEntity Is oOriginWP Then
+            OriginSketchPoint = oSketchPoint
+            Exit For
+        End If
+    Next
+   
+    ' Create the sketch point for the origin, if it doesn't already exist.
+    If OriginSketchPoint Is Nothing Then
+        ' Project the origin point onto the sketch.
+        OriginSketchPoint = thisSketch.AddByProjectingEntity(compDef.WorkPoints.Item(1))
+    End If
+End Sub
+
+Public Function GetSketchLineMidPoint(ByVal skLineToQuery As SketchLine) As Point
+	Dim lineSeg As LineSegment = skLineToQuery.Geometry3d
+'	Dim minPoint As Point = lineSeg.StartPoint
+'	Dim maxPoint As Point = lineSeg.EndPoint
+'	Dim CenterPoint As Point = transGeom.CreatePoint((maxPoint.X + minPoint.X) / 2, (maxPoint.Y + minPoint.Y) / 2, (maxPoint.Z + minPoint.Z) / 2)
+'	Return CenterPoint
+	Return lineSeg.MidPoint
+End Function
+
+Public Function GetSketchLineMidPoint2d(ByVal skLine As SketchLine) As Point2d
+	Dim minPoint As Point2d = skLine.RangeBox.MinPoint
+	Dim maxPoint As Point2d = skLine.RangeBox.MaxPoint
+	Dim CenterPoint As Point2d = transGeom.CreatePoint2d((maxPoint.X + minPoint.X) / 2, (maxPoint.Y + minPoint.Y) / 2)
+	Return CenterPoint
+End Function
+
+''' <summary>
+''' Places textboxes at the midpoint of any sketch line or sketchpoint for debugging purposes
+''' </summary>
+''' <param name="thisSketch"></param>
+''' <param name="objcoll"></param>
+''' <param name="textheight"></param>
+Public Sub AnnotateSketchObjectsForDebug(ByVal thisSketch As PlanarSketch, ByVal objcoll As ObjectCollection, ByVal textheight As Double)
+	Dim objInt As Integer = 1
+	Dim formattedText As String = String.Empty
+	MessageBox.Show(objcoll.count)
+	For Each obj In objcoll
+		If TypeOf obj Is SketchLine Then
+			Dim skLine As SketchLine = obj
+			Dim CenterPoint As Point2d = GetSketchLineMidPoint2d(skLine)
+			AddFittedColouredSketchTextAtPoint(thisSketch, "black", CenterPoint, objInt.ToString(), textheight, VerticalTextAlignmentEnum.kAlignTextUpper, HorizontalTextAlignmentEnum.kAlignTextLeft)
+			'start
+			AddFittedColouredSketchTextAtPoint(thisSketch, "green", skLine.StartSketchPoint.Geometry, objInt.ToString(), textheight, VerticalTextAlignmentEnum.kAlignTextLower, HorizontalTextAlignmentEnum.kAlignTextLeft)
+			'end
+			AddFittedColouredSketchTextAtPoint(thisSketch, "orange", skLine.EndSketchPoint.Geometry, objInt.ToString(), textheight, VerticalTextAlignmentEnum.kAlignTextUpper, HorizontalTextAlignmentEnum.kAlignTextLeft)
+			objInt += 1
+		ElseIf TypeOf obj Is SketchPoint Then
+			Dim skPoint As SketchPoint = obj
+			AddFittedColouredSketchTextAtPoint(thisSketch, "red", skPoint.Geometry, objInt.ToString(), textheight, VerticalTextAlignmentEnum.kAlignTextLower, HorizontalTextAlignmentEnum.kAlignTextRight)
+			objInt += 1
+		End If
+	Next
+End Sub
+
+''' <summary>
+''' Adds a fitted, coloured piece of text at the given sketchpoint location
+''' </summary>
+''' <param name="sketchToEdit"></param>
+''' <param name="textcolour"></param>
+''' <param name="textpoint"></param>
+''' <param name="textcontent"></param>
+''' <param name="textHeight"></param>
+''' <returns></returns>
+Public Function AddFittedColouredSketchTextAtPoint(ByVal sketchToEdit As PlanarSketch, 
+													ByVal textcolour As String, 
+													ByVal textpoint As Point2d, 
+													ByVal textcontent As String,
+													ByVal textHeight As Double,
+													ByVal Verticalalignment As VerticalTextAlignmentEnum,
+													ByVal Horizontalalignment As HorizontalTextAlignmentEnum) As Inventor.TextBox
+	Dim skTextBox As Inventor.TextBox = sketchToEdit.Textboxes.Addfitted(textpoint, textcontent)
+	Dim tstart As Integer
+	Dim tend As Integer
+	Dim curtext As String = String.Empty
+	Dim formattedText As String = String.Empty
+	
+	tstart = InStr(skTextBox.FormattedText, "'>") + 1
+	If tstart <> 1 Then
+	    tend = InStr(skTextBox.FormattedText, "</Style") - 1
+	    curtext = Mid(skTextBox.FormattedText, tstart + 1, tend - tstart)
+	Else
+	    curtext = skTextBox.FormattedText  
+	End If
+
+	formattedText = "<StyleOverride FontSize='" & textHeight & "'>" & curtext & "</StyleOverride>"
+	skTextBox.FormattedText = formattedText
+	skTextBox.VerticalJustification = Verticalalignment
+	skTextBox.HorizontalJustification = Horizontalalignment
+	skTextBox.Color = GetColourFromString(textcolour)
+	Return skTextBox
+End Function
+
+Public Function GetColourFromString(ByVal colourname As String) As Color
+	Select Case colourname
+		Case "black"
+			Return transObjs.CreateColor(255, 255, 255)
+		Case "red"
+			Return transObjs.CreateColor(255, 0, 0)
+		Case "green"
+			Return transObjs.CreateColor(0, 255, 0)
+		Case "orange"
+			Return transObjs.CreateColor(255, 165, 0)
+		Case "blue"
+			Return transObjs.CreateColor(0, 0, 255)
+	End Select
+End Function
+
+Public Function GetLatestModelParameter(ByVal compDef As ComponentDefinition) As Parameter
+	Dim ModelParamList As List(Of ModelParameter) = New List(Of ModelParameter)
+	For Each MParameter As ModelParameter In compDef.Parameters.ModelParameters
+		ModelParamList.Add(MParameter)	
+	Next
+	
+	'debug
+	'MessageBox.Show(ModelParamList.Count)
+	Dim maxParam As Parameter = Nothing
+	Dim maxParamNum As Integer = 0
+	If ModelParamList.Count > 0 Then
+		ModelParamList.Sort(Function(x As ModelParameter, y As ModelParameter) x.Name.CompareTo(y.Name))
+		maxParam = (From param As ModelParameter In ModelParamList Select param).Last()
+	End If
+	If Not maxParam Is Nothing Then
+		Return maxParam
+	Else
+		Return Nothing
+	End If
+End Function
