@@ -69,6 +69,7 @@ Public Sub CreateDome(ByVal PartDoc As Document, Optional Diameter As String = "
 	OriginSketchPoint = Nothing
 	'offset workplane and sketch 2
 	Dim OffsetWorkPlane As WorkPlane = partCompDef.WorkPlanes.AddByPlaneAndOffset(partCompDef.WorkPlanes(3), (Parameter("diameter") / 10) / 2)
+	OffsetWorkPlane.Visible = False
 	Dim Sketch2 As PlanarSketch = CreateSketch(partCompDef, OffsetWorkPlane)
 	Sketch2.SketchLines.AddAsPolygon(6, OriginSketchPoint, transGeom.CreatePoint2d(diamParam.Value() / 2), True)
 	PolygonCentrePoint = Sketch2.SketchPoints(2)
@@ -87,55 +88,142 @@ Public Sub CreateDome(ByVal PartDoc As Document, Optional Diameter As String = "
 	Sketch2.SetEndOfPart(True)
 	partCompDef.SetEndOfPartToTopOrBottom(False)
 	'calculate centre and endpoints of lines for new workplane set:
-	Dim Sketch1CornerPoints As List(Of Point) = (From skline As SketchLine In Sketch1.SketchLines
-													Select skLine.StartSketchPoint.Geometry3d).ToList()
-	Dim Sketch1MidPoints As List(Of Point) = (From skline As SketchLine In Sketch1.SketchLines
-													Select GetSketchLineMidPoint(skline)).ToList()
+	Dim Sketch1CornerPoints As List(Of SketchPoint) = (From skline As SketchLine In Sketch1.SketchLines
+													Select skLine.StartSketchPoint).ToList()
+	Dim Sketch1MidPoints As List(Of SketchPoint) = (From skline As SketchLine In Sketch1.SketchLines
+													Let midpoint As SketchPoint = GetSketchLineMidPoint(skline)
+													Select midpoint).Tolist()
 	
-	Dim Sketch2CornerPoints As List(Of Point) = (From skline As SketchLine In Sketch2.SketchLines
-													Select skLine.StartSketchPoint.Geometry3d).ToList()
-	Dim Sketch2MidPoints As List(Of Point) = (From skline As SketchLine In Sketch2.SketchLines
-													Select GetSketchLineMidPoint(skline)).ToList()
+	Dim Sketch2CornerPoints As List(Of SketchPoint) = (From skline As SketchLine In Sketch2.SketchLines
+													Select skLine.StartSketchPoint).ToList()
+	Dim Sketch2MidPoints As List(Of SketchPoint) = (From skline As SketchLine In Sketch2.SketchLines
+													Let midpoint As SketchPoint = GetSketchLineMidPoint(skline)
+													Select midpoint).ToList()
 	
-	For Each skLine As SketchLine In Sketch1.SketchLines
-		Dim startPoint As Point = skLine.Geometry3d.StartPoint
-		Dim endPoint As Point = skLine.Geometry3d.EndPoint
-		Dim startTransLines As List(Of LineSegment) = New List(Of LineSegment)
-		Dim endTransLines As List(Of LineSegment) = New List(Of LineSegment)
-		For Each pnt As Point In Sketch2CornerPoints
-			startTransLines.Add(transGeom.CreateLineSegment(startPoint, pnt))
-			endTransLines.Add(transGeom.CreateLineSegment(endPoint, pnt))
-		Next
-		'debugging:
-		DrawDebugGraphicsLineList(startTransLines)
-		DrawDebugGraphicsLineList(endTransLines)
-	Next
-'	Dim ActualSketch1CornerPoints As List(Of Point) = New List(Of Point)
-	
-'	For Each skPoint As Point2d In Sketch1CornerPoints
-'		ActualSketch1CornerPoints.Add(skPoint.)
-'	Next
-
+	Create3PointWorkplaneFromList(partCompDef, CalculateGroupsOfPointsForWorkplanes(Sketch1, Sketch2CornerPoints, Sketch1CornerPoints))
+	Create3PointWorkplaneFromList(partCompDef, CalculateGroupsOfPointsForWorkplanes(Sketch2, Sketch1CornerPoints, Sketch2CornerPoints))
+	'CalculateGroupsOfPointsForWorkplanes(Sketch2, Sketch1CornerPoints, Sketch2CornerPoints)
 End Sub
 
-Public Function CalculateGroupsOfPointsForWorkplanes(ByVal sketch As PlanarSketch, 
-														ByVal cornerpoints As List(Of Point), 
-														ByVal endpoints As List(Of Point))
+Public Sub Create3PointWorkplaneFromList(ByVal partCompDef As PartComponentDefinition, ByVal pointlist As List(Of PointsForSolidPlanes))
+	For Each pointset As PointsForSolidPlanes In pointlist
+		partCompDef.Workplanes.AddByThreePoints(pointset.StartPoint, pointset.MidPoint, pointset.EndPoint)
+	Next
+End Sub
+
+Public Function CalculateGroupsOfPointsForWorkplanes(ByVal Sketch As PlanarSketch, 
+														ByVal cornerpoints As List(Of SketchPoint), 
+														ByVal endpoints As List(Of SketchPoint)) As List(Of PointsForSolidPlanes)
+	Dim Tolerance As Double = 1E-12
+	
+	Dim listOfPoints As List(Of PointsForSolidPlanes) = New List(Of PointsForSolidPlanes)
+	'Dim startTransLines As List(Of LineSegment) = New List(Of LineSegment)
+	Dim lineGrouplist As List(Of LineGroup) = New List(Of LineGroup)
 	For Each skLine As SketchLine In sketch.SketchLines
+		Dim thisLineGroup As LineGroup = New LineGroup
+'		Break
+
+		thisLineGroup.parentLine = skLine
+		thisLineGroup.startPointLines = New List(Of LineSegment)
+		thisLineGroup.EndPointLines = New List(Of LineSegment)
+		
 		Dim startPoint As Point = skLine.Geometry3d.StartPoint
 		Dim endPoint As Point = skLine.Geometry3d.EndPoint
-		Dim startTransLines As List(Of LineSegment) = New List(Of LineSegment)
-		Dim endTransLines As List(Of LineSegment) = New List(Of LineSegment)
-		For Each pnt As Point In CornerPoints
-			startTransLines.Add(transGeom.CreateLineSegment(startPoint, pnt))
-			endTransLines.Add(transGeom.CreateLineSegment(endPoint, pnt))
+
+		For Each secondSketchCornerpoint As SketchPoint In cornerpoints
+			thisLineGroup.startPointLines.Add(transGeom.CreateLineSegment(startPoint, secondSketchCornerpoint.Geometry3d))
+			thisLineGroup.EndPointLines.Add(transGeom.CreateLineSegment(endPoint, secondSketchCornerpoint.Geometry3d))
 		Next
+
+		thisLineGroup.startPointLines = GetShortestLines(thisLineGroup.startPointLines, Tolerance)
+		thisLineGroup.EndPointLines = GetShortestLines(thisLineGroup.EndPointLines, Tolerance)
+		
 		'debugging:
-		DrawDebugGraphicsLineList(startTransLines)
-		DrawDebugGraphicsLineList(endTransLines)
+		DrawDebugGraphicsLineList(thisLineGroup.startPointLines, GetColourFromString("blue"))
+'		DrawDebugGraphicsLineList(thisLineGroup.EndPointLines, GetColourFromString("red"))
+		
+		lineGrouplist.Add(thisLineGroup)
 	Next
-	Return Nothing
+'	MessageBox.Show("Count of lines: " & lineGrouplist.Count)
+
+	For Each lineGrp As LineGroup In lineGrouplist
+		Dim thesePoints As PointsForSolidPlanes = New PointsForSolidPlanes
+		thesePoints.StartPoint = lineGrp.parentLine.StartSketchPoint
+		thesePoints.EndPoint = lineGrp.parentLine.EndSketchPoint
+		Dim startPointPoints As List(Of Point) = (From startline As LineSegment In lineGrp.startPointLines
+													Let pnt As Point = startline.EndPoint
+													Select pnt).toList()
+		Dim endPointPoints As List(Of Point) = (From endline As LineSegment In lineGrp.EndPointLines
+													Let pnt As Point = endline.EndPoint
+													Select pnt).toList()
+		If Not startPointPoints Is Nothing And Not endPointPoints Is Nothing Then
+'			MessageBox.Show("Count of start Points = " & startPointPoints.Count & vbCrLf & "Count of end Points = " & endPointPoints.Count)
+'			Dim matchingpoints As List(Of Point) = startPointPoints.Intersect(endPointPoints.Cast(Of Point))
+			
+			'Dim pointSet As HashSet(Of Point) = New HashSet(Of Point)(startPointPoints,New PointComparer(Tolerance))
+			Dim matchingpoints As List(Of SketchPoint) = New List(Of SketchPoint)
+			For Each startPointPoint As Point In startPointPoints
+				For Each endPointPoint As Point In endPointPoints
+'					MessageBox.Show(startPointPoint.X & "," & startPointPoint.Y & "," & startPointPoint.Z & vbCrLf & _
+'									endPointPoint.X & "," & endPointPoint.Y & "," & endPointPoint.Z)
+					If startPointPoint.IsEqualTo(endPointPoint) Then ', Tolerance) Then
+						'the points match, but we need the sketchpoint
+						Break
+						For Each endpoint As SketchPoint In cornerpoints
+							If endpoint.Geometry3d.IsEqualTo(startPointPoint, Tolerance) Then
+								thesePoints.MidPoint = endpoint
+							End If
+						Next
+'						thesePoints.MidPoint = (From endpoint As SketchPoint In endpoints
+'												Where endpoint.)
+'						thesePoints.MidPoint = (From pnt As SketchPoint In endpoints
+'												Where pnt.Geometry3d.IsequalTo(startPointPoint)
+'												Select pnt).firstOrdefault()
+						If thesePoints.midpoint is Nothing Then
+							'MessageBox.Show("No midpoint found!")
+						Else
+							listOfPoints.Add(thesePoints) 'matchingpoints.Add(startPointPoint)		
+						end if
+					End If
+				Next
+			Next
+'			If matchingpoints.Count = 1 Then
+'				MessageBox.Show("Matching Points count: " & matchingpoints.Count)
+'				Dim pointToAdd As Point = matchingpoints.Item(0)
+'				thesePoints.MidPoint = matchingpoints.Item(0)
+'				listOfPoints.Add(thesePoints)
+'			End If
+'			Dim matchingpoints As List(Of Point) = (From pnt As Point In startPointPoints) ' startPointPoints.IntersectWith(endPointPoints.Cast(Of Point))
+'			MessageBox.Show("Matching Points count: " & matchingpoints.Count)
+		End If
+'		thesePoints.MidPoint = 
+	Next
+
+	Return listOfPoints
 End Function
+
+Public Function GetShortestLines(ByVal listofLines As List(Of LineSegment), ByVal tolerance As Double) As List(Of LineSegment)
+	Dim min As Double = listofLines.Min(Function(entry As LineSegment) getLineSegmentLength(entry))
+	If Not min = Nothing Then
+		listofLines = listofLines.Where(Function (entry As LineSegment) IsEqual(getLineSegmentLength(entry), min, Tolerance)).ToList()
+	End If
+	Return listofLines
+End Function
+
+''' <summary>
+''' Returns the measured length between the start/end of a lineSegment object
+''' </summary>
+''' <param name="lineToMeasure"></param>
+''' <returns></returns>
+Public Function getLineSegmentLength(ByVal lineToMeasure As LineSegment) As Double
+	Return ThisApplication.MeasureTools.GetMinimumDistance(lineToMeasure.StartPoint,lineToMeasure.EndPoint)
+End Function
+
+'Public Function GetCommonPoints(ByVal firstCollection As List(Of Point), ByVal secondCollection As List(Of Point), ByVal Tolerance As Double) As List(Of Point)
+'    Dim hashSet = New HashSet(Of Point)(firstCollection.Cast(Of Point)(), New PointComparer(Tolerance))
+'    hashSet.IntersectWith(secondCollection.Cast(Of Point)())
+'    Return hashSet
+'End Function
 
 ''' <summary>
 ''' Populates our public object
@@ -156,9 +244,9 @@ Public Function DrawingDebuggingGraphics(ByVal partCompDef As PartComponentDefin
     End Try
 End Function
 
-Public Sub DrawDebugGraphicsLineList(ByVal list As List(Of LineSegment))
+Public Sub DrawDebugGraphicsLineList(ByVal list As List(Of LineSegment), ByVal color As Color)
 	For Each lineSeg As LineSegment In list
-		DrawDebugLineGraphics(lineSeg)
+		DrawDebuglineGraphics(lineSeg, color)
 	Next
 End Sub
 
@@ -177,9 +265,10 @@ End Sub
 ''' Draws our transient line objects on-screen to aid debugging.
 ''' </summary>
 ''' <param name="lineSeg"></param>
-Public Sub DrawDebuglineGraphics(ByVal lineSeg As LineSegment)
+Public Sub DrawDebuglineGraphics(ByVal lineSeg As LineSegment, ByVal lineColor As Color)
 	Dim graphicsNode As GraphicsNode = debuggingGraphics.AddNode(1)
 	Dim lineGraphics As CurveGraphics = graphicsNode.AddCurveGraphics(lineSeg)
+	lineGraphics.Color = lineColor
 End Sub
 
 
@@ -244,20 +333,16 @@ Public Sub CorrectForMissingOriginPoint(ByVal compDef As ComponentDefinition, By
     End If
 End Sub
 
-Public Function GetSketchLineMidPoint(ByVal skLineToQuery As SketchLine) As Point
-	Dim lineSeg As LineSegment = skLineToQuery.Geometry3d
-'	Dim minPoint As Point = lineSeg.StartPoint
-'	Dim maxPoint As Point = lineSeg.EndPoint
-'	Dim CenterPoint As Point = transGeom.CreatePoint((maxPoint.X + minPoint.X) / 2, (maxPoint.Y + minPoint.Y) / 2, (maxPoint.Z + minPoint.Z) / 2)
-'	Return CenterPoint
-	Return lineSeg.MidPoint
+Public Function GetSketchLineMidPoint(ByVal skLineToQuery As SketchLine) As SketchPoint
+	Dim parentSketch As PlanarSketch = skLineToQuery.parent
+	Dim newpoint As Point2d = transGeom.CreatePoint2d(skLineToQuery.geometry.midpoint.x, skLineToQuery.geometry.midpoint.y)
+	Dim lineMidPoint As SketchPoint = parentSketch.SketchPoints.Add(newpoint)
+	Dim midpoint As GeometricConstraint = parentSketch.GeometricConstraints.AddMidpoint(lineMidPoint, skLineToQuery)
+	Return lineMidPoint
 End Function
 
 Public Function GetSketchLineMidPoint2d(ByVal skLine As SketchLine) As Point2d
-	Dim minPoint As Point2d = skLine.RangeBox.MinPoint
-	Dim maxPoint As Point2d = skLine.RangeBox.MaxPoint
-	Dim CenterPoint As Point2d = transGeom.CreatePoint2d((maxPoint.X + minPoint.X) / 2, (maxPoint.Y + minPoint.Y) / 2)
-	Return CenterPoint
+	Return skLine.geometry.midpoint
 End Function
 
 ''' <summary>
@@ -361,3 +446,51 @@ Public Function GetLatestModelParameter(ByVal compDef As ComponentDefinition) As
 		Return Nothing
 	End If
 End Function
+
+'Public Class PointComparer
+'    Inherits IEqualityComparer(Of Point)
+
+'    Private Tolerance As Double = 1E-12
+
+'    Public Sub New()
+'        Me.New(Tolerance.[Global])
+'    End Sub
+
+'    Public Sub New(ByVal Tolerance As Double)
+'        Me.tolerance = Tolerance
+'    End Sub
+
+'    Public Function Equals(ByVal pt1 As Point, ByVal pt2 As Point) As Boolean
+'        Return pt1.IsEqualTo(pt2, Tolerance)
+'    End Function
+
+''    Public Function GetHashCode(ByVal pt As Point) As Integer
+''        Return pt.GetPointData()
+''    End Function
+'End Class
+
+Public Class PointsForSolidPlanes
+	Public StartPoint As SketchPoint
+	Public MidPoint As SketchPoint
+	Public EndPoint As SketchPoint
+	Public Sub [New](m_startPoint As SketchPoint,
+                     m_midPoint As SketchPoint,
+                     m_endPoint As SketchPoint)
+        StartPoint = m_startPoint
+        MidPoint = m_midPoint
+        EndPoint = m_endPoint
+    End Sub
+End Class
+
+Public Class LineGroup
+	Public parentLine As SketchLine
+	Public startPointLines As List(Of LineSegment)
+	Public EndPointLines As List(Of LineSegment)
+	Public Sub [New](m_parentLine As SketchLine,
+					 m_startPointLines As List(Of LineSegment),
+                     m_endPointLines As List(Of LineSegment))
+        parentLine = m_parentLine
+        startPointLines = m_startPointLines
+        EndPointLines = m_endPointLines
+    End Sub
+End Class
