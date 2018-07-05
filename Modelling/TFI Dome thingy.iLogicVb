@@ -252,9 +252,6 @@ Public Function CalculateGroupsOfPointsForWorkplanes(ByVal Sketch As PlanarSketc
 													Select pnt).toList()
 		If Not startPointPoints Is Nothing And Not endPointPoints Is Nothing Then
 '			MessageBox.Show("Count of start Points = " & startPointPoints.Count & vbCrLf & "Count of end Points = " & endPointPoints.Count)
-'			Dim matchingpoints As List(Of Point) = startPointPoints.Intersect(endPointPoints.Cast(Of Point))
-			
-			'Dim pointSet As HashSet(Of Point) = New HashSet(Of Point)(startPointPoints,New PointComparer(Tolerance))
 			Dim matchingpoints As List(Of SketchPoint) = New List(Of SketchPoint)
 			For Each startPointPoint As Point In startPointPoints
 				For Each endPointPoint As Point In endPointPoints
@@ -268,8 +265,6 @@ Public Function CalculateGroupsOfPointsForWorkplanes(ByVal Sketch As PlanarSketc
 								thesePoints.MidPoint = endpoint
 							End If
 						Next
-'						thesePoints.MidPoint = (From endpoint As SketchPoint In endpoints
-'												Where endpoint.)
 '						thesePoints.MidPoint = (From pnt As SketchPoint In endpoints
 '												Where pnt.Geometry3d.IsequalTo(startPointPoint)
 '												Select pnt).firstOrdefault()
@@ -281,14 +276,6 @@ Public Function CalculateGroupsOfPointsForWorkplanes(ByVal Sketch As PlanarSketc
 					End If
 				Next
 			Next
-'			If matchingpoints.Count = 1 Then
-'				MessageBox.Show("Matching Points count: " & matchingpoints.Count)
-'				Dim pointToAdd As Point = matchingpoints.Item(0)
-'				thesePoints.MidPoint = matchingpoints.Item(0)
-'				listOfPoints.Add(thesePoints)
-'			End If
-'			Dim matchingpoints As List(Of Point) = (From pnt As Point In startPointPoints) ' startPointPoints.IntersectWith(endPointPoints.Cast(Of Point))
-'			MessageBox.Show("Matching Points count: " & matchingpoints.Count)
 		End If
 '		thesePoints.MidPoint = 
 	Next

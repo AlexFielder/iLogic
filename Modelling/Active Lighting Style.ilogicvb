@@ -1,0 +1,15 @@
+﻿Dim oAssy As AssemblyDocument = ThisApplication.ActiveDocument
+
+Dim oLightStyleName As String 
+
+oLightStyleName = oAssy.ActiveLightingStyle.Name
+
+MessageBox.Show(oLightStyleName, "Title")
+
+Dim lightingstyletochangeto As LightingStyle = oAssy.LightingStyles.Item("Grid Light")
+If Not oAssy.ActiveLightingStyle.Name = lightingstyletochangeto.Name Then
+	oAssy.ActiveLightingStyle = lightingstyletochangeto
+	InventorVb.DocumentUpdate()
+Else
+	MessageBox.Show("We're already using the desired lighting style!")
+End If
