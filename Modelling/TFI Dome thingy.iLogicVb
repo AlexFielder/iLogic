@@ -75,6 +75,7 @@ Public Sub CreateDome(ByVal PartDoc As Document, Optional Diameter As String = "
 																	False)
 	oConstraint.Parameter.Expression = "diameter"
 	Sketch1.SetEndOfPart(True)
+	Sketch1.Visible = False
 	partCompDef.SetEndOfPartToTopOrBottom(False)
 	'DebugSketchPointsEtc(Sketch1)
 	OriginSketchPoint = Nothing
@@ -107,6 +108,7 @@ Public Sub CreateDome(ByVal PartDoc As Document, Optional Diameter As String = "
 																	DimensionOrientationEnum.kVerticalDim, 
 																	TextPoint, 
 																	False)
+	Sketch2.Visible = False
 	oConstraint.Parameter.Expression = "diameter"
 '	If debugging Then
 '		DebugSketchPointsEtc(Sketch2)
@@ -131,12 +133,145 @@ Public Sub CreateDome(ByVal PartDoc As Document, Optional Diameter As String = "
 	Create3PointWorkplaneFromList(partCompDef, CalculateGroupsOfPointsForWorkplanes(Sketch2, Sketch1CornerPoints, Sketch2CornerPoints), True)
 	
 	Dim sculpt1 As SculptFeature = partCompDef.Features.SculptFeatures.Add(sculptSurfaceCollection, PartFeatureOperationEnum.kNewBodyOperation)
-break
-	Dim Sketch2MidPointsForTopPlanes As List(Of SketchPoint) = GetSpecificSketchLineMidPoints(Sketch2, Sketch2MidPoints, NumSides, Tolerance)
-	Create3PointWorkplaneFromList(partCompDef, CalculateGroupsOfPointsForWorkplanes(Sketch1, Sketch2MidPointsForTopPlanes, Sketch1CornerPoints), False)
-'	Create3PointWorkplaneFromList(partCompDef, CalculateGroupsOfPointsForWorkplanes(Sketch2, Sketch2MidPointsForTopPlanes, Sketch1CornerPoints), False) ' Sketch1CornerPoints, Sketch2MidPointsForTopPlanes), False)
+	Dim body As SurfaceBody = sculpt1.SurfaceBodies(1)
+	
+	sculptSurfaceCollection.Clear()
+	
+'	If debugging Then
+'		body.Visible = False
+'	End If
+	Dim specificPointGroups As List(Of PointsForSolidPlanes) = GetSpecificPointGroups(Sketch2, Sketch2MidPoints, NumSides, Tolerance)
+	Dim matchingPoints As List(Of PointsForSolidPlanes) = GetMatchingSketchPointForMid(Sketch1, specificPointGroups, Sketch1CornerPoints)
+	workplaneCollection.Clear()
+
+	Create3PointWorkplaneFromList(partCompDef, matchingPoints, True, True, True)
+	
+	Dim topAxis1 As WorkAxis = Nothing
+	Dim topAxis2 As WorkAxis = Nothing
+'	MessageBox.Show(workplaneCollection.Count)
+Break
+	Dim Zaxis As WorkAxis = partCompDef.WorkAxes.Item(3)
+Break	
+	For Each ws As WorkPlane In workplaneCollection
+			If topAxis1 Is Nothing Then
+				topAxis1 = partCompDef.WorkAxes.AddByLineAndPlane(Zaxis, ws)
+			Else
+				topAxis2 = partCompDef.WorkAxes.AddByLineAndPlane(Zaxis, ws)
+			End If
+			ws.Visible = False
+	Next
+	
+	Dim topPoint As WorkPoint = partCompDef.WorkPoints.AddByTwoLines(topAxis1, topAxis2)
+	topAxis1.Visible = False
+	topAxis2.Visible = False
+	sculptSurfaceCollection.Clear()
+	'need to create a workplane between the new point ^ and the cornerpoints of sketch two
+	Create3PointWorkplaneFromList(partCompDef, CalculateGroupsOfPointsForWorkplanes(Sketch2, Sketch2CornerPoints, topPoint), False)
+	Dim sculpt2 As SculptFeature = partCompDef.Features.SculptFeatures.Add(sculptSurfaceCollection, PartFeatureOperationEnum.kJoinOperation)
 	
 End Sub
+
+''' <summary>
+''' Sorts out the grouping by checking for shortest lines with matching endpoints.
+''' </summary>
+''' <param name="thissketch"></param>
+''' <param name="pointGroups"></param>
+''' <returns>Returns the completed pointsforSolidPlanes grouping including the relevant sketchpoint for workplane creation.</returns>
+Public Function GetMatchingSketchPointForMid(ByVal thissketch As PlanarSketch,
+											ByVal pointGroups As List(Of PointsForSolidPlanes), 
+											ByVal cornerpoints As List(Of SketchPoint)) As List(Of PointsForSolidPlanes)
+
+	For Each pointgrp As PointsForSolidPlanes In pointGroups
+		Dim linegroups As List(Of LineGroup)
+		pointgrp.startPointLines = New List(Of LineSegment)
+		pointgrp.EndPointLines = New List(Of LineSegment)
+		For Each skline As SketchLine In thissketch.sketchlines
+			Dim startPoint As Point = skline.Geometry3d.StartPoint
+			Dim endPoint As Point = skline.Geometry3d.EndPoint
+			pointgrp.startPointLines.Add(transGeom.CreateLineSegment(startPoint, pointgrp.StartPoint.Geometry3d ))
+			pointgrp.EndPointLines.Add(transGeom.CreateLineSegment(startPoint, pointgrp.EndPoint.Geometry3d))
+		Next
+'Break
+		Dim midpoint As SketchPoint = (From skp As SketchPoint In cornerpoints
+										From startln As LineSegment In pointgrp.startPointLines
+										From endln As LineSegment In pointgrp.EndPointLines
+										Where startln.endpoint.isequalto(endln.endpoint, Tolerance) And skp.geometry3d.isequalto(startln.endpoint)
+										Select skp).firstordefault()
+'Break											
+		Dim lineswithsameendpointsandlengths As List(Of LineSegment)= (From startln As LineSegment In pointgrp.startPointLines
+																From endln As LineSegment In pointgrp.EndPointLines
+																Where startln.startpoint.IsEqualto(endln.startpoint, Tolerance) And IsEqual(getLineSegmentLength(startln), getLineSegmentLength(endln), Tolerance)
+																Select startln).ToList()
+'Break
+		'should be only one line after this:
+		lineswithsameendpointsandlengths = GetShortestLines(lineswithsameendpointsandlengths, Tolerance)
+'		pointgrp.startPointLines = GetShortestLines(pointgrp.startPointLines, Tolerance)
+'		pointgrp.EndPointLines = GetShortestLines(pointgrp.EndPointLines, Tolerance)
+'		MessageBox.Show("line count: " & lineswithsameendpointsandlengths.Count)
+		Dim midpointline As LineSegment = lineswithsameendpointsandlengths.Item(0)
+		Dim midpointsketchpoint As SketchPoint = (From skp As SketchPoint In cornerpoints
+								Where skp.geometry3d.isequalto(midpointline.startPoint, Tolerance)
+								Select skp).firstordefault
+
+		If Not midpointsketchpoint Is Nothing Then
+			pointgrp.MidPoint = midpointsketchpoint
+		Else
+			messagebox.Show("No midpoint")
+		End If
+	Next
+	Return pointGroups
+End Function										
+
+''' <summary>
+''' Gets points grouped together based on the number of sides in our polygon.
+''' </summary>
+''' <param name="thisSketch"></param>
+''' <param name="sketchpoints"></param>
+''' <param name="sides"></param>
+''' <param name="Tolerance"></param>
+''' <returns></returns>
+Public Function GetSpecificPointGroups(ByVal thisSketch As PlanarSketch, ByVal sketchpoints As List(Of SketchPoint), ByVal sides As Integer, ByVal Tolerance As Double) As List(Of PointsForSolidPlanes)
+	Dim pointsforPlanes As List(Of PointsForSolidPlanes) = New List(Of PointsForSolidPlanes)
+	Dim group1 As PointsForSolidPlanes = New PointsForSolidPlanes
+	Dim group2 As PointsForSolidPlanes = New PointsForSolidPlanes
+
+	For i As Integer = 1 To thisSketch.Sketchlines.Count
+		Dim skline As SketchLine = thisSketch.Sketchlines(i)
+		Dim skpoint As SketchPoint = (From sk As SketchPoint In sketchpoints
+													Where sk.Geometry3d.IsEqualto(skline.Geometry3d.MidPoint, Tolerance)
+													Select sk).FirstorDefault
+		Select Case sides
+			Case 6
+				If i = 1 Then
+					If Not skpoint Is Nothing Then
+						group1.StartPoint = skpoint
+					End If
+				Else If i = 3 Then
+					If Not skpoint Is Nothing Then
+						group1.EndPoint = skpoint
+					End If
+				Else If i = 4 Then 
+					If Not skpoint Is Nothing Then
+						group2.StartPoint = skpoint
+					End If
+				Else If i = 6 Then
+					If Not skpoint Is Nothing Then
+						group2.EndPoint = skpoint
+					End If					
+				End If
+			Case 8
+					
+			Case 10
+						
+			Case Else
+		End Select
+	Next
+	Dim points As List(Of PointsForSolidPlanes) = New List(Of PointsForSolidPlanes)
+	points.Add(group1)
+	points.Add(group2)
+'	break
+	Return points
+End Function
 
 Public Function GetSpecificSketchLineMidPoints(ByVal thisSketch As Sketch, ByVal sketchmidpoints As List(Of SketchPoint), ByVal sides As Integer, ByVal Tolerance As Double) As List(Of SketchPoint)
 	Dim sketchpoints As List(Of SketchPoint) = New List(Of SketchPoint)
@@ -161,7 +296,7 @@ Public Function GetSpecificSketchLineMidPoints(ByVal thisSketch As Sketch, ByVal
 		End Select
 	Next
 	If debugging Then
-		DebugSketchPointsEtc(thisSketch, sketchpoints)
+		DebugSketchPointsEtc(thisSketch, True, sketchpoints)
 	End If
 	Return sketchpoints
 End Function
@@ -184,20 +319,42 @@ End Function
 ''' <param name="partCompDef"></param>
 ''' <param name="pointlist"></param>
 ''' <param name="FlipNormals"></param>
-Public Sub Create3PointWorkplaneFromList(ByVal partCompDef As PartComponentDefinition, ByVal pointlist As List(Of PointsForSolidPlanes), ByVal FlipNormals As Boolean)
-	
+Public Sub Create3PointWorkplaneFromList(ByVal partCompDef As PartComponentDefinition, ByVal pointlist As List(Of PointsForSolidPlanes), ByVal FlipNormals As Boolean, Optional addToSculptcollection As Boolean = True, Optional addToWorksurfaceCollection As Boolean = False)
+'break
 	For Each pointset As PointsForSolidPlanes In pointlist
-		Dim workplaneToAddForSculpt As WorkPlane = partCompDef.Workplanes.AddByThreePoints(pointset.StartPoint, pointset.MidPoint, pointset.EndPoint)
+		Dim workplaneToAddForSculpt As WorkPlane = Nothing
+		If pointset.MidPoint Is Nothing And Not pointset.MidWorkPoint Is Nothing Then
+			workplaneToAddForSculpt = partCompDef.Workplanes.AddByThreePoints(pointset.StartPoint, pointset.MidWorkPoint, pointset.EndPoint)
+		Else
+			workplaneToAddForSculpt = partCompDef.Workplanes.AddByThreePoints(pointset.StartPoint, pointset.MidPoint, pointset.EndPoint)
+		End If
 		If FlipNormals Then
 			workplaneToAddForSculpt.FlipNormal()
 		End If
 		workplaneToAddForSculpt.AutoResize = True
-		sculptSurfaceCollection.Add(createSculptSurfaceForCollection(partCompDef, workplaneToAddForSculpt, PartFeatureExtentDirectionEnum.kNegativeExtentDirection))
-		'workplaneCollection.Add(workplaneToAddForSculpt)
+		If addToSculptcollection Then
+			sculptSurfaceCollection.Add(createSculptSurfaceForCollection(partCompDef, workplaneToAddForSculpt, PartFeatureExtentDirectionEnum.kNegativeExtentDirection))
+		End If
+		If addToWorksurfaceCollection Then
+			workplaneCollection.Add(workplaneToAddForSculpt)
+		End If
 	Next
 	'MessageBox.Show("workplane collection count: " & workplanecollection.Count)
 End Sub
 
+Public Function CalculateGroupsOfPointsForWorkplanes(ByVal Sketch As PlanarSketch, 
+														ByVal cornerpoints As List(Of SketchPoint),
+														ByVal point As WorkPoint) As List(Of PointsForSolidPlanes)
+	Dim listOfPoints As List(Of PointsForSolidPlanes) = New List(Of PointsForSolidPlanes)
+	For Each Line As SketchLine In Sketch.sketchlines
+		Dim pointgrp As PointsForSolidPlanes = New PointsForSolidPlanes
+		pointgrp.StartPoint = Line.StartSketchPoint
+		pointgrp.EndPoint = Line.EndSketchPoint
+		pointgrp.MidWorkPoint = point
+		listOfPoints.Add(pointgrp)
+	Next
+	Return listOfPoints
+End Function
 
 ''' <summary>
 ''' Calculates groups of points for creation of workplanes
@@ -233,8 +390,8 @@ Public Function CalculateGroupsOfPointsForWorkplanes(ByVal Sketch As PlanarSketc
 		
 		'debugging:
 		If debugging Then
-			DrawDebugGraphicsLineList(thisLineGroup.startPointLines, GetColourFromString("blue"))
-			DrawDebugGraphicsLineList(thisLineGroup.EndPointLines, GetColourFromString("red"))
+'			DrawDebugGraphicsLineList(thisLineGroup.startPointLines, GetColourFromString("blue"))
+'			DrawDebugGraphicsLineList(thisLineGroup.EndPointLines, GetColourFromString("red"))
 		End If
 		lineGrouplist.Add(thisLineGroup)
 	Next
@@ -295,6 +452,16 @@ Public Function GetShortestLines(ByVal listofLines As List(Of LineSegment), ByVa
 		listofLines = listofLines.Where(Function (entry As LineSegment) IsEqual(getLineSegmentLength(entry), min, Tolerance)).ToList()
 	End If
 	Return listofLines
+End Function
+
+Public Function GetShortestLinesWithAdjoiningEndpoints(ByVal listoflines As List(Of LineGroup), ByVal tolerance As Double) As List(Of PointsForSolidPlanes)
+	
+'	Dim groupedbylength As List(Of LineSegment) = listoflines.groupby(Function(entry As LineSegment) getLineSegmentLength(entry)).ToList()
+	Dim listofpoints As List(Of PointsForSolidPlanes) = New List(Of PointsForSolidPlanes)
+	
+	
+	Return listofpoints
+'	listoflines = listoflines.where(Function (entry As LineSegment) IsEqual(getLineSegmentLength(entry), Min))
 End Function
 
 ''' <summary>
@@ -387,13 +554,15 @@ End Function
 ''' adds numbered annotations around sketchlines and points to aid automation
 ''' </summary>
 ''' <param name="SketchToDebug"></param>
-Public Sub DebugSketchPointsEtc(ByVal SketchToDebug As PlanarSketch, Optional sketchpoints As List(Of SketchPoint) = Nothing)
+Public Sub DebugSketchPointsEtc(ByVal SketchToDebug As PlanarSketch, ByVal ignoresketchlines As Boolean, Optional sketchpoints As List(Of SketchPoint) = Nothing)
 	Dim objColl As ObjectCollection = transObjs.CreateObjectCollection()
-	For Each skline As SketchLine In SketchToDebug.SketchLines
-		objColl.Add(skline)
-	Next
-	Call AnnotateSketchObjectsForDebug(SketchToDebug, objColl, 10) 'Sketch1.SketchLines)
-	objColl.Clear()
+	If Not ignoresketchlines Then
+		For Each skline As SketchLine In SketchToDebug.SketchLines
+			objColl.Add(skline)
+		Next
+		Call AnnotateSketchObjectsForDebug(SketchToDebug, objColl, 10) 'Sketch1.SketchLines)
+		objColl.Clear()
+	End If
 	If sketchpoints Is Nothing Then
 		For Each skPoint As SketchPoint In SketchToDebug.SketchPoints
 			objColl.Add(skPoint)
@@ -539,6 +708,7 @@ End Function
 ''' <param name="colourname"></param>
 ''' <returns></returns>
 Public Function GetColourFromString(ByVal colourname As String) As Color
+	colourname = colourname.ToLower()
 	Select Case colourname
 		Case "black"
 			Return transObjs.CreateColor(255, 255, 255)
@@ -582,13 +752,23 @@ End Function
 Public Class PointsForSolidPlanes
 	Public StartPoint As SketchPoint
 	Public MidPoint As SketchPoint
+	Public MidWorkPoint As WorkPoint
 	Public EndPoint As SketchPoint
+	Public startPointLines As List(Of LineSegment)
+	Public EndPointLines As List(Of LineSegment)
+	
 	Public Sub [New](m_startPoint As SketchPoint,
                      m_midPoint As SketchPoint,
-                     m_endPoint As SketchPoint)
+					 m_midWorkPoint As WorkPoint,
+                     m_endPoint As SketchPoint,
+					 m_startPointLines As List(Of LineSegment),
+                     m_endPointLines As List(Of LineSegment))
         StartPoint = m_startPoint
         MidPoint = m_midPoint
+		MidWorkPoint = m_midWorkPoint
         EndPoint = m_endPoint
+		startPointLines = m_startPointLines
+        EndPointLines = m_endPointLines
     End Sub
 End Class
 
