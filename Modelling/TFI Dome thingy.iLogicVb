@@ -82,7 +82,8 @@ Public Sub CreateDome(ByVal PartDoc As Document, Optional Diameter As String = "
 	'offset workplane and sketch 2
 	Dim OffsetWorkPlane As WorkPlane = partCompDef.WorkPlanes.AddByPlaneAndOffset(partCompDef.WorkPlanes(3), (Parameter("diameter") / 10) / 2)
 	OffsetWorkPlane.Visible = False
-	
+	Dim latestParam As ModelParameter = GetLatestModelParameter(partCompDef)
+	latestParam.Name = "height"
 	workplaneCollection = transObjs.CreateObjectCollection()
 	sculptSurfaceCollection = transObjs.CreateObjectCollection()
 	'add XY plane
@@ -164,6 +165,7 @@ Break
 	Dim topPoint As WorkPoint = partCompDef.WorkPoints.AddByTwoLines(topAxis1, topAxis2)
 	topAxis1.Visible = False
 	topAxis2.Visible = False
+	toppoint.Visible = False
 	sculptSurfaceCollection.Clear()
 	'need to create a workplane between the new point ^ and the cornerpoints of sketch two
 	Create3PointWorkplaneFromList(partCompDef, CalculateGroupsOfPointsForWorkplanes(Sketch2, Sketch2CornerPoints, topPoint), False)
