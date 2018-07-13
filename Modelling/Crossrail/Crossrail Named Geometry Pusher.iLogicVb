@@ -17,14 +17,14 @@ Sub Main()
 						Let derivedPartComp As DerivedPartComponent = partDef.ReferenceComponents.DerivedPartComponents(1)
 						Select derivedPartComp).ToList()
 	If DerivedCompList.Count > 0 Then
-		MessageBox.Show("Count of derived components = " & DerivedCompList.Count)
-
+'		MessageBox.Show("Count of derived components = " & DerivedCompList.Count)
 		For Each derivedPartComp As DerivedPartComponent In DerivedCompList
 			Dim tmpDef As DerivedPartDefinition = derivedPartComp.Definition
 			Dim tmpDoc As PartDocument = derivedPartComp.ReferencedDocumentDescriptor.ReferencedDocument
 			Dim listofObjectsToPush As List(Of Object) = New List(Of Object)
 			listofObjectsToPush.AddRange(GetNamedGeometry(tmpDoc, "*"))
 			If listofObjectsToPush.Count > 0 Then
+				MessageBox.Show("Count of items in the multi-body part file: " & listofObjectsToPush.Count)
 				PushNamedGeometryToDerivedParts(AssyDoc, listofObjectsToPush)
 			Else
 				MessageBox.Show("No Named Geometry found to push in: " & derivedPartComp.Name)
@@ -48,33 +48,11 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 		'this next line needs to get the derived document from the allreferenceddocuments collection otherwise we're just checking the original Multi-Body Part file again.
 		Dim defToEdit As DerivedPartDefinition = derivedComp.Definition
 		'this works but gets the parent MBPart file instead!
-'		Dim docToEdit As PartDocument = (From doc As Document In AssyDoc.AllReferencedDocuments
-'										Where TypeOf doc Is PartDocument
-'										Let partDoc As PartDocument = doc
-'										Where partDoc Is derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
-'										Select partDoc).FirstOrDefault()
-'		If Not docToEdit Is Nothing Then
-			'check for and add if not existing the iLogicEntityNameSet attributeset
-'			Dim iLogicAttSet As AttributeSet = docToEdit.AttributeSets("")
-Break
-'these lines don't do anything because there aren't any attributesets in the derived component at this stage!
-'			If Not derivedComp.AttributeSets.Count = 0 Then
-'				Dim existingAttSets As Boolean = derivedComp.AttributeSets.NameIsUsed("iLogicEntityNameSet")
-'				If existingAttSets Then
-'					Break
-'					Dim attribSetsEnum As AttributeSetsEnumerator = derivedComp.AttributeSets("iLogicEntityNameSet") 'docToEdit.AttributeManager.FindAttributeSets("iLogicEntityNameSet")
-'					If Not attribSetsEnum Is Nothing Then
-'						For Each attset As AttributeSet In attribSetsEnum
-'							attset.Delete()
-'						Next
-'					End If
-'				End If
-'			End If
-Break
+'Break
 			Dim docToEdit As PartDocument = derivedComp.Parent.Document 'derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
 			Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
 			'Dim surfacebodyToEdit As SurfaceBody = derivedComp.SurfaceBodies.Item(1)
-			Break
+'			Break
 			If Not surfacebodyToEdit Is Nothing Then
 				'Split the listToPush into faces or edges lists
 				Dim edgesToEditList As List(Of Edge) = (From x As Object In listToPush
@@ -85,7 +63,7 @@ Break
 														Where TypeOf x Is Face
 														Let thisFace As Face = x
 														Select thisFace).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Face).Tolist(Of Face)
-				Break
+'				Break
 				'Edges
 				For Each edgeToCheck As Edge In surfacebodyToEdit.Edges
 '					Dim edgeToEdit As Edge = edgesToEditList.Find(Function(matchEdge As Edge) matchEdge.TransientKey = edgeToCheck.TransientKey)
@@ -94,9 +72,10 @@ Break
 														Select New MatchingGeom With {
 															.CheckObj = edgeToCheck,
 															.MatchingObj = matchEdge }).FirstOrDefault()
-Break
-					Dim edgeToEdit As Edge = matchedPair.MatchingObj
-					If Not edgeToEdit Is Nothing Then
+'Break
+					If Not matchedPair Is Nothing Then
+						Dim edgeToEdit As Edge = matchedPair.MatchingObj
+Break						
 						Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
 						If Not iLogicEntityName = String.Empty Then
 							MessageBox.Show("iLogicEntityName" = iLogicEntityName)
@@ -113,9 +92,10 @@ Break
 														Select New MatchingGeom With {
 															.CheckObj = faceToCheck,
 															.MatchingObj = matchface }).FirstOrDefault()
-Break
-					Dim faceToEdit As Face = matchedPair.MatchingObj
-					If Not faceToEdit Is Nothing Then
+'Break
+					If Not matchedPair Is Nothing Then
+						Dim faceToEdit As Face = matchedPair.MatchingObj
+Break						
 						Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
 						If Not iLogicEntityName = String.Empty Then
 							MessageBox.Show("iLogicEntityName" = iLogicEntityName)
@@ -127,8 +107,8 @@ Break
 				Next
 			End If
 			'need to add the iLogicEntityNameSet to the document so iLogic picks it up.
-			docToEdit.AttributeSets.Add("iLogicEntityNameSet")
-			Dim attribSetEnum As AttributeSetsEnumerator = docToEdit.AttributeManager.FindAttributeSets("iLogicEntityNameSet*")
+'			docToEdit.AttributeSets.Add("iLogicEntityNameSet")
+'			Dim attribSetEnum As AttributeSetsEnumerator = docToEdit.AttributeManager.FindAttributeSets("iLogicEntityNameSet*")
 			
 '		Else
 '			messagebox.Show("Something broke!")
