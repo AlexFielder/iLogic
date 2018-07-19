@@ -1,0 +1,48 @@
+﻿Private Sub Main() 
+
+Dim oDoc As PartDocument = ThisApplication.ActiveDocument
+Dim Name As String
+
+'Name = "Copper"
+Name = "Steel"
+
+Dim localAsset As Asset = Nothing
+
+Try
+	localAsset = oDoc.Assets.Item(Name)
+Catch
+	' Failed to get the appearance
+	' in the document, so import it.
+
+	' Get an asset library by name.
+	' Either the displayed name (which
+	' can changed based on the current language)
+	' or the internal name
+	' (which is always the same) can be used.
+
+	Dim assetLib As AssetLibrary = ThisApplication.AssetLibraries.Item("Autodesk Appearance Library")
+
+'	Set assetLib = ThisApplication.AssetLibraries.Item("AD121259-C03E-4A1D-92D8-59A22B4807AD")
+
+
+
+	' Get an asset in the library
+
+'	Dim libAsset As Asset = assetLib.MaterialAssets.Item(Name)
+	Dim libAsset As Asset = assetLib.AppearanceAssets.Item(Name)
+
+	' Copy the asset locally.
+	localAsset = libAsset.CopyTo(oDoc)
+End Try
+
+'	set material to the part
+'   oDoc.ActiveMaterial = localAsset
+
+oDoc.ActiveAppearance = localAsset
+
+'	Select the top browser node of the model pane.
+'	This is a workaround to refresh materials info in the UI.
+
+Call oDoc.BrowserPanes.ActivePane.TopNode.DoSelect
+
+End Sub

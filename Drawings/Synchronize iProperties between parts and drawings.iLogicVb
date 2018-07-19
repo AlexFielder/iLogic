@@ -24,6 +24,7 @@ End If
 End Sub
 
 Public Sub SyncProps()
+MessageBox.Show("Model name: " & ThisDrawing.ModelDocument.FullFileName)
 If (ThisDrawing.ModelDocument Is Nothing) Then Return
 
 'get the filename of the doc the drawing points to
@@ -36,7 +37,9 @@ modelName = IO.Path.GetFileName(ThisDrawing.ModelDocument.FullFileName)
 
 iProperties.Value("Project", "Description") = iProperties.Value(modelName, "Project", "Description")
 iProperties.Value("Summary", "Subject") = iProperties.Value(modelName, "Summary", "Subject")
-If iProperties.Value("Summary", "Title") = "" And Not iProperties.Value(modelName, "Project", "Description") = "" Then
-	iProperties.Value("Summary", "Title") = iProperties.Value(modelName, "Project", "Description")
-End If
+iProperties.Value("Summary", "Title") = iProperties.Value(modelName, "Summary", "Title")
+iProperties.Value("Project", "Part Number") = iProperties.Value(modelName, "Project", "Part Number")
+'If iProperties.Value("Summary", "Title") = "" And Not iProperties.Value(modelName, "Project", "Description") = "" Then
+'	iProperties.Value("Summary", "Title") = iProperties.Value(modelName, "Project", "Description")
+'End If
 End Sub

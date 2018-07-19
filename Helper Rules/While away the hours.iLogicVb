@@ -1,0 +1,15 @@
+﻿Sub Main()
+	'this will demonstrate the Do While loop concept:
+	
+	Dim IsItTrueYet As Boolean = False
+	
+	Do While IsItTrueYet = False
+		IsItTrueYet = InputBox("Is it true yet?", "Do While Demo")
+		
+		If IsItTrueYet Then
+			MessageBox.Show("True at last!")
+		Else
+			MessageBox.Show("Still False, sorry!")
+		End If
+	Loop
+End Sub

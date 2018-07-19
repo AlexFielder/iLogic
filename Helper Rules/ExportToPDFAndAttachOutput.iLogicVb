@@ -1,0 +1,182 @@
+﻿Option Explicit On
+
+Imports System.IO
+''' <summary>
+''' Will only run if the activedocument has been saved.
+''' </summary> 
+Sub Main()
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Export and Attach Step file")
+	Try
+		If Not ThisApplication.ActiveDocument.FullFilename = String.Empty Then 'won't run if the active document isn't saved.
+			Dim singleSheet As Boolean = InputRadioBox("Single Sheet?", "Single Sheet?", "Multi Sheet?")
+			Dim filenameToAttach As String = ExportPDF(singleSheet)
+			If Not filenameToAttach = String.Empty Then
+				Dim doc As Document = ThisApplication.ActiveDocument
+				AddReferences(doc, filenameToAttach)
+			End If
+		Else
+			MessageBox.Show("File not saved; save the file and try again!")
+			trans.Abort()
+		End If
+		trans.End()
+	Catch
+		trans.Abort()
+	End Try
+End Sub
+
+''' <summary>
+''' Returns an empty string if the stp file didn't save for some reason.
+''' </summary>
+''' <returns></returns>
+'''Prints the selected sheets to multi-page pdf or single sheet pdf file(s).
+Public Function ExportPDF(Optional singleSheet As Boolean = False) As String
+	Dim oDocument As drawingdocument = ThisApplication.ActiveDocument
+	Dim oSheets As Sheets
+	Dim oSheet As Sheet
+	Dim DrawingNumber As String = String.empty
+	Dim DrawingTitle As String = String.empty
+	Dim DrawingPrefix As String = String.Empty
+	Dim oPar As UserParameter
+	'Dim shtmaxnum as Integer = Convert.ToInt32(Parameter("Custom_End_Sheet"))
+	'MessageBox.Show(shtmaxnum)
+	Dim dwgdoc as DrawingDocument = ThisApplication.ActiveDocument
+	If singleSheet Then
+		For i = 1 To oDocument.Sheets.Count
+			oDocument.Sheets(i).Activate
+			oSheet = oDocument.Sheets(i)
+			'MessageBox.Show(osheet.Name)
+			Dim oTitleBlock As TitleBlock = oDocument.Sheets(i).TitleBlock
+			Dim oTextBoxes As TextBoxes = oTitleBlock.Definition.Sketch.TextBoxes
+			For Each oTextBox As Inventor.TextBox In oTitleBlock.Definition.Sketch.TextBoxes
+				' MessageBox.Show(otextbox.Text)
+				If oTextBox.Text <> "" Then
+					Select oTextBox.Text
+						Case "<PART NUMBER>":
+							DrawingNumber = oTitleBlock.GetResultText(oTextBox)
+						Case "Drawing Prefix": 
+							DrawingPrefix = oTitleBlock.GetResultText(oTextBox)
+						Case "<TITLE>":
+							DrawingTitle = oTitleBlock.GetResultText(oTextBox)
+					End Select
+				End If
+			Next
+			If Not DrawingNumber = String.Empty And Not DrawingTitle = String.Empty Then ' DrawingPrefix = String.empty Then
+				MessageBox.Show("Filename will include: " & DrawingNumber & " & " & DrawingTitle)
+				PrintSheet(osheet, DrawingNumber, DrawingPrefix, singleSheet)
+			Else
+				MessageBox.Show("Either the Drawing Number or Prefix was missing on this sheet, Exiting!")
+				Exit Function
+			End If
+		Next
+	Else
+'		MessageBox.Show("Print multi-sheet document")
+		Return PrintDocument(oDocument)
+	End If
+'MessageBox.Show("Done!")
+end function
+
+Public Function PrintDocument(ByVal printDoc As DrawingDocument) As String
+'	messagebox.Show("tada!")
+	Dim oPDFAddIn As ApplicationAddIn = ThisApplication.ApplicationAddIns.ItemById("{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}")
+	Dim oContext As TranslationContext = ThisApplication.TransientObjects.CreateTranslationContext
+	oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
+	Dim oOptions As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
+	Dim oDataMedium As DataMedium = ThisApplication.TransientObjects.CreateDataMedium
+'	messagebox.Show("made it this bloody far!")
+	If oPDFAddIn.HasSaveCopyAsOptions(printDoc, oContext, oOptions) Then
+		oOptions.Value("All_Color_AS_Black") = 1
+		oOptions.Value("Remove_Line_Weights") = 1
+		oOptions.Value("Vector_Resolution") = 400
+		oOptions.Value("Sheet_Range") = Inventor.PrintRangeEnum.kPrintAllSheets
+	End If
+	
+'	MessageBox.Show(System.IO.Path.GetFileNameWithoutExtension(printDoc.Fullfilename))
+	oDataMedium.FileName = System.IO.Path.GetFileNameWithoutExtension(printDoc.Fullfilename) & ".pdf"
+	MessageBox.Show("PDF filename is going to be: " & oDataMedium.FileName)
+
+	Try
+		Call oPDFAddIn.SaveCopyAs(printDoc, oContext, oOptions, oDataMedium)
+		ThisApplication.StatusBarText = "PDF SAVED TO: " & oDataMedium.FileName
+	Catch
+		MessageBox.Show("PDF could not be saved, most likely you or someone else has it open", "No PDF for you " & ThisApplication.GeneralOptions.UserName & "!")
+	End Try
+	If System.IO.File.Exists(oDataMedium.FileName) Then
+		MessageBox.Show("Printed document path is: " & System.IO.Path.GetFileNameWithoutExtension(printDoc.Fullfilename) & ".pdf")
+		Return System.IO.Path.GetFileNameWithoutExtension(printDoc.Fullfilename) & ".pdf" ' oDataMedium.FileName
+	Else
+		Return String.Empty
+	End If
+End Function
+
+''' <summary>
+''' Prints a sheet or multi-page PDF file.
+''' </summary>
+''' <param name="sht"></param>
+''' <param name="DrawingNum"></param>
+''' <param name="DrawingPrefix"></param>
+''' <param name="singleSheet"></param>
+''' <returns></returns>
+Public Function PrintSheet(ByVal sht As Sheet, ByVal DrawingNum As String, ByVal DrawingPrefix As String, Optional singleSheet As Boolean = False) As String
+	Dim oPath As String = ThisDoc.Path
+	Dim PN As String = iProperties.Value("Project", "Part Number")
+
+	'path_and_namePDF = ThisDoc.Pathandname(False)
+	Dim oFileName As String = ThisDoc.FileName(False) 'without extension
+	Dim oPDFAddIn As ApplicationAddIn = ThisApplication.ApplicationAddIns.ItemById("{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}")
+	Dim oDocument As Document = ThisApplication.ActiveDocument
+	Dim oContext As TranslationContext = ThisApplication.TransientObjects.CreateTranslationContext
+	oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
+	Dim oOptions As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
+	Dim oDataMedium As DataMedium = ThisApplication.TransientObjects.CreateDataMedium
+	If oPDFAddIn.HasSaveCopyAsOptions(oDataMedium, oContext, oOptions) Then
+		oOptions.Value("All_Color_AS_Black") = 1
+		oOptions.Value("Remove_Line_Weights") = 1
+		oOptions.Value("Vector_Resolution") = 400
+		If singleSheet Then
+			oOptions.Value("Sheet_Range") = Inventor.PrintRangeEnum.kPrintCurrentSheet
+		Else
+			oOptions.Value("Sheet_Range") = Inventor.PrintRangeEnum.kPrintAllSheets 'or whatever this should be!?
+		End If
+		'oOptions.Value("Custom_Begin_Sheet") = 1
+		'oOptions.Value("Custom_End_Sheet") = 4
+	End If
+	oDataMedium.FileName = oPath & "\" & DrawingNum & " " & DrawingPrefix & ".pdf"
+	'MessageBox.Show("PDF SAVED TO: " & oDataMedium.FileName, "PDF Saved", MessageBoxButtons.OK)
+
+	Try
+		Call oPDFAddIn.SaveCopyAs(oDocument, oContext, oOptions, oDataMedium)
+		ThisApplication.StatusBarText = "PDF SAVED TO: " & oDataMedium.FileName
+	Catch
+		MessageBox.Show("PDF could not be saved, most likely you or someone else has it open", "No PDF for you " & ThisApplication.GeneralOptions.UserName & "!")
+	End Try
+	If System.IO.File.Exists(oDataMedium.FileName) Then
+		Return oDataMedium.FileName
+	Else
+		Return String.Empty
+	End If
+End function
+
+''' <summary>
+''' Attaches any file using the fully c:\path\to\your\file.extension format.
+''' </summary>
+''' <param name="odoc"></param>
+''' <param name="selectedfile"></param>
+Public Sub AddReferences(ByVal odoc As Inventor.Document, ByVal selectedfile As String)
+	Dim oleReference As ReferencedOLEFileDescriptor
+	If selectedfile.Contains("|") Then ' we have multiple files selected.
+		Dim file As String() = selectedfile.Split("|")
+		For Each s As String In file
+			oleReference = odoc.ReferencedOLEFileDescriptors _
+				.Add(s, OLEDocumentTypeEnum.kOLEDocumentLinkObject)
+			oleReference.BrowserVisible = True
+			oleReference.Visible = False
+			oleReference.DisplayName = Mid$(s, InStrRev(s, "\") + 1)
+		Next
+	Else
+		oleReference = odoc.ReferencedOLEFileDescriptors _
+				.Add(selectedfile,OLEDocumentTypeEnum.kOLEDocumentLinkObject)
+		oleReference.BrowserVisible = True
+		oleReference.Visible = False
+		oleReference.DisplayName = Mid$(selectedfile, InStrRev(selectedfile, "\") + 1)
+	End If
+End Sub
