@@ -1,0 +1,14 @@
+﻿Imports Autodesk.DataManagement.Client.Framework.Vault
+Imports Autodesk.Connectivity.WebservicesTools
+Imports VDF = Autodesk.Datamanagement.Client.Framework
+Imports ACF = Autodesk.Connectivity.Webservices
+Imports System.Collections
+Imports System.Windows.Forms
+
+Sub Main()
+	
+End Sub
+
+Public FileIters As ICollection(Of VDF.Vault.Currency.Entities.FileIteration)
+Public controls As String
+
