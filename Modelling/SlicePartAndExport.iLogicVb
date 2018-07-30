@@ -1,0 +1,148 @@
+﻿Option Explicit On
+Imports Inventor.SelectionFilterEnum
+''' <summary>
+''' This rule asks the user to select a workplane and a point to decide on the number of slices.
+''' The program then works out the spacing between the two selections.
+''' It does require the workplane normal to be facing into the part as there is no intelligence to determine if that is the case after selection.
+''' </summary>
+
+Sub Main
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Slice and export tool")
+	transGeom = ThisApplication.TransientGeometry
+	Try
+		Dim Cont As Boolean = True
+		Dim Counter As Integer = 1
+
+		Dim oDoc As Document = ThisDoc.Document
+		If oDoc.DocumentType = DocumentTypeEnum.kAssemblyDocumentObject OrElse oDoc.DocumentType = DocumentTypeEnum.kDrawingDocumentObject Then
+			MessageBox.Show("This tool can only be used in a part file!", "No slicing for you!", _
+			MessageBoxButtons.OK,MessageBoxIcon.Exclamation, _
+			MessageBoxDefaultButton.Button1)
+			Return
+		End If
+
+		Dim oPartCompDef As PartComponentDefinition = oDoc.ComponentDefinition
+		Dim oWorkPlanes As WorkPlanes = oPartCompDef.WorkPlanes
+		Dim oFilter As SelectionFilterEnum = SelectionFilterEnum.kWorkPlaneFilter
+
+		' Turn origin planes on
+		For a = 1 To 3
+			oWorkPlanes.Item(a).Visible = True
+		Next
+
+		' Get start plane from user
+		Dim oStartPlane As WorkPlane = ThisApplication.CommandManager.Pick(oFilter, "Select Start Plane")
+		Dim slicingEndPoint As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAllPointEntities,"Select a point to slice between")
+		Dim GridlineName As String = InputBox("Enter Name of Grid Planes", "Say my name!", "GL")
+
+		If GridlineName = "" Then
+			Cleanup(oWorkPlanes)
+			Return
+		End If
+		
+		Dim StartNo As Double = 10
+	'	Dim Offset As String = InputBox("Enter Plane Offset in mm (From Previous)" & vbLf & vbLf & "Hit cancel to finish", Title, StartNo)
+		Dim totaloffset As Double = ThisApplication.MeasureTools.GetMinimumDistance(oStartPlane, slicingEndPoint)
+		Dim numPlanes As Double = CDbl(InputBox("Enter Number of planes" & vbLf & vbLf & "Hit cancel to finish", "Planes, Planes, Planes", StartNo))
+		Dim offset As Double = totaloffset / numPlanes
+		Dim oNewWorkPlane As WorkPlane
+		'1 less than total slices because otherwise there's nothing to slice.
+		For i As Integer = 0 To numPlanes -1
+			Dim CountString As String = i.ToString("D4")
+			If i = 0 Then
+				oNewWorkPlane = oStartPlane
+			Else If i = 1 Then
+				oNewWorkPlane = oWorkPlanes.AddByPlaneAndOffset(oStartPlane, offset)
+			Else
+				oNewWorkPlane = oWorkPlanes.AddByPlaneAndOffset(oNewWorkPlane, offset)
+			End If
+			Try
+				oNewWorkPlane.Name = "Work Plane" & GridlineName & CountString
+			Catch
+			End Try
+			Dim newSketch As PlanarSketch = CreateSketch(oPartCompDef, oNewWorkPlane)
+			oNewWorkPlane.Visible = False
+			newSketch.ProjectedCuts.Add()
+			newSketch.Edit()
+			newSketch.ExitEdit()
+			newSketch.Name = GridlineName & CountString
+			ExportSketch(newSketch)
+			newSketch.Visible = False
+			If newSketch.SketchLines.Count > 0 Then
+'				newSketch.exp
+			End If
+	'		offset += offset
+		Next i
+		Cleanup(oWorkPlanes)
+		trans.End()
+	Catch
+		trans.Abort()
+	End Try
+End Sub
+
+Sub ExportSketch(ByVal thisSketch As PlanarSketch)
+	'Export face to pre-defined folder
+	Dim selSet As SelectSet = ThisApplication.ActiveDocument.SelectSet
+	If selSet.Count = 0 Then
+		selSet.Select(thisSketch)
+	End If
+	Dim oFolder As String = ThisDoc.Path & "\" & ThisDoc.FileName & "DXF\"
+	If Not System.IO.File.Exists(oFolder) Then System.IO.Directory.CreateDirectory(oFolder)
+	Dim oFileName As String = oFolder & thisSketch.name & ".dxf"
+
+	Dim oCmdMgr As CommandManager
+	oCmdMgr = ThisApplication.CommandManager
+
+	Call oCmdMgr.PostPrivateEvent(PrivateEventTypeEnum.kFileNameEvent, oFileName)
+	Call oCmdMgr.ControlDefinitions.Item("GeomToDXFCommand").Execute
+End Sub
+
+Public OriginSketchPoint As SketchPoint = Nothing
+Public transGeom As TransientGeometry = Nothing
+
+Sub Cleanup(ByVal oWorkPlanes As WorkPlanes)
+' Turn origin planes off
+For a = 1 To 3
+    oWorkPlanes.Item(a).Visible = False
+Next
+
+End Sub
+
+''' <summary>
+''' Creates a sketch based on a workplane
+''' </summary>
+''' <param name="compDef"></param>
+''' <param name="plane"></param>
+''' <returns></returns>
+Public Function CreateSketch(ByVal compDef As ComponentDefinition, ByVal plane As WorkPlane) As PlanarSketch
+	Dim newSketch As PlanarSketch = compDef.Sketches.Add(plane)
+	Call CorrectForMissingOriginPoint(compDef, newSketch)
+	If Not newSketch Is Nothing Then
+		Return newSketch
+	Else
+		Return Nothing
+	End If
+End Function
+
+''' <summary>
+''' Checks if the supplied planarsketch has the part originpoint projected into it (if created by the API it won't!) and if not adds it.
+''' </summary>
+''' <param name="compDef"></param>
+''' <param name="thisSketch"></param>
+Public Sub CorrectForMissingOriginPoint(ByVal compDef As ComponentDefinition, ByRef thisSketch As PlanarSketch)
+	Dim oOriginWP As WorkPoint  = compDef.WorkPoints.Item(1)
+    'set as global above
+'    Dim oOriginSketchPoint As SketchPoint
+    For Each oSketchPoint As SketchPoint In thisSketch.SketchPoints
+        If oSketchPoint.ReferencedEntity Is oOriginWP Then
+            OriginSketchPoint = oSketchPoint
+            Exit For
+        End If
+    Next
+   
+    ' Create the sketch point for the origin, if it doesn't already exist.
+    If OriginSketchPoint Is Nothing Then
+        ' Project the origin point onto the sketch.
+        OriginSketchPoint = thisSketch.AddByProjectingEntity(compDef.WorkPoints.Item(1))
+    End If
+End Sub
