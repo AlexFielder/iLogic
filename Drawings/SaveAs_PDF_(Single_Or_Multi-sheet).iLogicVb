@@ -57,21 +57,12 @@ If oPDFAddIn.HasSaveCopyAsOptions(oDataMedium, oContext, oOptions) Then
 	oOptions.Value("Remove_Line_Weights") = 1
 	oOptions.Value("Vector_Resolution") = 400
 	oOptions.Value("Sheet_Range") = Inventor.PrintRangeEnum.kPrintCurrentSheet
-	'oOptions.Value("Custom_Begin_Sheet") = 1
-	'oOptions.Value("Custom_End_Sheet") = 4
 End If
 
-'Set the destination file name 
-REM oPath = "N:\INVENTOR PDF FILES\"
-REM oPath = InputBox("Replace Path","New Path")
- 
 oDataMedium.FileName = oPath & "\" & DrawingNum & " " & DrawingPrefix & ".pdf"
-'Publish document 
- 'Confirmation message
- ThisApplication.StatusbarText = "PDF SAVED TO: " & oDataMedium.FileName
- 'MessageBox.Show("PDF SAVED TO: " & oDataMedium.FileName, "PDF Saved", MessageBoxButtons.OK)
- 
-
+'Confirmation message
+ThisApplication.StatusbarText = "PDF SAVED TO: " & oDataMedium.FileName
+'MessageBox.Show("PDF SAVED TO: " & oDataMedium.FileName, "PDF Saved", MessageBoxButtons.OK)
 
 On Error Goto handlePDFLock
 'Publish document.

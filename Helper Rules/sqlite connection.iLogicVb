@@ -1,0 +1,16 @@
+﻿Option explicit On
+AddReference "System.Data.SQLite.dll"
+AddReference "System.Data"
+Imports System.Data
+Imports System.Data.SQLite
+Dim sqlite_conn As SQLiteConnection
+' create a new database connection:
+sqlite_conn = New SQLiteConnection("Data Source=F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Inventor 2019\iLogic Test.db;Version=3;")
+
+sqlite_conn.Open()
+
+Dim sqlite_cmd As SQLiteCommand = sqlite_conn.CreateCommand()
+
+sqlite_cmd.CommandText = "CREATE TABLE test (id integer primary key, text varchar(100));"
+
+sqlite_cmd.ExecuteNonQuery()
