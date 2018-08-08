@@ -1,0 +1,92 @@
+﻿Option explicit on
+''' <summary>
+''' Will only run if the activedocument has been saved.
+''' </summary> 
+Sub Main()
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Export and Attach DXF file")
+		If Parameter("m_p_s") = "p (purchased)" Then
+			trans.Abort()
+		ElseIf Not iProperties.Value("Project", "Part Number") = "" Then
+			Dim filenameToAttach As String = ExportToDXF()
+			If Not filenameToAttach = String.Empty Then
+				Dim doc As Document = ThisApplication.ActiveDocument
+				AddReferences(doc, filenameToAttach)
+			End If
+		Else
+			MessageBox.Show("NuTec Part Number is blank...Cannot save the .dxf file","Error Saving File")
+			trans.Abort()
+		End If
+End Sub
+
+''' <summary>
+''' Returns an empty string if the dxf file didn't save for some reason.
+''' </summary>
+''' <returns></returns>
+Function ExportToDXF() As String
+	Dim filename As String
+	' Get the DXF translator Add-In.
+	Dim DXFAddIn As TranslatorAddIn
+	DXFAddIn = ThisApplication.ApplicationAddIns.ItemById("{90AF7F40-0C01-11D5-8E83-0010B541CD80}")
+	'Set a reference to the active document (the document to be published)
+	Dim oDocument As Document
+	oDocument = ThisApplication.ActiveDocument
+	Dim oContext As TranslationContext
+	oContext = ThisApplication.TransientObjects.CreateTranslationContext
+	oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
+	'Create a NameValueMap object
+	Dim oOptions As NameValueMap
+	oOptions = ThisApplication.TransientObjects.CreateNameValueMap
+	'Create a DataMedium object
+	Dim oDataMedium As DataMedium
+	oDataMedium = ThisApplication.TransientObjects.CreateDataMedium
+	'Check whether the translator has 'SaveCopyAs' options
+	If DXFAddIn.HasSaveCopyAsOptions(oDocument, oContext, oOptions) Then
+	Dim strIniFile As String
+	strIniFile = "L:\Autodesk Software\iLogic Rules\NuTec Save As DXF File.ini"
+	'Create the name-value that specifies the ini file to use.
+	oOptions.Value("Export_Acad_IniFile") = strIniFile
+	End If
+	'Set the destination file name
+	oDataMedium.FileName = ThisDoc.PathAndFileName(False) & ".dxf"
+	'Publish document.
+	DXFAddIn.SaveCopyAs(oDocument, oContext, oOptions, oDataMedium)
+	filename = oDataMedium.FileName
+	'Launch the dxf file in whatever application Windows is set to open this document type with
+	Dim i As DialogResult = MessageBox.Show("Preview the DXF file?", "Open the DXF File",MessageBoxButtons.YesNo,MessageBoxIcon.Question)
+	If i = DialogResult.Yes Then ThisDoc.Launch(oDataMedium.FileName)
+	If System.IO.File.Exists(filename) Then
+		MessageBox.Show(filename)
+		Return filename
+	Else
+		Return ""
+	End If
+End Function
+
+''' <summary>
+''' Attaches any file using the full c:\path\to\your\file.extension format.
+''' </summary>
+''' <param name="odoc"></param>
+''' <param name="selectedfile"></param>
+Public Sub AddReferences(ByVal odoc As Inventor.Document, ByVal selectedfile As String)
+	Dim oleReference As ReferencedOLEFileDescriptor
+	'This deletes any previously attached .dxf files before attaching a New .dxf file
+	For Each oleReference In odoc.ReferencedOLEFileDescriptors
+		Call oleReference.Delete()
+	Next	
+	If selectedfile.Contains("|") Then ' we have multiple files selected.
+		Dim file As String() = selectedfile.Split("|")
+		For Each s As String In file
+			oleReference = odoc.ReferencedOLEFileDescriptors _
+				.Add(s, OLEDocumentTypeEnum.kOLEDocumentLinkObject)
+			oleReference.BrowserVisible = True
+			oleReference.Visible = False
+			oleReference.DisplayName = Mid$(s, InStrRev(s, "\") + 1)
+		Next
+	Else
+		oleReference = odoc.ReferencedOLEFileDescriptors _
+				.Add(selectedfile,OLEDocumentTypeEnum.kOLEDocumentLinkObject)
+		oleReference.BrowserVisible = True
+		oleReference.Visible = False
+		oleReference.DisplayName = Mid$(selectedfile, InStrRev(selectedfile, "\") + 1)
+	End If
+End Sub

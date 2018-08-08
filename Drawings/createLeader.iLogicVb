@@ -1,0 +1,34 @@
+﻿'The setup
+Dim invApp As Inventor.Application
+invApp = ThisApplication
+Dim oDrawDoc As DrawingDocument
+oDrawDoc = invApp.ActiveEditDocument
+Dim oActiveSheet As Sheet
+oActiveSheet = oDrawDoc.ActiveSheet
+'Looks up existing placed assembly
+'oModelDoc = IO.Path.GetFileName(ThisDrawing.ModelDocument.FullFileName)
+'sets model parameter frame as oFrame
+'oFrame = Parameter(oModelDoc, "frame")
+'creates fake parameter for example purposes
+oFrame = "X"
+For Each oSheet As Sheet In oDrawDoc.Sheets
+	Dim Xcoord = 12.25
+	Dim Ycoord = 17.25
+	Dim LS = 0.4
+	Dim oTG As Inventor.TransientGeometry = invApp.TransientGeometry
+	Dim leaderPoints As ObjectCollection = invApp.TransientObjects.CreateObjectCollection()
+	leaderPoints.Add(oTG.CreatePoint2d(oSheet.Width - Xcoord, Ycoord))
+	Dim oNote As LeaderNote = oSheet.DrawingNotes.LeaderNotes.Add(leaderPoints, "Model " & oFrame)
+	leaderPoints.Clear()
+'	oNote = oSheet.DrawingNotes.GeneralNotes.AddFitted(oTG.CreatePoint2d(oSheet.Width - Xcoord, Ycoord), "Model " & oFrame)
+	Ycoord = Ycoord - LS
+	leaderPoints.Add(oTG.CreatePoint2d(oSheet.Width - Xcoord, Ycoord))
+	oNote = oSheet.DrawingNotes.LeaderNotes.Add(leaderPoints, "Note 2")
+'	oNote = oSheet.DrawingNotes.GeneralNotes.AddFitted(oTG.CreatePoint2d(oSheet.Width - Xcoord, Ycoord), "Note 2")
+	oDrawDoc.Update()
+'	With oNote
+'		.HorizontalJustification = Inventor.HorizontalTextAlignmentEnum.kAlignTextCenter
+'		.VerticalJustification = Inventor.VerticalTextAlignmentEnum.kAlignTextMiddle
+'		.TextStyle.FontSize = 0.203
+'	End With
+Next

@@ -1,0 +1,43 @@
+option explicit on
+'''Will set the appearance of a part file expect for those faces which have a name.
+'''
+'''
+Public Sub Main()
+	If TypeOf ThisApplication.ActiveDocument Is PartDocument Then
+		ResetNamedFacesToDesiredAppearance(ThisApplication.ActiveDocument)
+	Else
+		MessageBox.Show("Only runs in part files!")
+	End If
+End Sub
+
+Public machinedFaceMaterialName As String = "Machined - Aluminum"
+Public flangeFaceNamePrefix As String = "FlangeFace*"
+
+''' <summary>
+''' Resets named faces whose prefix matches that above to the desired material
+''' </summary>
+''' <param name="partDoc"></param>
+Public Sub ResetNamedFacesToDesiredAppearance(ByVal partDoc As PartDocument)
+	'unecessary, but *should* IMHO work?
+'	Dim assetLib As AssetLibrary = ThisApplication.AssetLibraries.Item("Autodesk Appearance Library")
+	'language-agnostic:
+'	assetLib = ThisApplication.AssetLibraries.Item("AD121259-C03E-4A1D-92D8-59A22B4807AD")
+	Dim appearanceObjs As ObjectCollection = partDoc.AttributeManager.FindObjects("iLogicEntityNameSet", "iLogicEntityName", flangeFaceNamePrefix)
+	If appearanceObjs.Count > 0 Then
+		For Each obj As Object In appearanceObjs
+			If TypeOf obj Is SurfaceBody Then
+
+            ElseIf TypeOf obj Is PartFeature Then
+
+            ElseIf TypeOf obj Is Face Then
+				Dim thisFace As Face = obj
+				'this doesn't work but I'll leave it for others to comment upon!
+'				Dim faceAppearance As Asset = assetLib.AppearanceAssets(machinedFaceMaterialName)
+'				thisFace = faceAppearance ' faceName
+				Dim oStyle As RenderStyle = partDoc.RenderStyles.Item(machinedFaceMaterialName)
+    			Call thisFace.SetRenderStyle(kOverrideRenderStyle, oStyle)
+
+			End If
+		Next
+	End If
+End Sub

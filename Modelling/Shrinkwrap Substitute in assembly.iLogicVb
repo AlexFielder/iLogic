@@ -1,0 +1,45 @@
+﻿option explicit on
+Sub Main()
+    ' Set a reference to the active assembly document
+    Dim oDoc As AssemblyDocument= ThisApplication.ActiveDocument
+
+    Dim oDef As AssemblyComponentDefinition = oDoc.ComponentDefinition
+
+    ' Create a new part document that will be the shrinkwrap substitute
+    Dim oPartDoc As PartDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject, , False)
+
+    Dim oPartDef As PartComponentDefinition = oPartDoc.ComponentDefinition
+
+    Dim oDerivedAssemblyDef As DerivedAssemblyDefinition = oPartDef.ReferenceComponents.DerivedAssemblyComponents.CreateDefinition(oDoc.FullDocumentName)
+
+    ' Set various shrinkwrap related options
+    oDerivedAssemblyDef.DeriveStyle = DerivedComponentStyleEnum.kDeriveAsSingleBodyNoSeams
+    oDerivedAssemblyDef.IncludeAllTopLevelWorkFeatures = DerivedComponentOptionEnum.kDerivedIncludeAll
+    oDerivedAssemblyDef.IncludeAllTopLevelSketches = DerivedComponentOptionEnum.kDerivedIncludeAll
+    oDerivedAssemblyDef.IncludeAllTopLeveliMateDefinitions = DerivedComponentOptionEnum.kDerivedExcludeAll
+    oDerivedAssemblyDef.IncludeAllTopLevelParameters = DerivedComponentOptionEnum.kDerivedExcludeAll
+    oDerivedAssemblyDef.ReducedMemoryMode = True
+	'do this I think:
+	oDerivedAssemblyDef.IndependentSolidsOnFailedBoolean = True
+
+    Call oDerivedAssemblyDef.SetHolePatchingOptions(kDerivedPatchAll)
+    Call oDerivedAssemblyDef.SetRemoveByVisibilityOptions(kDerivedRemovePartsAndFaces, 25)
+
+    ' Create the shrinkwrap component
+    Dim oDerivedAssembly As DerivedAssemblyComponent = oPartDef.ReferenceComponents.DerivedAssemblyComponents.Add(oDerivedAssemblyDef)
+
+    ' Save the part
+    Dim strSubstituteFileName As String
+    strSubstituteFileName = Left$(oDoc.FullFileName, Len(oDoc.FullFileName) - 4)
+    strSubstituteFileName = strSubstituteFileName & "_ShrinkwrapSubstitute.ipt"
+
+    ThisApplication.SilentOperation = True
+    Call oPartDoc.SaveAs(strSubstituteFileName, False)
+    ThisApplication.SilentOperation = False
+
+    ' Create a substitute level of detail using the shrinkwrap part.
+    Dim oSubstituteLOD As LevelOfDetailRepresentation = oDef.RepresentationsManager.LevelOfDetailRepresentations.AddSubstitute(strSubstituteFileName)
+
+    ' Release reference of the invisibly opened part document.
+    oPartDoc.ReleaseReference
+End Sub
