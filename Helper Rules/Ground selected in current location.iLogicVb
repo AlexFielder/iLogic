@@ -3,11 +3,12 @@
 ''' </summary>
 Public Sub Main()
     Dim assemblydoc As AssemblyDocument = ThisApplication.ActiveDocument
+	dim assemblyCompDef as AssemblyComponentDefinition = assemblyDoc.componentdefinition
 	dim qGround as boolean = InputRadioBox("Select one:", "Ground", "Un-Ground", True, "ilogic")
     ' Get the occurrences in the select set. 
     Dim occurrenceList As New Collection
     Dim entity As Object
-    For Each entity In assemblydoc.SelectSet
+    For Each entity In assemblyCompDef.Occurrences 'assemblydoc.SelectSet
         If TypeOf entity Is ComponentOccurrence Then
             occurrenceList.Add(entity)
         End If
@@ -27,7 +28,7 @@ Public Sub Main()
         Dim i As Integer
         For i = 1 To occurrenceList.Count
             Dim thisOcc As ComponentOccurrence = occurrenceList.Item(i)
-            thisOcc.grounged = qGround
+            thisOcc.grounded = qGround
         Next
 
     Catch ex As Exception
