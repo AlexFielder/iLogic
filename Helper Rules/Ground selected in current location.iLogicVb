@@ -1,0 +1,40 @@
+﻿''' <summary>
+''' Prior to running this tool something must be selected inside of the assembly modelling window.
+''' </summary>
+Public Sub Main()
+    Dim assemblydoc As AssemblyDocument = ThisApplication.ActiveDocument
+	dim qGround as boolean = InputRadioBox("Select one:", "Ground", "Un-Ground", True, "ilogic")
+    ' Get the occurrences in the select set. 
+    Dim occurrenceList As New Collection
+    Dim entity As Object
+    For Each entity In assemblydoc.SelectSet
+        If TypeOf entity Is ComponentOccurrence Then
+            occurrenceList.Add(entity)
+        End If
+    Next
+
+    If occurrenceList.Count < 1 Then
+        MsgBox("At least one occurrence must be selected.")
+        Exit Sub
+    End If
+
+	'need to enclose this next part inside a transaction so we have the option of rolling back the changes in one go, otherwise
+    'the Undo history doesn't always go far enough!
+    Dim GroundAndRootTr As Transaction = ThisApplication.TransactionManager.StartTransaction(assemblydoc, "Ground in current location")
+
+    Try
+        ' Iterate through the other occurrences 
+        Dim i As Integer
+        For i = 1 To occurrenceList.Count
+            Dim thisOcc As ComponentOccurrence = occurrenceList.Item(i)
+            thisOcc.grounged = qGround
+        Next
+
+    Catch ex As Exception
+        MsgBox("Unrecoverable error occurred during the operation" & vbCrLf & ex.Message)
+        GroundAndRootTr.Abort()
+        Exit Sub
+    Finally
+        GroundAndRootTr.End()
+    End Try
+End Sub
