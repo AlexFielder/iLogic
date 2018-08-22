@@ -2,14 +2,14 @@
 'revision box properties
 ThisRevision = InputBox("This Revision is?", "Revision", "2")
 ThisRevComment = InputBox("This Revision Comment is?", "Comment", "FIRST ISSUE")
-ThisRevDate = InputBox("This Revision Date is?", "Today's Date", "22-APR-14")
+ThisRevDate = InputBox("This Revision Date is?", "Today's Date", "2018-08-21")
 ThisRevDrawnBy = InputBox("This Revision Drawn By?", "DrawnBy", "AF")
-ThisRevCheckedBy = InputBox("This Revision Checked By?", "Comment", "SM")
-ThisRevCheckedEngBy = InputBox("This Revision Checked By Engineering?", "Comment", "JP")
+ThisRevCheckedBy = InputBox("This Revision Checked By?", "Comment", "MM")
+ThisRevCheckedEngBy = InputBox("This Revision Checked By Engineering?", "Comment", "DD")
 ThisRevApprovedBy =InputBox("This Revision Approved By?", "Comment", "")
 'Drawing border properties
-ThisProjectNo = InputBox("The Project Number is?", "Project Number", "TA5BE")
-ThisProjectName = InputBox("The Project Name is?", "Project Name", "AQUARIUS")
+ThisProjectNo = InputBox("The Project Number is?", "Project Number", "YOUR PROJECT NUMBER")
+ThisProjectName = InputBox("The Project Name is?", "Project Name", "YOUR PROJECT NAME")
 ThisPurposeForIssue = InputBox("Purpose of Issue?", "Purpose of Issue?", "FOR MANUFACTURE")
 
 booleanParam = InputRadioBox("Add the same revision box to all open drawings?", _
@@ -37,13 +37,13 @@ Public ThisRevision As String = "2"
 Public ThisRevComment As String = "FIRST ISSUE"
 Public ThisRevDate As String = "22-APR-14"
 Public ThisRevDrawnBy As String = "AF"
-Public ThisRevCheckedBy As String = "SM"
-Public ThisRevCheckedEngBy As String = "JP"
+Public ThisRevCheckedBy As String = "MM"
+Public ThisRevCheckedEngBy As String = "DD"
 Public ThisRevApprovedBy As String = ""
 #End Region
 #Region "Prompted Entry String variables"
-Public ThisProjectNo As String = "TA5BE"
-Public ThisProjectName As String = "AQUARIUS"
+Public ThisProjectNo As String = "YOUR PROJECT NUMBER"
+Public ThisProjectName As String = "YOUR PROJECT NAME"
 Public ThisPurposeForIssue As String = "FOR MANUFACTURE"
 #End Region
 Sub BeginCreateRevTable(ByVal multiOrSingleFiles As Boolean,ByVal oDoc As DrawingDocument)
