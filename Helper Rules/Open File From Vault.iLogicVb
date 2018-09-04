@@ -1,14 +1,87 @@
-﻿Imports Autodesk.DataManagement.Client.Framework.Vault
-Imports Autodesk.Connectivity.WebservicesTools
-Imports VDF = Autodesk.Datamanagement.Client.Framework
-Imports ACF = Autodesk.Connectivity.Webservices
-Imports System.Collections
-Imports System.Windows.Forms
+﻿AddReference "Autodesk.Connectivity.WebServices"
+AddReference "Autodesk.DataManagement.Client.Framework.Forms"
+AddReference "Autodesk.DataManagement.Client.Framework.Vault"
+AddReference "Autodesk.DataManagement.Client.Framework.Vault.Forms"
 
+Imports ACW = Autodesk.Connectivity.WebServices
+Imports VDF = Autodesk.DataManagement.Client.Framework
+Imports Autodesk.DataManagement.Client.Framework.Vault.Services
+Imports Autodesk.DataManagement.Client.Framework.Vault.Currency.Connections
+'''
+''' Copied from this thread: https://forums.autodesk.com/t5/vault-customization/vault-login-vb-net/m-p/7735557#M5944
+'''
 Sub Main()
-	
+	If Not RuleArguments.Exists("filename") Then 'no filename was passed to the rule!
+		MessageBox.Show("We can't do this without a filename to search for/check-out!")
+	Else
+			
+		Dim Connection As VDF.Vault.Currency.Connections.Connection = Nothing
+	 '  Download file
+		Try
+			
+			Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("XX.XXX.XX.XX", "Vault", "UserName", "123456", VDF.Vault.Currency.Connections.AuthenticationFlags.Standard, Nothing)
+	        Connection = results.Connection
+
+
+	            Dim oFileIteration As VDF.Vault.Currency.Entities.FileIteration = Nothing
+				Dim oFile As ACW.File = Nothing
+				
+	            Try
+					
+					oFile = FindVaultFileByFileName(Connection, "111111.pdf")
+					
+					If oFile IsNot Nothing Then
+					
+						oFileIteration = New VDF.Vault.Currency.Entities.FileIteration(Connection, oFile)
+					
+					End If
+					
+	            Catch ex As Exception
+	                MsgBox("File can't be found.")
+	            End Try
+
+	            If oFileIteration IsNot Nothing Then
+	                'get settings
+	                Dim oSettings As VDF.Vault.Settings.AcquireFilesSettings = New VDF.Vault.Settings.AcquireFilesSettings(Connection)
+	                oSettings.DefaultAcquisitionOption = VDF.Vault.Settings.AcquireFilesSettings.AcquisitionOption.Download 'Or VDF.Vault.Settings.AcquireFilesSettings.AcquisitionOption.Checkout
+	                oSettings.AddEntityToAcquire(oFileIteration)
+	                Connection.FileManager.AcquireFiles(oSettings)
+	                MsgBox("Downloaded!")
+	            End If
+
+		Catch ex As Exception
+	            MsgBox("File can't be donwloaded. Maybe it's currently opened.")
+		Finally
+	            VDF.Vault.Library.ConnectionManager.LogOut(Connection)
+		End Try
+	End If
 End Sub
+		
+	Private Shared Function FindVaultFileByFileName(connection As VDF.Vault.Currency.Connections.Connection, filename As String) As ACW.File
 
-Public FileIters As ICollection(Of VDF.Vault.Currency.Entities.FileIteration)
-Public controls As String
+	    Dim result As ACW.File = Nothing
 
+            Dim filePropDefs As ACW.PropDef() = connection.WebServiceManager.PropertyService.GetPropertyDefinitionsByEntityClassId("FILE")
+            Dim fileNamePropDef As ACW.PropDef = filePropDefs.[Single](Function(n) n.SysName = "ClientFileName")
+
+            ' is equal
+            Dim fileNameMatch As New ACW.SrchCond()
+            fileNameMatch.PropDefId = fileNamePropDef.Id
+            fileNameMatch.PropTyp = ACW.PropertySearchType.SingleProperty
+            fileNameMatch.SrchOper = 3
+            fileNameMatch.SrchRule = ACW.SearchRuleType.Must
+            fileNameMatch.SrchTxt = filename
+
+            Dim bookmark As String = String.Empty
+            Dim searchStatus As ACW.SrchStatus = Nothing
+            Dim searchResults As ACW.File() = connection.WebServiceManager.DocumentService.FindFilesBySearchConditions(New ACW.SrchCond() {fileNameMatch}, Nothing, Nothing, False, True, bookmark, searchStatus)
+
+            If searchResults IsNot Nothing Then
+                If searchResults.Length > 0 Then
+                   result = searchResults(0)
+                End If
+            End If
+
+            Return result
+
+	End Function

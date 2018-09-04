@@ -1,0 +1,59 @@
+﻿Sub Main()
+	If Not RuleArguments.Exists("NodeName") Then
+		'only check the top-level file:
+		If ThisApplication.CommandManager.ControlDefinitions.Item("VaultDataCardtop").Enabled = True And _
+			ThisApplication.CommandManager.ControlDefinitions.Item("VaultCheckouttop").Enabled = True Then
+			Logger.Debug("in vault(not checked out) check out possible")
+		'   Debug.Print "in vault(not checked out) check out possible"
+		End If
+
+
+		If ThisApplication.CommandManager.ControlDefinitions.Item("VaultDataCardtop").Enabled = True And _
+			ThisApplication.CommandManager.ControlDefinitions.Item("VaultUndoCheckouttop").Enabled = True Then
+			Logger.Debug("in vault checked out")
+		'   Debug.Print "in vault checked out"
+		End If
+
+
+		If ThisApplication.CommandManager.ControlDefinitions.Item("VaultDataCardtop").Enabled = True And _
+			ThisApplication.CommandManager.ControlDefinitions.Item("VaultCheckouttop").Enabled = False And _
+			ThisApplication.CommandManager.ControlDefinitions.Item("VaultCheckintop").Enabled = False Then
+			Logger.Debug("in vault locked (not possible to check out)")
+		'	Debug.Print "in vault locked (not possible to check out)"
+		End If
+
+		 
+		If ThisApplication.CommandManager.ControlDefinitions.Item("VaultDataCardtop").Enabled = False Then
+			Logger.Debug("not in vault")
+		'	Debug.Print "not in vault"
+		End If
+	Else
+		' these may or may not work depending on whether a node is selected:
+		If ThisApplication.CommandManager.ControlDefinitions.Item("VaultDataCardtop").Enabled = True And _
+			ThisApplication.CommandManager.ControlDefinitions.Item("VaultCheckouttop").Enabled = True Then
+			Logger.Debug("in vault(not checked out) check out possible")
+		'   Debug.Print "in vault(not checked out) check out possible"
+		End If
+
+
+		If ThisApplication.CommandManager.ControlDefinitions.Item("VaultDataCardtop").Enabled = True And _
+			ThisApplication.CommandManager.ControlDefinitions.Item("VaultUndoCheckouttop").Enabled = True Then
+			Logger.Debug("in vault checked out")
+		'   Debug.Print "in vault checked out"
+		End If
+
+
+		If ThisApplication.CommandManager.ControlDefinitions.Item("VaultDataCardtop").Enabled = True And _
+			ThisApplication.CommandManager.ControlDefinitions.Item("VaultCheckouttop").Enabled = False And _
+			ThisApplication.CommandManager.ControlDefinitions.Item("VaultCheckintop").Enabled = False Then
+			Logger.Debug("in vault locked (not possible to check out)")
+		'	Debug.Print "in vault locked (not possible to check out)"
+		End If
+
+		 
+		If ThisApplication.CommandManager.ControlDefinitions.Item("VaultDataCardtop").Enabled = False Then
+			Logger.Debug("not in vault")
+		'	Debug.Print "not in vault"
+		End If
+	End If
+End Sub
