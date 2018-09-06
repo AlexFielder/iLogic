@@ -1,0 +1,28 @@
+﻿Imports System.IO
+'''
+''' This rule is designed for use in the "Triggers" part of the iLogic tool chain.
+''' It's purpose is to check for any OLEReferences and check them out.
+'''
+Sub Main()
+	CheckForVaultedOLEReference()
+End Sub
+
+Public Sub CheckForVaultedOLEReference()
+	Dim oDoc As Document = ThisApplication.ActiveDocument
+	
+	If oDoc.ReferencedOLEFileDescriptors.Count = 0 Then
+		Logger.Info(oDoc.FullFileName & " doesn't contain any OLE References")
+		Exit Sub
+	End If
+	
+	Dim aOLERefs() As ReferencedOLEFileDescriptor
+    ReDim aOLERefs(oDoc.ReferencedOLEFileDescriptors.Count - 1)
+
+    Dim iRefCount As Integer = oDoc.ReferencedOLEFileDescriptors.Count
+    For i As Integer = 1 To iRefCount
+		Dim OLEreference As ReferencedOLEFileDescriptor = oDoc.ReferencedOLEFileDescriptors.Item(i)
+		Dim RuleArguments As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
+		RuleArguments.Value("filename") = System.IO.Path.GetFileName(OLEreference.FullFileName)
+		iLogicVb.RunExternalRule("Check for OLE Attachments", RuleArguments)
+    Next
+End Sub
