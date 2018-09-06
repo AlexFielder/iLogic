@@ -46,8 +46,10 @@ Sub Main()
 	                	oSettings.DefaultAcquisitionOption = VDF.Vault.Settings.AcquireFilesSettings.AcquisitionOption.Checkout 'VDF.Vault.Settings.AcquireFilesSettings.AcquisitionOption.Download
 					End If
 	                oSettings.AddEntityToAcquire(oFileIteration)
-	                Connection.FileManager.AcquireFiles(oSettings)
-	                MsgBox("Downloaded!")
+	                Dim myAcquiredFilesResults As VDF.Vault.Results.AcquireFilesResults = Connection.FileManager.AcquireFiles(oSettings)
+					If myAcquiredFilesResults.FileResults.First().Status = VDF.Vault.Results.FileAcquisitionResult.AcquisitionStatus.Success Then
+	                	Logger.Info("File: " & filename & " successfully checked out")
+					End If
 	            End If
 
 		Catch ex As Exception

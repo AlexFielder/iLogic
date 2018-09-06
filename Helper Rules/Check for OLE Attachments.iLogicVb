@@ -4,10 +4,17 @@
 ''' It's purpose is to check for any OLEReferences and check them out.
 '''
 Sub Main()
-	CheckForVaultedOLEReference()
+'	If ThisApplication.CommandManager.ControlDefinitions.Item("VaultDataCardtop").Enabled = True And _
+'		ThisApplication.CommandManager.ControlDefinitions.Item("VaultUndoCheckouttop").Enabled = True Then
+'		Dim oDoc As Document = ThisApplication.ActiveDocument
+'		Logger.Debug("Newly opened file: " & oDoc.FullFileName & " in vault checked out" & vbCrLf & "Proceeding to check out OLE Referenced files")
+		CheckForVaultedOLEReference()
+'	End If
+	
 End Sub
 
 Public Sub CheckForVaultedOLEReference()
+	Try
 	Dim oDoc As Document = ThisApplication.ActiveDocument
 	
 	If oDoc.ReferencedOLEFileDescriptors.Count = 0 Then
@@ -23,6 +30,10 @@ Public Sub CheckForVaultedOLEReference()
 		Dim OLEreference As ReferencedOLEFileDescriptor = oDoc.ReferencedOLEFileDescriptors.Item(i)
 		Dim RuleArguments As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
 		RuleArguments.Value("filename") = System.IO.Path.GetFileName(OLEreference.FullFileName)
-		iLogicVb.RunExternalRule("Check for OLE Attachments", RuleArguments)
+		iLogicVb.RunExternalRule("Checkout Requested File From Vault", RuleArguments)
+		Logger.Info(OLEreference.FullFileName & " checked for Vaulted status")
     Next
+	Catch ex As Exception
+		logger.Error(ex.Message)
+	End Try
 End Sub
