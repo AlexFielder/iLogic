@@ -14,12 +14,11 @@ Sub Main()
 	If Not RuleArguments.Exists("filename") Then 'no filename was passed to the rule!
 		MessageBox.Show("We can't do this without a filename to search for/check-out!")
 	Else
-			
+		Dim filename As String = RuleArguments.Value("filename")
 		Dim Connection As VDF.Vault.Currency.Connections.Connection = Nothing
 	 '  Download file
 		Try
-			
-			Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("XX.XXX.XX.XX", "Vault", "UserName", "123456", VDF.Vault.Currency.Connections.AuthenticationFlags.Standard, Nothing)
+			Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("localhost", "Vault", "", "", AuthenticationFlags.WindowsAuthentication, Nothing)
 	        Connection = results.Connection
 
 
@@ -28,7 +27,7 @@ Sub Main()
 				
 	            Try
 					
-					oFile = FindVaultFileByFileName(Connection, "111111.pdf")
+					oFile = FindVaultFileByFileName(Connection, filename)
 					
 					If oFile IsNot Nothing Then
 					
@@ -43,7 +42,9 @@ Sub Main()
 	            If oFileIteration IsNot Nothing Then
 	                'get settings
 	                Dim oSettings As VDF.Vault.Settings.AcquireFilesSettings = New VDF.Vault.Settings.AcquireFilesSettings(Connection)
-	                oSettings.DefaultAcquisitionOption = VDF.Vault.Settings.AcquireFilesSettings.AcquisitionOption.Download 'Or VDF.Vault.Settings.AcquireFilesSettings.AcquisitionOption.Checkout
+					If Not oFileIteration.IsCheckedOut Then
+	                	oSettings.DefaultAcquisitionOption = VDF.Vault.Settings.AcquireFilesSettings.AcquisitionOption.Checkout 'VDF.Vault.Settings.AcquireFilesSettings.AcquisitionOption.Download
+					End If
 	                oSettings.AddEntityToAcquire(oFileIteration)
 	                Connection.FileManager.AcquireFiles(oSettings)
 	                MsgBox("Downloaded!")
@@ -56,32 +57,33 @@ Sub Main()
 		End Try
 	End If
 End Sub
-		
-	Private Shared Function FindVaultFileByFileName(connection As VDF.Vault.Currency.Connections.Connection, filename As String) As ACW.File
 
-	    Dim result As ACW.File = Nothing
+Private Function FindVaultFileByFileName(Connection As VDF.Vault.Currency.Connections.Connection, filename As String) As ACW.File
 
-            Dim filePropDefs As ACW.PropDef() = connection.WebServiceManager.PropertyService.GetPropertyDefinitionsByEntityClassId("FILE")
-            Dim fileNamePropDef As ACW.PropDef = filePropDefs.[Single](Function(n) n.SysName = "ClientFileName")
+    Dim result As ACW.File = Nothing
 
-            ' is equal
-            Dim fileNameMatch As New ACW.SrchCond()
-            fileNameMatch.PropDefId = fileNamePropDef.Id
-            fileNameMatch.PropTyp = ACW.PropertySearchType.SingleProperty
-            fileNameMatch.SrchOper = 3
-            fileNameMatch.SrchRule = ACW.SearchRuleType.Must
-            fileNameMatch.SrchTxt = filename
+    Dim filePropDefs As ACW.PropDef() = Connection.WebServiceManager.PropertyService.GetPropertyDefinitionsByEntityClassId("FILE")
+    Dim fileNamePropDef As ACW.PropDef = filePropDefs.[Single](Function(n) n.SysName = "ClientFileName")
 
-            Dim bookmark As String = String.Empty
-            Dim searchStatus As ACW.SrchStatus = Nothing
-            Dim searchResults As ACW.File() = connection.WebServiceManager.DocumentService.FindFilesBySearchConditions(New ACW.SrchCond() {fileNameMatch}, Nothing, Nothing, False, True, bookmark, searchStatus)
+    ' is equal
+    Dim fileNameMatch As New ACW.SrchCond()
+    fileNameMatch.PropDefId = fileNamePropDef.Id
+    fileNameMatch.PropTyp = ACW.PropertySearchType.SingleProperty
+    fileNameMatch.SrchOper = 3
+    fileNameMatch.SrchRule = ACW.SearchRuleType.Must
+    fileNameMatch.SrchTxt = filename
 
-            If searchResults IsNot Nothing Then
-                If searchResults.Length > 0 Then
-                   result = searchResults(0)
-                End If
-            End If
+    Dim bookmark As String = String.Empty
+    Dim searchStatus As ACW.SrchStatus = Nothing
+    Dim searchResults As ACW.File() = Connection.WebServiceManager.DocumentService.FindFilesBySearchConditions(New ACW.SrchCond() {fileNameMatch}, Nothing, Nothing, False, True, bookmark, searchStatus)
 
-            Return result
+    If searchResults IsNot Nothing Then
+        If searchResults.Length > 0 Then
+           result = searchResults(0)
+        End If
+    End If
 
-	End Function
+    Return result
+
+End Function
+
