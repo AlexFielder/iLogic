@@ -1,4 +1,4 @@
-AddReference "Autodesk.Connectivity.WebServices"
+﻿AddReference "Autodesk.Connectivity.WebServices"
 AddReference "Autodesk.DataManagement.Client.Framework.Forms"
 AddReference "Autodesk.DataManagement.Client.Framework.Vault"
 AddReference "Autodesk.DataManagement.Client.Framework.Vault.Forms"
@@ -11,7 +11,7 @@ Imports Autodesk.DataManagement.Client.Framework.Vault.Currency.Connections
 ''' Copied from this thread: https://forums.autodesk.com/t5/vault-customization/vault-login-vb-net/m-p/7735557#M5944
 
 Public Sub Main()
-
+Call PlaceComponent()
 End Sub
 
 Public Connection As VDF.Vault.Currency.Connections.Connection = Nothing
@@ -20,7 +20,7 @@ Public Sub PlaceComponent()
 
 	Dim oAssCompDef As AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
 
-	Dim oTransG As TransientGeometry = ThisAppliction.TransientGeometry
+	Dim oTransG As TransientGeometry = ThisApplication.TransientGeometry
 
 	Dim oMatrix As Matrix = oTransG.CreateMatrix 
 
@@ -36,7 +36,7 @@ Public Sub PlaceComponent()
 
 	Dim oIntName As String = oTR.InternalName
 
-	Dim oFailReas As MemberMangerErrorsEnum
+	Dim oFailReas As MemberManagerErrorsEnum
 	Dim oFailMess As String
 	Dim oMemFileName As String
 	Dim oValues As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
@@ -45,7 +45,7 @@ Public Sub PlaceComponent()
 	oMatrix.SetTranslation(oTransG.CreateVector(0, 0, 0))
 	'oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess, , , , oValues)
 	Dim oFileName As String = getFilenameFromVaultNamingScheme(oIntName)
-	oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess,kRefreshOutOfDateParts, True, oFileName, oValues)
+	oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess,ContentMemberRefreshEnum.kRefreshOutOfDateParts, True, oFileName, oValues)
 	oOcc = oAssCompDef.Occurrences.Add(oMemFileName, oMatrixWd)
 	oOcc.Grounded = True
 
@@ -55,5 +55,8 @@ public function getFilenameFromVaultNamingScheme(internalFilename as string) as 
 	'uses Windows Authentication:
 	Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("localhost", "Vault", "", "", AuthenticationFlags.WindowsAuthentication, Nothing)
 	Connection = results.Connection
-	
+	Dim numSchemes As ACW.NumSchm() = Connection.WebServiceManager.DocumentService.GetNumberingSchemesByType(Autodesk.Connectivity.WebServices.NumSchmType.Activated)
+	Dim requiredScheme As ACW.NumSchm = (From sch As ACW.NumSchm In numSchemes
+										Where sch.Name = "TestScheme"
+										Select sch).FirstOrDefault()
 End Function
