@@ -1,3 +1,15 @@
+AddReference "Autodesk.Connectivity.WebServices"
+AddReference "Autodesk.DataManagement.Client.Framework.Forms"
+AddReference "Autodesk.DataManagement.Client.Framework.Vault"
+AddReference "Autodesk.DataManagement.Client.Framework.Vault.Forms"
+
+Imports ACW = Autodesk.Connectivity.WebServices
+Imports VDF = Autodesk.DataManagement.Client.Framework
+Imports Autodesk.DataManagement.Client.Framework.Vault.Services
+Imports Autodesk.DataManagement.Client.Framework.Vault.Currency.Connections
+'''
+''' Copied from this thread: https://forums.autodesk.com/t5/vault-customization/vault-login-vb-net/m-p/7735557#M5944
+
 Sub Main()
 
 End Sub
@@ -36,3 +48,4 @@ Sub PlaceComponent()
 	oOcc.Grounded = True
 
 End Sub
+
