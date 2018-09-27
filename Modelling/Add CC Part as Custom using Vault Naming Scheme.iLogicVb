@@ -1,0 +1,38 @@
+Sub Main()
+
+End Sub
+
+Sub PlaceComponent()
+
+	Dim oAssCompDef As AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
+
+	Dim oTransG As TransientGeometry = ThisAppliction.TransientGeometry
+
+	Dim oMatrix As Matrix = oTransG.CreateMatrix 
+
+	Dim oOcc As ComponentOccurrence
+
+	Dim oProfil As ContentTreeViewNode = ThisApplication.ContentCenter.TreeViewTopNode.ChildNodes.Item("Structural Shapes").ChildNodes.Item("Channels")
+
+	Dim oFam As ContentFamily
+	'I get the ContentFamily <oFam> depending on <Norm> and <Material>
+
+	Dim oTR As ContentTableRow
+	'I get the ContentTableRow <oTR> depending on a user preselected value 
+
+	Dim oIntName As String = oTR.InternalName
+
+	Dim oFailReas As MemberMangerErrorsEnum
+	Dim oFailMess As String
+	Dim oMemFileName As String
+	Dim oValues As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
+	oValues.Add("B_L", TestValue) 'this is an company internal value; it is an numeric parameter
+
+	oMatrix.SetTranslation(oTransG.CreateVector(0, 0, 0))
+	'oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess, , , , oValues)
+	Dim oFileName As String = getFilenameFromVaultNamingScheme(oIntName)
+	oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess,kRefreshOutOfDateParts, True, oFileName, oValues)
+	oOcc = oAssCompDef.Occurrences.Add(oMemFileName, oMatrixWd)
+	oOcc.Grounded = True
+
+End Sub
