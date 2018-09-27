@@ -28,7 +28,7 @@ Public SchemeName As String = "TestScheme"
 ''' <param name="SubSubCategory"></param>
 ''' <param name="SizeOne"></param>
 ''' <param name="SizeTwo"></param>
-Public Sub PlaceComponent(ByVal FamilyToPlace As String, ByVal CCCategory As String, ByVal SubCategory As String, ByVal SubSubCategory As String, SizeOne As String, SizeTwo As String)
+Public Sub PlaceComponent(ByVal FamilyToPlace As String, ByVal CCCategory As String, ByVal SubCategory As String, ByVal SubSubCategory As String, byval SizeOne As String, byval SizeTwo As String, byval RequiredMaterial as string)
 
 	Dim oAssCompDef As AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
 
@@ -47,7 +47,10 @@ Public Sub PlaceComponent(ByVal FamilyToPlace As String, ByVal CCCategory As Str
 
 	Dim oTR As ContentTableRow = Nothing
 	If CCCategory = "Bolts" Then
-		
+		dim sizeString as string = SizeOne & " x " & SizeTwo
+		oTR = (from row as ContentTableRow in oFam.TableRows
+				where row.SIZE = sizeString and row.MATERIAL_ALIAS = RequiredMaterial
+				select row).FirstOrDefault()
 	Else If CCCategory = "Structural Shapes" Then
 			
 	Else If CCCategory = "" Then
