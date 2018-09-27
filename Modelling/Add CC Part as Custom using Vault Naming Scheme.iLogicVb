@@ -51,3 +51,9 @@ Public Sub PlaceComponent()
 
 End Sub
 
+public function getFilenameFromVaultNamingScheme(internalFilename as string) as string
+	'uses Windows Authentication:
+	Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("localhost", "Vault", "", "", AuthenticationFlags.WindowsAuthentication, Nothing)
+	Connection = results.Connection
+	
+End Function
