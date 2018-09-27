@@ -10,11 +10,13 @@ Imports Autodesk.DataManagement.Client.Framework.Vault.Currency.Connections
 '''
 ''' Copied from this thread: https://forums.autodesk.com/t5/vault-customization/vault-login-vb-net/m-p/7735557#M5944
 
-Sub Main()
+Public Sub Main()
 
 End Sub
 
-Sub PlaceComponent()
+Public Connection As VDF.Vault.Currency.Connections.Connection = Nothing
+
+Public Sub PlaceComponent()
 
 	Dim oAssCompDef As AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
 
