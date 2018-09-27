@@ -11,12 +11,24 @@ Imports Autodesk.DataManagement.Client.Framework.Vault.Currency.Connections
 ''' Copied from this thread: https://forums.autodesk.com/t5/vault-customization/vault-login-vb-net/m-p/7735557#M5944
 
 Public Sub Main()
-Call PlaceComponent()
+Call PlaceComponent("BS 4168 : Part 1 Hexagon Socket Head Cap Screw - Metric", "Fasteners", "Bolts", "Socket Head", "M8", "30")
 End Sub
 
 Public Connection As VDF.Vault.Currency.Connections.Connection = Nothing
+Public SchemeName As String = "TestScheme"
 
-Public Sub PlaceComponent()
+''' <summary>
+''' Allows the user to place a component from the Content Centre
+''' based on supplied variables and names the resultant occurence using the required
+''' Vault naming scheme
+''' </summary>
+''' <param name="FamilyToPlace"></param>
+''' <param name="CCCategory"></param>
+''' <param name="SubCategory"></param>
+''' <param name="SubSubCategory"></param>
+''' <param name="SizeOne"></param>
+''' <param name="SizeTwo"></param>
+Public Sub PlaceComponent(ByVal FamilyToPlace As String, ByVal CCCategory As String, ByVal SubCategory As String, ByVal SubSubCategory As String, SizeOne As String, SizeTwo As String)
 
 	Dim oAssCompDef As AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
 
@@ -26,12 +38,21 @@ Public Sub PlaceComponent()
 
 	Dim oOcc As ComponentOccurrence
 
-	Dim oProfil As ContentTreeViewNode = ThisApplication.ContentCenter.TreeViewTopNode.ChildNodes.Item("Structural Shapes").ChildNodes.Item("Channels")
+	Dim hexHeadNode As ContentTreeViewNode = ThisApplication.ContentCenter.TreeViewTopNode.ChildNodes.Item(CCCategory).ChildNodes.Item(SubCategory).ChildNodes.Item(SubSubCategory)
 
-	Dim oFam As ContentFamily
+	Dim oFam As ContentFamily = (From checkFamily As ContentFamily In hexHeadNode.Families
+								Where checkFamily.DisplayName = FamilyToPlace
+								Select checkFamily).FirstOrDefault()
 	'I get the ContentFamily <oFam> depending on <Norm> and <Material>
 
-	Dim oTR As ContentTableRow
+	Dim oTR As ContentTableRow = Nothing
+	If CCCategory = "Bolts" Then
+		
+	Else If CCCategory = "Structural Shapes" Then
+			
+	Else If CCCategory = "" Then
+			
+	End If
 	'I get the ContentTableRow <oTR> depending on a user preselected value 
 
 	Dim oIntName As String = oTR.InternalName
@@ -44,19 +65,28 @@ Public Sub PlaceComponent()
 
 	oMatrix.SetTranslation(oTransG.CreateVector(0, 0, 0))
 	'oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess, , , , oValues)
-	Dim oFileName As String = getFilenameFromVaultNamingScheme(oIntName)
+	Dim oFileName As String = getFilenameFromVaultNamingScheme(SchemeName, oIntName)
 	oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess,ContentMemberRefreshEnum.kRefreshOutOfDateParts, True, oFileName, oValues)
 	oOcc = oAssCompDef.Occurrences.Add(oMemFileName, oMatrixWd)
 	oOcc.Grounded = True
 
 End Sub
 
-public function getFilenameFromVaultNamingScheme(internalFilename as string) as string
+''' <summary>
+''' Gets the filename from the Vault Naming Scheme
+''' </summary>
+''' <param name="RequiredSchemeString"></param>
+''' <returns></returns>
+Public Function getFilenameFromVaultNamingScheme(RequiredSchemeName As String, RequiredSchemeString As String) As String
 	'uses Windows Authentication:
 	Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("localhost", "Vault", "", "", AuthenticationFlags.WindowsAuthentication, Nothing)
 	Connection = results.Connection
 	Dim numSchemes As ACW.NumSchm() = Connection.WebServiceManager.DocumentService.GetNumberingSchemesByType(Autodesk.Connectivity.WebServices.NumSchmType.Activated)
 	Dim requiredScheme As ACW.NumSchm = (From sch As ACW.NumSchm In numSchemes
-										Where sch.Name = "TestScheme"
+										Where sch.Name = RequiredSchemeName
 										Select sch).FirstOrDefault()
+	Dim numGenArgs() As String = {RequiredSchemeString}
+'	numGenArgs += 
+	genNum = Connection.WebServiceManager.DocumentService.GenerateFileNumber(requiredScheme.SchmID, numGenArgs)
+	Return genNum
 End Function
