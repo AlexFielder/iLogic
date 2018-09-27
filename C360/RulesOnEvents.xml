@@ -1,44 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <GlobalRulesOnEvents xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <RulesByDocumentType>
-    <RulesOnEvents>
-      <DocumentTypes>Drawing</DocumentTypes>
-      <RulesCollection>
-        <RulesOnEvent>
-          <EventType>AfterDocOpen</EventType>
-          <Rules>
-            <RuleOnEvent>
-              <RuleName>Check for OLE Attachments</RuleName>
-            </RuleOnEvent>
-          </Rules>
-        </RulesOnEvent>
-      </RulesCollection>
-    </RulesOnEvents>
-    <RulesOnEvents>
-      <DocumentTypes>Part</DocumentTypes>
-      <RulesCollection>
-        <RulesOnEvent>
-          <EventType>AfterDocOpen</EventType>
-          <Rules>
-            <RuleOnEvent>
-              <RuleName>Check for OLE Attachments</RuleName>
-            </RuleOnEvent>
-          </Rules>
-        </RulesOnEvent>
-      </RulesCollection>
-    </RulesOnEvents>
-    <RulesOnEvents>
-      <DocumentTypes>Assembly</DocumentTypes>
-      <RulesCollection>
-        <RulesOnEvent>
-          <EventType>AfterDocOpen</EventType>
-          <Rules>
-            <RuleOnEvent>
-              <RuleName>Check for OLE Attachments</RuleName>
-            </RuleOnEvent>
-          </Rules>
-        </RulesOnEvent>
-      </RulesCollection>
-    </RulesOnEvents>
-  </RulesByDocumentType>
+  <RulesByDocumentType />
 </GlobalRulesOnEvents>

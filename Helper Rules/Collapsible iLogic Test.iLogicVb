@@ -1,0 +1,21 @@
+﻿'this is a brief test of the collapsible code function.
+'[collapse this region
+' collapse this
+Sub Main()
+	MessageBox.Show("Hello world!")
+	Main2()
+End Sub
+'collapsible
+']
+
+#Region "Collapsible"
+Sub Main2()
+	Main3()
+End Sub
+
+Sub Main3()
+	MessageBox.Show("Hello again!")
+End Sub
+'another collapsible region
+'that may be better than the one above!
+#End Region 
