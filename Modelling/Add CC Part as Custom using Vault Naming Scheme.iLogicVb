@@ -11,7 +11,7 @@ Imports Autodesk.DataManagement.Client.Framework.Vault.Currency.Connections
 ''' Copied from this thread: https://forums.autodesk.com/t5/vault-customization/vault-login-vb-net/m-p/7735557#M5944
 
 Public Sub Main()
-Call PlaceComponent("BS 4168 : Part 1 Hexagon Socket Head Cap Screw - Metric", "Fasteners", "Bolts", "Socket Head", "M8", "30")
+Call PlaceComponent("BS 4168 : Part 1 Hexagon Socket Head Cap Screw - Metric", "Fasteners", "Bolts", "Socket Head", "M8", "30", "Grade A4")
 End Sub
 
 Public Connection As VDF.Vault.Currency.Connections.Connection = Nothing
@@ -28,7 +28,13 @@ Public SchemeName As String = "TestScheme"
 ''' <param name="SubSubCategory"></param>
 ''' <param name="SizeOne"></param>
 ''' <param name="SizeTwo"></param>
-Public Sub PlaceComponent(ByVal FamilyToPlace As String, ByVal CCCategory As String, ByVal SubCategory As String, ByVal SubSubCategory As String, byval SizeOne As String, byval SizeTwo As String, byval RequiredMaterial as string)
+Public Sub PlaceComponent(ByVal FamilyToPlace As String, 
+							ByVal CCCategory As String, 
+							ByVal SubCategory As String, 
+							ByVal SubSubCategory As String, 
+							ByVal SizeOne As String, 
+							ByVal SizeTwo As String, 
+							ByVal RequiredMaterial As String)
 
 	Dim oAssCompDef As AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
 
@@ -43,36 +49,43 @@ Public Sub PlaceComponent(ByVal FamilyToPlace As String, ByVal CCCategory As Str
 	Dim oFam As ContentFamily = (From checkFamily As ContentFamily In hexHeadNode.Families
 								Where checkFamily.DisplayName = FamilyToPlace
 								Select checkFamily).FirstOrDefault()
-	'I get the ContentFamily <oFam> depending on <Norm> and <Material>
+	If Not oFam is Nothing Then
+		'I get the ContentFamily <oFam> depending on <Norm> and <Material>
+		Logger.Debug(CCCategory & " | " & SubCategory & " | " & SubSubCategory)
+		logTableRows(oFam)
+		Dim oTR As ContentTableRow = Nothing
+		If CCCategory = "Fasteners" Then
+			Logger.Debug("Working with the Bolts category")
+			Dim sizeString As String = SizeOne & " x " & SizeTwo
+			oTR = (From Row As ContentTableRow In oFam.TableRows
+					Where row.SIZE = sizeString And row.MATERIAL_ALIAS = RequiredMaterial
+					Select row).FirstOrDefault()
+		Else If CCCategory = "Structural Shapes" Then
+				
+		Else If CCCategory = "" Then
+				
+		End If
+		'I get the ContentTableRow <oTR> depending on a user preselected value 
+		If Not tr Is Nothing Then
+			Dim oIntName As String = oTR.InternalName
+			Dim oFailReas As MemberManagerErrorsEnum
+			Dim oFailMess As String
+			Dim oMemFileName As String
+			Dim oValues As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
+			oValues.Add("B_L", TestValue) 'this is an company internal value; it is an numeric parameter
 
-	Dim oTR As ContentTableRow = Nothing
-	If CCCategory = "Bolts" Then
-		dim sizeString as string = SizeOne & " x " & SizeTwo
-		oTR = (from row as ContentTableRow in oFam.TableRows
-				where row.SIZE = sizeString and row.MATERIAL_ALIAS = RequiredMaterial
-				select row).FirstOrDefault()
-	Else If CCCategory = "Structural Shapes" Then
-			
-	Else If CCCategory = "" Then
-			
+			oMatrix.SetTranslation(oTransG.CreateVector(0, 0, 0))
+			'oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess, , , , oValues)
+			Dim oFileName As String = getFilenameFromVaultNamingScheme(SchemeName, oIntName)
+			oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess,ContentMemberRefreshEnum.kRefreshOutOfDateParts, True, oFileName, oValues)
+			oOcc = oAssCompDef.Occurrences.Add(oMemFileName, oMatrixWd)
+			oOcc.Grounded = True
+		Else
+			Logger.Error("Something went awry when getting the ContentTableRow from CC!")
+		End If
+	Else
+		Logger.Error("Something went awry when getting the family from CC!")
 	End If
-	'I get the ContentTableRow <oTR> depending on a user preselected value 
-
-	Dim oIntName As String = oTR.InternalName
-
-	Dim oFailReas As MemberManagerErrorsEnum
-	Dim oFailMess As String
-	Dim oMemFileName As String
-	Dim oValues As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
-	oValues.Add("B_L", TestValue) 'this is an company internal value; it is an numeric parameter
-
-	oMatrix.SetTranslation(oTransG.CreateVector(0, 0, 0))
-	'oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess, , , , oValues)
-	Dim oFileName As String = getFilenameFromVaultNamingScheme(SchemeName, oIntName)
-	oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess,ContentMemberRefreshEnum.kRefreshOutOfDateParts, True, oFileName, oValues)
-	oOcc = oAssCompDef.Occurrences.Add(oMemFileName, oMatrixWd)
-	oOcc.Grounded = True
-
 End Sub
 
 ''' <summary>
@@ -91,5 +104,11 @@ Public Function getFilenameFromVaultNamingScheme(RequiredSchemeName As String, R
 	Dim numGenArgs() As String = {RequiredSchemeString}
 '	numGenArgs += 
 	genNum = Connection.WebServiceManager.DocumentService.GenerateFileNumber(requiredScheme.SchmID, numGenArgs)
-	Return genNum
+	Return genNum + RequiredSchemeString
 End Function
+
+Public Sub logTableRows(ByVal CCFamily As ContentFamily)
+	For Each col As ContentTableColumn In CCFamily.TableColumns
+		Logger.Debug(col.InternalName)
+	Next
+End Sub
