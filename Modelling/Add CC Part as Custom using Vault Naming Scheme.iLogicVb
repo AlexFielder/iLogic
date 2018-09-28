@@ -1,4 +1,5 @@
-﻿AddReference "Autodesk.Connectivity.WebServices"
+﻿Option Explicit On
+AddReference "Autodesk.Connectivity.WebServices"
 AddReference "Autodesk.DataManagement.Client.Framework.Forms"
 AddReference "Autodesk.DataManagement.Client.Framework.Vault"
 AddReference "Autodesk.DataManagement.Client.Framework.Vault.Forms"
@@ -57,8 +58,10 @@ Public Sub PlaceComponent(ByVal FamilyToPlace As String,
 		If CCCategory = "Fasteners" Then
 			Logger.Debug("Working with the Bolts category")
 			Dim sizeString As String = SizeOne & " x " & SizeTwo
+			Dim sizeCol As ContentTableColumn = oFam.TableColumns("SIZE")
+			Dim materialCol As ContentTableColumn = oFam.TableColumns("MATERIAL_ALIAS")
 			oTR = (From Row As ContentTableRow In oFam.TableRows
-					Where row.SIZE = sizeString And row.MATERIAL_ALIAS = RequiredMaterial
+					Where Row.GetCellValue(sizeCol) = sizeString And Row.GetCellValue(materialCol)= RequiredMaterial
 					Select row).FirstOrDefault()
 		Else If CCCategory = "Structural Shapes" Then
 				
@@ -66,19 +69,21 @@ Public Sub PlaceComponent(ByVal FamilyToPlace As String,
 				
 		End If
 		'I get the ContentTableRow <oTR> depending on a user preselected value 
-		If Not tr Is Nothing Then
+		If Not oTR Is Nothing Then
 			Dim oIntName As String = oTR.InternalName
 			Dim oFailReas As MemberManagerErrorsEnum
 			Dim oFailMess As String
 			Dim oMemFileName As String
 			Dim oValues As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
+			Dim TestValue As String = "LOREM IPSUM DOLOR"
 			oValues.Add("B_L", TestValue) 'this is an company internal value; it is an numeric parameter
 
 			oMatrix.SetTranslation(oTransG.CreateVector(0, 0, 0))
 			'oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess, , , , oValues)
+			logger.Debug("looks like we got a row to work with")
 			Dim oFileName As String = getFilenameFromVaultNamingScheme(SchemeName, oIntName)
 			oMemFileName = oFam.CreateMember(oIntName, oFailReas, oFailMess,ContentMemberRefreshEnum.kRefreshOutOfDateParts, True, oFileName, oValues)
-			oOcc = oAssCompDef.Occurrences.Add(oMemFileName, oMatrixWd)
+			oOcc = oAssCompDef.Occurrences.Add(oMemFileName, oMatrix)
 			oOcc.Grounded = True
 		Else
 			Logger.Error("Something went awry when getting the ContentTableRow from CC!")
@@ -97,13 +102,18 @@ Public Function getFilenameFromVaultNamingScheme(RequiredSchemeName As String, R
 	'uses Windows Authentication:
 	Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("localhost", "Vault", "", "", AuthenticationFlags.WindowsAuthentication, Nothing)
 	Connection = results.Connection
-	Dim numSchemes As ACW.NumSchm() = Connection.WebServiceManager.DocumentService.GetNumberingSchemesByType(Autodesk.Connectivity.WebServices.NumSchmType.Activated)
-	Dim requiredScheme As ACW.NumSchm = (From sch As ACW.NumSchm In numSchemes
-										Where sch.Name = RequiredSchemeName
-										Select sch).FirstOrDefault()
-	Dim numGenArgs() As String = {RequiredSchemeString}
-'	numGenArgs += 
-	genNum = Connection.WebServiceManager.DocumentService.GenerateFileNumber(requiredScheme.SchmID, numGenArgs)
+	Dim genNum As String = String.Empty
+	If Not Connection Is Nothing Then
+		Dim numSchemes As ACW.NumSchm() = Connection.WebServiceManager.DocumentService.GetNumberingSchemesByType(Autodesk.Connectivity.WebServices.NumSchmType.Activated)
+		Dim requiredScheme As ACW.NumSchm = (From sch As ACW.NumSchm In numSchemes
+											Where sch.Name = RequiredSchemeName
+											Select sch).FirstOrDefault()
+		Dim numGenArgs() As String = {RequiredSchemeString}
+	'	numGenArgs += 
+		genNum = Connection.WebServiceManager.DocumentService.GenerateFileNumber(requiredScheme.SchmID, numGenArgs)
+	Else
+		Logger.Error("Vault didn't work!")			
+	End If
 	Return genNum + RequiredSchemeString
 End Function
 
@@ -112,3 +122,4 @@ Public Sub logTableRows(ByVal CCFamily As ContentFamily)
 		Logger.Debug(col.InternalName)
 	Next
 End Sub
+
