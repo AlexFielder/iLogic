@@ -1,7 +1,7 @@
 ﻿Option Explicit On
 Sub Main()
-	Dim columns() As String = {"E, G, I, L, N, O, R"}
-	PopulateColumnDefaults(columns)
+'	Dim columns() As String = {"E,G,I,L,N,O,R"}
+	PopulateColumnDefaults("E,G,I,L,N,O,R")
 End Sub
 
 Public ColumnAList As New ArrayList
@@ -16,60 +16,79 @@ Public ColumnNList As New ArrayList
 Public ColumnOList As New ArrayList
 Public ColumnRList As New ArrayList
 
-Sub PopulateColumnDefaults(columnlist() As String)
-'useful for nothing more than opening the excel file!
-Dim newFilesArray As New ArrayList
-'newFilesArray = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "sheet1", "a1", "a2")
-newFilesArray = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\K3VL 3D Model Configurator.xlsx", "sheet1", "a1", "a2")
+Sub PopulateColumnDefaults(columnlist As String)
+	Dim startRow As Integer = 2
+	Dim endRow As Integer = 50
+	'useful for nothing more than opening the excel file!
+	Dim newFilesArray As New ArrayList
+	'newFilesArray = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "sheet1", "a1", "a2")
+	newFilesArray = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\K3VL 3D Model Configurator.xlsx", "sheet1", "a1", "a2")
 
-'MultiValue.List("ColumnA") = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "Sheet1", "A2", "A30")
-'MultiValue.List("ColumnB") = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "Sheet1", "B2", "B30")
-'MultiValue.List("ColumnC") = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "Sheet1", "C2", "C30")
-'MultiValue.List("ColumnD") = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "Sheet1", "D2", "D30")
-
-Dim columns As List(Of String) = columnlist.ToString.Split(",").ToList()
-
-For Each col As String In columns
+	Dim columns As List(Of String) = columnlist.Split(",").ToList()
 	
-Next
+	Logger.Debug(columns.ToString())
+	Dim TempList As New ArrayList
+	For Each col As String In columns
+		Logger.Debug("columnname: "& col)
+		For MyRow As Integer = startRow To endRow
+			If Not CStr(GoExcel.CellValue(col & MyRow)) = "" Then
+				If isParamText("Column" & col) And Not TypeOf GoExcel.CellValue(col & MyRow) Is String Then
+					TempList.Add(GoExcel.CellValue(col & MyRow).ToString())
+				Else
+					TempList.Add(GoExcel.CellValue(col & MyRow))
+				End If
+				
+			End If
+		Next
+		Logger.Debug("Column" & col & "list.Count: " & TempList.Count)
+		MultiValue.List("Column" & col) = TempList
+		TempList.Clear()
+	Next
 
-Dim endRow As Integer = 50
+'	'ColumnA is a text parameter
+'	For MyRow As Integer = 2 To endRow
+'		If Not CStr(GoExcel.CellValue("A" & MyRow)) = "" Then
+'			ColumnAList.Add(GoExcel.CellValue("A" & MyRow).ToString())
+'		End If
+'	Next
+'	Logger.Debug("ColumnAlist.Count: " & ColumnAList.Count)
+'	MultiValue.List("ColumnA") = ColumnAList
 
+'	'ColumnB is a text parameter
+'	For MyRow As Integer = 2 To endRow
+'		If Not CStr(GoExcel.CellValue("B" & MyRow)) = "" Then
+'			ColumnBList.Add(GoExcel.CellValue("B" & MyRow).ToString())
+'		End If
+'	Next
+'	Logger.Debug("ColumnBlist.Count: " & ColumnBList.Count)
+'	MultiValue.List("ColumnB") = ColumnBList
 
-'ColumnA is a text parameter
-For MyRow As Integer = 2 To endRow
-	If Not CStr(GoExcel.CellValue("A" & MyRow)) = "" Then
-		ColumnAList.Add(GoExcel.CellValue("A" & MyRow).ToString())
-	End If
-Next
-Logger.Debug("ColumnAlist.Count: " & ColumnAList.Count)
-MultiValue.List("ColumnA") = ColumnAList
+'	'ColumnC is a text parameter
+'	For MyRow As Integer = 2 To endRow
+'		If Not CStr(GoExcel.CellValue("C" & MyRow)) = "" Then
+'			ColumnCList.Add(GoExcel.CellValue("C" & MyRow).ToString())
+'		End If
+'	Next
+'	Logger.Debug("ColumnClist.Count: " & ColumnCList.Count)
+'	MultiValue.List("ColumnC") = ColumnCList
 
-'ColumnB is a text parameter
-For MyRow As Integer = 2 To endRow
-	If Not CStr(GoExcel.CellValue("B" & MyRow)) = "" Then
-		ColumnBList.Add(GoExcel.CellValue("B" & MyRow).ToString())
-	End If
-Next
-Logger.Debug("ColumnBlist.Count: " & ColumnBList.Count)
-MultiValue.List("ColumnB") = ColumnBList
-
-'ColumnC is a text parameter
-For MyRow As Integer = 2 To endRow
-	If Not CStr(GoExcel.CellValue("C" & MyRow)) = "" Then
-		ColumnCList.Add(GoExcel.CellValue("C" & MyRow).ToString())
-	End If
-Next
-Logger.Debug("ColumnClist.Count: " & ColumnCList.Count)
-MultiValue.List("ColumnC") = ColumnCList
-
-'ColumnD is a num parameter
-For MyRow As Integer = 2 To endRow
-	If Not CStr(GoExcel.CellValue("D" & MyRow)) = "" Then
-		ColumnDList.Add(GoExcel.CellValue("D" & MyRow))
-	End If
-Next
-Logger.Debug("ColumnDlist.Count: " & ColumnDList.Count)
-MultiValue.List("ColumnD") = ColumnDList
+'	'ColumnD is a num parameter
+'	For MyRow As Integer = 2 To endRow
+'		If Not CStr(GoExcel.CellValue("D" & MyRow)) = "" Then
+'			ColumnDList.Add(GoExcel.CellValue("D" & MyRow))
+'		End If
+'	Next
+'	Logger.Debug("ColumnDlist.Count: " & ColumnDList.Count)
+'	MultiValue.List("ColumnD") = ColumnDList
 
 End Sub
+
+Function isParamText(ByVal paramName As String) As Boolean
+	Logger.Debug("Parameter is: " & paramName)
+	Dim p As Parameter = Parameter.Param(paramName)
+	If p.Units = "Text" Or  p.units = "Boolean" Then
+		Return True
+	Else
+		Return False	
+	End If
+End Function
