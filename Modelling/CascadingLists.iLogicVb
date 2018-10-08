@@ -1,6 +1,7 @@
 ﻿Option Explicit On
 Sub Main()
-	PopulateColumnDefaults()
+	Dim columns() As String = {"E, G, I, L, N, O, R"}
+	PopulateColumnDefaults(columns)
 End Sub
 
 Public ColumnAList As New ArrayList
@@ -15,21 +16,26 @@ Public ColumnNList As New ArrayList
 Public ColumnOList As New ArrayList
 Public ColumnRList As New ArrayList
 
-Sub PopulateColumnDefaults()
+Sub PopulateColumnDefaults(columnlist() As String)
+'useful for nothing more than opening the excel file!
+Dim newFilesArray As New ArrayList
+'newFilesArray = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "sheet1", "a1", "a2")
+newFilesArray = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\K3VL 3D Model Configurator.xlsx", "sheet1", "a1", "a2")
 
 'MultiValue.List("ColumnA") = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "Sheet1", "A2", "A30")
 'MultiValue.List("ColumnB") = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "Sheet1", "B2", "B30")
 'MultiValue.List("ColumnC") = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "Sheet1", "C2", "C30")
 'MultiValue.List("ColumnD") = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "Sheet1", "D2", "D30")
 
+Dim columns As List(Of String) = columnlist.ToString.Split(",").ToList()
 
+For Each col As String In columns
+	
+Next
 
 Dim endRow As Integer = 50
 
-'useful for nothing more than opening the excel file!
-Dim newFilesArray As New ArrayList
-'newFilesArray = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "sheet1", "a1", "a2")
-newFilesArray = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\K3VL 3D Model Configurator.xlsx","sheet1","a1","a2")
+
 'ColumnA is a text parameter
 For MyRow As Integer = 2 To endRow
 	If Not CStr(GoExcel.CellValue("A" & MyRow)) = "" Then
