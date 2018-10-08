@@ -17,7 +17,7 @@ Public ColumnOList As New ArrayList
 Public ColumnRList As New ArrayList
 
 Sub PopulateColumnDefaults(columnlist As String)
-	break
+'	break
 	Dim startRow As Integer = 2
 	Dim endRow As Integer = 50
 	'useful for nothing more than opening the excel file!
@@ -38,13 +38,14 @@ Sub PopulateColumnDefaults(columnlist As String)
 				Else
 					TempList.Add(GoExcel.CellValue(col & MyRow))
 				End If
-				
 			End If
 		Next
 		Logger.Debug("Column" & col & "list.Count: " & TempList.Count)
+		SetArrayListDefaults(col, TempList)
 		MultiValue.List("Column" & col) = TempList
 		TempList.Clear()
 	Next
+	break
 End Sub
 
 Function isParamText(ByVal paramName As String) As Boolean
@@ -56,3 +57,24 @@ Function isParamText(ByVal paramName As String) As Boolean
 		Return False	
 	End If
 End Function
+
+Sub SetArrayListDefaults(col As String, tmplist As ArrayList)
+	Select col
+		Case "E"
+			ColumnEList = tmplist
+		Case "G"
+			ColumnGList = tmplist
+		Case "I"
+			ColumnIList = tmplist
+		Case "L"
+			ColumnLList = tmplist
+		Case "N"
+			ColumnNList = tmplist
+		Case "O"
+			ColumnOList = tmplist
+		Case "R"
+			ColumnRList = tmplist
+		Case Else
+			'do nothing
+	End Select
+End Sub
