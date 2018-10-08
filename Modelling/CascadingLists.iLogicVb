@@ -44,43 +44,6 @@ Sub PopulateColumnDefaults(columnlist As String)
 		MultiValue.List("Column" & col) = TempList
 		TempList.Clear()
 	Next
-
-'	'ColumnA is a text parameter
-'	For MyRow As Integer = 2 To endRow
-'		If Not CStr(GoExcel.CellValue("A" & MyRow)) = "" Then
-'			ColumnAList.Add(GoExcel.CellValue("A" & MyRow).ToString())
-'		End If
-'	Next
-'	Logger.Debug("ColumnAlist.Count: " & ColumnAList.Count)
-'	MultiValue.List("ColumnA") = ColumnAList
-
-'	'ColumnB is a text parameter
-'	For MyRow As Integer = 2 To endRow
-'		If Not CStr(GoExcel.CellValue("B" & MyRow)) = "" Then
-'			ColumnBList.Add(GoExcel.CellValue("B" & MyRow).ToString())
-'		End If
-'	Next
-'	Logger.Debug("ColumnBlist.Count: " & ColumnBList.Count)
-'	MultiValue.List("ColumnB") = ColumnBList
-
-'	'ColumnC is a text parameter
-'	For MyRow As Integer = 2 To endRow
-'		If Not CStr(GoExcel.CellValue("C" & MyRow)) = "" Then
-'			ColumnCList.Add(GoExcel.CellValue("C" & MyRow).ToString())
-'		End If
-'	Next
-'	Logger.Debug("ColumnClist.Count: " & ColumnCList.Count)
-'	MultiValue.List("ColumnC") = ColumnCList
-
-'	'ColumnD is a num parameter
-'	For MyRow As Integer = 2 To endRow
-'		If Not CStr(GoExcel.CellValue("D" & MyRow)) = "" Then
-'			ColumnDList.Add(GoExcel.CellValue("D" & MyRow))
-'		End If
-'	Next
-'	Logger.Debug("ColumnDlist.Count: " & ColumnDList.Count)
-'	MultiValue.List("ColumnD") = ColumnDList
-
 End Sub
 
 Function isParamText(ByVal paramName As String) As Boolean
