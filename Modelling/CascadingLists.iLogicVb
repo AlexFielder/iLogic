@@ -48,8 +48,9 @@ Sub PopulateColumnDefaults(columnlist As String)
 			End If
 		Next
 		TempList.Sort()
-		Logger.Debug("Column" & col & "list.Count: " & TempList.Count)
-		SetArrayListDefaults(col, TempList.Distinct())
+		TempList = TempList.Distinct().ToList()
+		Logger.Debug("Column" & col & "list.Count: " & templist.Count)
+		SetArrayListDefaults(col, TempList)
 		MultiValue.List("Column" & col) = TempList
 		TempList.Clear()
 	Next
