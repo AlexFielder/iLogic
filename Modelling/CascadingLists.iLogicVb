@@ -1,24 +1,31 @@
 ﻿Option Explicit On
 Sub Main()
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Create Cascading Lists")
 '	Dim columns() As String = {"E,G,I,L,N,O,R"}
-	PopulateColumnDefaults("E,G,I,L,N,O,R")
+	Try
+		PopulateColumnDefaults("E,G,I,L,N,O,R")
+		trans.End()
+	Catch ex As Exception
+		Logger.Error("The error was: " & ex.Message)
+		trans.Abort()
+	End Try
 End Sub
 
-Public ColumnAList As New ArrayList
-Public ColumnBList As New ArrayList
-Public ColumnCList As New ArrayList
-Public ColumnDList As New ArrayList
-Public ColumnEList As New ArrayList
-Public ColumnGList As New ArrayList
-Public ColumnIList As New ArrayList
-Public ColumnLList As New ArrayList
-Public ColumnNList As New ArrayList
-Public ColumnOList As New ArrayList
-Public ColumnRList As New ArrayList
+Public ColumnAList As New List(Of Object)
+Public ColumnBList As New List(Of Object)
+Public ColumnCList As New List(Of Object)
+Public ColumnDList As New List(Of Object)
+Public ColumnEList As New List(Of Object)
+Public ColumnGList As New List(Of Object)
+Public ColumnIList As New List(Of Object)
+Public ColumnLList As New List(Of Object)
+Public ColumnNList As New List(Of Object)
+Public ColumnOList As New List(Of Object)
+Public ColumnRList As New List(Of Object)
 
 Sub PopulateColumnDefaults(columnlist As String)
 '	break
-	Dim startRow As Integer = 2
+	Dim startRow As Integer = 7
 	Dim endRow As Integer = 50
 	'useful for nothing more than opening the excel file!
 	Dim newFilesArray As New ArrayList
@@ -28,7 +35,7 @@ Sub PopulateColumnDefaults(columnlist As String)
 	Dim columns As List(Of String) = columnlist.Split(",").ToList()
 	
 	Logger.Debug(columns.ToString())
-	Dim TempList As New ArrayList
+	Dim TempList As New List(Of Object)
 	For Each col As String In columns
 		Logger.Debug("columnname: "& col)
 		For MyRow As Integer = startRow To endRow
@@ -40,8 +47,9 @@ Sub PopulateColumnDefaults(columnlist As String)
 				End If
 			End If
 		Next
+		TempList.Sort()
 		Logger.Debug("Column" & col & "list.Count: " & TempList.Count)
-		SetArrayListDefaults(col, TempList)
+		SetArrayListDefaults(col, TempList.Distinct())
 		MultiValue.List("Column" & col) = TempList
 		TempList.Clear()
 	Next
@@ -58,22 +66,22 @@ Function isParamText(ByVal paramName As String) As Boolean
 	End If
 End Function
 
-Sub SetArrayListDefaults(col As String, tmplist As ArrayList)
+Sub SetArrayListDefaults(col As String, tmplist As List(Of Object))
 	Select col
 		Case "E"
-			ColumnEList = tmplist
+			ColumnEList.addrange(tmplist)
 		Case "G"
-			ColumnGList = tmplist
+			ColumnGList.addrange(tmplist)
 		Case "I"
-			ColumnIList = tmplist
+			ColumnIList.addrange(tmplist)
 		Case "L"
-			ColumnLList = tmplist
+			ColumnLList.addrange(tmplist)
 		Case "N"
-			ColumnNList = tmplist
+			ColumnNList.addrange(tmplist)
 		Case "O"
-			ColumnOList = tmplist
+			ColumnOList.addrange(tmplist)
 		Case "R"
-			ColumnRList = tmplist
+			ColumnRList.addrange(tmplist)
 		Case Else
 			'do nothing
 	End Select
