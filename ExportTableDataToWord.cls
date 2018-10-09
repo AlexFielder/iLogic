@@ -82,6 +82,9 @@ Sub Export_Table_Data_Word()
     wdApp.Visible = True
     Set wdDoc = wdApp.Documents.Add(wbBook.Path & "\" & stWordDocument)
     
+    'may need this in case changing the LockContentControl change doesn't work!
+    ' Call EnterExitDesignMode(wdApp, True)
+    
     Call GetSectionRows(ws.usedRange, sketchingRow, PartRow, AssemblyRow, DetailingRow, PresentationRow, DataManagementRow, OtherRow, InventorModulesRow, OthersRow, BestPracticesRow, WhatsNewRow)
     'for debugging purposes:
 '    MsgBox ("sketching row: " & CStr(sketchingRow) & vbCrLf & "parts row: " & CStr(PartRow) & vbCrLf & _
@@ -141,6 +144,9 @@ Sub Export_Table_Data_Word()
     Next i
     
     lnCountItems = 1
+    
+    'may need this in case changing the LockContentControl change doesn't work!
+    ' Call EnterExitDesignMode(wdApp, False)
     
     'Save and close the Word doc.
     With wdDoc
@@ -248,6 +254,28 @@ Function tmpTable(ByVal wdDoc As Word.Document, ByVal excelRow As Integer, ByVal
     End Select
 End Function
 
+'Sub testEnter()
+'    EnterExitDesignMode True
+'End Sub
+'
+'Sub testExit()
+'    EnterExitDesignMode False
+'End Sub
+
+Sub EnterExitDesignMode(ByVal wdApp As Application, bEnter As Boolean)
+Dim cbrs As CommandBars
+Const sMsoName As String = "DesignMode"
+
+    Set cbrs = wdApp.CommandBars
+    If Not cbrs Is Nothing Then
+        If cbrs.GetEnabledMso(sMsoName) Then
+            If bEnter <> cbrs.GetPressedMso(sMsoName) Then
+                cbrs.ExecuteMso sMsoName
+                Stop
+            End If
+        End If
+    End If
+End Sub
 
 Sub GetSectionRows(ByVal usedRange As Range, ByRef sketchingRow As Integer, ByRef PartRow As Integer, ByRef AssemblyRow As Integer, ByRef DetailingRow As Integer, ByRef PresentationRow As Integer, _
                         ByRef DataManagementRow As Integer, ByRef OtherRow As Integer, ByRef InventorModulesRow As Integer, ByRef OthersRow As Integer, ByRef BestPracticesRow As Integer, ByRef WhatsNewRow As Integer)
