@@ -107,7 +107,7 @@ Sub Export_Table_Data_Word()
             Set foundrange = tmpRange.Find(What:="ExportYes", LookIn:=xlValues, LookAt:=XlLookAt.xlWhole, MatchCase:=False, MatchByte:=False)
             If Not foundrange Is Nothing Then
                 Dim wdTable As Table
-                Set wdTable = tmpTable(wdDoc, i)
+                Set wdTable = tmpTable(wdDoc, i, r.Rows.count)
                 wdTable.Rows.Add
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
                 Set vaData = wdTable.Cell(2, 1)
@@ -120,19 +120,7 @@ Sub Export_Table_Data_Word()
         End If
     Next i
     
-'    vaData = wsSheet.Range("A1:A10").Value
-    
-    'Instantiate Word and open the "Table Reports" document.
-'    Set wdApp = New Word.Application
-'    Set wdDoc = wdApp.Documents.Open(wbBook.Path & "\" & stWordDocument)
-    
     lnCountItems = 1
-    
-'    'Place the data from the variant into the table in the Word doc.
-'    For Each wdCell In wdDoc.Tables(1).Columns(1).Cells
-'        wdCell.Range.Text = vaData(lnCountItems, 1)
-'        lnCountItems = lnCountItems + 1
-'    Next wdCell
     
     'Save and close the Word doc.
     With wdDoc
@@ -152,42 +140,42 @@ Sub Export_Table_Data_Word()
 
 End Sub
 
-Function tmpTable(ByVal wdDoc As Word.Document, ByVal excelRow As Integer) As Table
+Function tmpTable(ByVal wdDoc As Word.Document, ByVal excelRow As Integer, ByVal UsedRowCount) As Table
     Dim tmpControl As ContentControl
     Select Case excelRow
         Case sketchingRow To PartRow
             Set tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
-            Set tmpTable = tmpControl.Range.Tables(1).Select
+            Set tmpTable = tmpControl.Range.Tables(1)
         Case PartRow To AssemblyRow
             Set tmpControl = findNamedContentControl(wdDoc, cAdvancedPartsCCName)
-            Set tmpTable = tmpControl.Range.Tables(1).Select
+            Set tmpTable = tmpControl.Range.Tables(1)
         Case AssemblyRow To DetailingRow
             Set tmpControl = findNamedContentControl(wdDoc, cAssemblyCCName)
-            Set tmpTable = tmpControl.Range.Tables(1).Select
+            Set tmpTable = tmpControl.Range.Tables(1)
         Case DetailingRow To PresentationRow
             Set tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
-            Set tmpTable = tmpControl.Range.Tables(1).Select
+            Set tmpTable = tmpControl.Range.Tables(1)
         Case PresentationRow To DataManagementRow
             Set tmpControl = findNamedContentControl(wdDoc, cPresentationsCCName)
-            Set tmpTable = tmpControl.Range.Tables(1).Select
+            Set tmpTable = tmpControl.Range.Tables(1)
         Case DataManagementRow To OtherRow
             Set tmpControl = findNamedContentControl(wdDoc, cDataManagementCCName)
-            Set tmpTable = tmpControl.Range.Tables(1).Select
+            Set tmpTable = tmpControl.Range.Tables(1)
         Case OtherRow To InventorModulesRow
             Set tmpControl = findNamedContentControl(wdDoc, cOtherCCName)
-            Set tmpTable = tmpControl.Range.Tables(1).Select
+            Set tmpTable = tmpControl.Range.Tables(1)
         Case InventorModulesRow To OthersRow
             Set tmpControl = findNamedContentControl(wdDoc, cInventorModulesCCName)
-            Set tmpTable = tmpControl.Range.Tables(1).Select
+            Set tmpTable = tmpControl.Range.Tables(1)
         Case OthersRow To BestPracticesRow
             Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
-            Set tmpTable = tmpControl.Range.Tables(1).Select
+            Set tmpTable = tmpControl.Range.Tables(1)
         Case BestPracticesRow To WhatsNewRow
             Set tmpControl = findNamedContentControl(wdDoc, cBestPracticesCCName)
-            Set tmpTable = tmpControl.Range.Tables(1).Select
-        Case WhatsNewRow To ws.usedRange.Rows.count
+            Set tmpTable = tmpControl.Range.Tables(1)
+        Case WhatsNewRow To UsedRowCount
             Set tmpControl = findNamedContentControl(wdDoc, cWhatsNewCCName)
-            Set tmpTable = tmpControl.Range.Tables(1).Select
+            Set tmpTable = tmpControl.Range.Tables(1)
         Case Else
             'do nothing
     End Select
@@ -238,15 +226,15 @@ End Function
 
 Function findNamedContentControl(wordDoc As Document, controlName As String) As ContentControl
     Dim Occ As ContentControl
-    For Each Occ In oDoc.ContentControls
+    For Each Occ In wordDoc.ContentControls
         If Occ.Title = controlName Then
             findNamedContentControl = Occ
-            Exit For    'stop looking
+            Exit For
         End If
     Next Occ
 End Function
 
-Function findTableinContentControl(contentCont As ContentControl) As Table
-    findTableinContentControl = contentCont.Range.Tables(1)
-End Function
-End Function
+'Function findTableinContentControl(contentCont As ContentControl) As Table
+'    findTableinContentControl = contentCont.Range.Tables(1)
+'End Function
+
