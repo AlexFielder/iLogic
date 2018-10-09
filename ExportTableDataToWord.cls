@@ -101,8 +101,10 @@ Sub Export_Table_Data_Word()
     count = 1
     
     Dim i As Integer
+    Dim wordTableDataRowStart As Integer
+    wordTableDataRowStart = 2
     Dim tmpCControl As ContentControl
-    'Dim tmpTable As Table
+    Dim lastTable As Table
     For i = 1 To r.Rows.count
         If Not r.Cells(i, 2).Value = "" Then
             Dim tmpRange As Range
@@ -111,14 +113,27 @@ Sub Export_Table_Data_Word()
             Set foundrange = tmpRange.Find(What:="ExportYes", LookIn:=xlValues, LookAt:=XlLookAt.xlWhole, MatchCase:=False, MatchByte:=False)
             If Not foundrange Is Nothing Then
                 Dim wdTable As Word.Table
+                Dim topicCell As Word.Cell
+                Dim descrCell As Word.Cell
                 Set wdTable = tmpTable(wdDoc, i, r.Rows.count)
+                If lastTable Is Nothing Or Not lastTable Is wdTable Then
+                    Set lastTable = wdTable
+                Else
+                    wordTableDataRowStart = wordTableDataRowStart + 1
+                End If
                 'gets to here and crashes for some reason:
-                wdTable.Rows.Add (wdTable.Rows.count)
+                'wdTable.Rows.Add (wdTable.Rows.count)
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
-                Set vaData = wdTable.Cell(2, 1)
-                Dim descrCell As String
-                descrCell = ws.Cells(i, 2).Value
-                vaData.Range.InsertAfter descrCell 'insert value from Excel column B
+                Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
+                Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
+                
+                Dim topicStr As String
+                topicStr = ws.Cells(i, 1).Value
+                Dim descrStr As String
+                descrStr = ws.Cells(i, 2).Value
+                
+                topicCell.Range.InsertAfter topicStr 'insert value from Excel column A
+                descrCell.Range.InsertAfter descrStr 'insert value from Excel column B
                 count = count + 1
             End If
             'determines which table we need to add the rows to:
