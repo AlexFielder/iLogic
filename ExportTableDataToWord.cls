@@ -112,7 +112,8 @@ Sub Export_Table_Data_Word()
             If Not foundrange Is Nothing Then
                 Dim wdTable As Word.Table
                 Set wdTable = tmpTable(wdDoc, i, r.Rows.count)
-                wdTable.Rows.Add
+                'gets to here and crashes for some reason:
+                wdTable.Rows.Add (wdTable.Rows.count)
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
                 Set vaData = wdTable.Cell(2, 1)
                 Dim descrCell As String
@@ -268,7 +269,7 @@ Function findNamedContentControl(wordDoc As Document, controlName As String) As 
     Dim Occ As ContentControl
     For Each Occ In wordDoc.ContentControls
         If Occ.Title = controlName Then
-            findNamedContentControl = Occ
+            Set findNamedContentControl = Occ
             Exit For
         End If
     Next Occ
