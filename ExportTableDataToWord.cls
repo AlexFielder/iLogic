@@ -73,18 +73,19 @@ Sub Export_Table_Data_Word()
     Set wbBook = ThisWorkbook
     Set ws = wbBook.Worksheets("Inventor Survey Beta")
     
-    Set wdApp = New Word.Application
+    'Set wdApp = New Word.Application
+    Set wdApp = CreateWord(True)
     'for debugging only:
     wdApp.Visible = True
     Set wdDoc = wdApp.Documents.Add(wbBook.Path & "\" & stWordDocument)
     
     Call GetSectionRows(ws.usedRange, sketchingRow, PartRow, AssemblyRow, DetailingRow, PresentationRow, DataManagementRow, OtherRow, InventorModulesRow, OthersRow, BestPracticesRow, WhatsNewRow)
     'for debugging purposes:
-    MsgBox ("sketching row: " & CStr(sketchingRow) & vbCrLf & "parts row: " & CStr(PartRow) & vbCrLf & _
-            "Assembly row: " & CStr(AssemblyRow) & vbCrLf & "Detailing Row: " & CStr(DetailingRow) & vbCrLf & _
-            "Presentation Row: " & CStr(PresentationRow) & vbCrLf & "Data Management Row: " & CStr(DataManagementRow) & vbCrLf & _
-            "Other Row: " & CStr(OtherRow) & vbCrLf & "Inventor Modules Row: " & CStr(InventorModulesRow) & vbCrLf & _
-            "Others Row: " & CStr(OthersRow) & vbCrLf & "Best practices: " & CStr(BestPracticesRow) & vbCrLf & "What's New: " & CStr(WhatsNewRow))
+'    MsgBox ("sketching row: " & CStr(sketchingRow) & vbCrLf & "parts row: " & CStr(PartRow) & vbCrLf & _
+'            "Assembly row: " & CStr(AssemblyRow) & vbCrLf & "Detailing Row: " & CStr(DetailingRow) & vbCrLf & _
+'            "Presentation Row: " & CStr(PresentationRow) & vbCrLf & "Data Management Row: " & CStr(DataManagementRow) & vbCrLf & _
+'            "Other Row: " & CStr(OtherRow) & vbCrLf & "Inventor Modules Row: " & CStr(InventorModulesRow) & vbCrLf & _
+'            "Others Row: " & CStr(OthersRow) & vbCrLf & "Best practices: " & CStr(BestPracticesRow) & vbCrLf & "What's New: " & CStr(WhatsNewRow))
     
     Dim r As Range
     Set r = ws.usedRange
@@ -106,7 +107,7 @@ Sub Export_Table_Data_Word()
             Dim foundrange As Range
             Set foundrange = tmpRange.Find(What:="ExportYes", LookIn:=xlValues, LookAt:=XlLookAt.xlWhole, MatchCase:=False, MatchByte:=False)
             If Not foundrange Is Nothing Then
-                Dim wdTable As Table
+                Dim wdTable As Word.Table
                 Set wdTable = tmpTable(wdDoc, i, r.Rows.count)
                 wdTable.Rows.Add
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
@@ -140,7 +141,37 @@ Sub Export_Table_Data_Word()
 
 End Sub
 
-Function tmpTable(ByVal wdDoc As Word.Document, ByVal excelRow As Integer, ByVal UsedRowCount) As Table
+Public Function CreateWord(Optional bVisible As Boolean = True) As Object
+
+    Dim oTempWD As Object
+
+    On Error Resume Next
+    Set oTempWD = GetObject(, "Word.Application")
+
+    If Err.Number <> 0 Then
+        Err.Clear
+        On Error GoTo ERROR_HANDLER
+        Set oTempWD = CreateObject("Word.Application")
+    End If
+
+    oTempWD.Visible = bVisible
+    Set CreateWord = oTempWD
+
+    On Error GoTo 0
+    Exit Function
+
+ERROR_HANDLER:
+    Select Case Err.Number
+
+        Case Else
+            MsgBox "Error " & Err.Number & vbCr & _
+                " (" & Err.Description & ") in procedure CreateWord."
+            Err.Clear
+    End Select
+
+End Function
+
+Function tmpTable(ByVal wdDoc As Word.Document, ByVal excelRow As Integer, ByVal UsedRowCount) As Word.Table
     Dim tmpControl As ContentControl
     Select Case excelRow
         Case sketchingRow To PartRow
