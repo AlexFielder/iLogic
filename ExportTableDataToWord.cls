@@ -47,10 +47,13 @@ Public OthersRow As Integer
 Public BestPracticesRow As Integer
 Public WhatsNewRow As Integer
 
+Public weCreatedWord As Boolean
+
+
 
 
 Sub Export_Table_Data_Word()
-
+    weCreatedWord = False
     'Name of the existing Word document
     Const stWordDocument As String = "Template.dotx" 'this needs to exist in the folder this Excel file is in!
     
@@ -129,12 +132,17 @@ Sub Export_Table_Data_Word()
         .Close
     End With
     
-    wdApp.Quit
+    If weCreatedWord Then
+        wdApp.Quit
+    End If
     
     'Null out the variables.
     Set wdCell = Nothing
     Set wdDoc = Nothing
     Set wdApp = Nothing
+    Set r = Nothing
+    Set ws = Nothing
+    Set wbBook = Nothing
     
     MsgBox "The " & stWordDocument & "'s table has succcessfully " & vbNewLine & _
            "been updated!", vbInformation
@@ -152,6 +160,7 @@ Public Function CreateWord(Optional bVisible As Boolean = True) As Object
         Err.Clear
         On Error GoTo ERROR_HANDLER
         Set oTempWD = CreateObject("Word.Application")
+        weCreatedWord = True
     End If
 
     oTempWD.Visible = bVisible
