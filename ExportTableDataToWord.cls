@@ -34,6 +34,19 @@ Const cOtherFeaturesCCName As String = "OtherFeatures"
 Const cBestPracticesCCName As String = "BestPractices"
 Const cWhatsNewCCName As String = "WhatsNew"
 
+'Excel rows:
+Public sketchingRow As Integer
+Public PartRow As Integer
+Public AssemblyRow As Integer
+Public DetailingRow As Integer
+Public PresentationRow As Integer
+Public DataManagementRow As Integer
+Public OtherRow As Integer
+Public InventorModulesRow As Integer
+Public OthersRow As Integer
+Public BestPracticesRow As Integer
+Public WhatsNewRow As Integer
+
 
 Sub Export_Table_Data_Word()
 
@@ -64,18 +77,18 @@ Sub Export_Table_Data_Word()
     wdApp.Visible = True
     Set wdDoc = wdApp.Documents.Add(wbBook.Path & "\" & stWordDocument)
     
-    'Excel rows:
-    Dim sketchingRow As Integer
-    Dim PartRow As Integer
-    Dim AssemblyRow As Integer
-    Dim DetailingRow As Integer
-    Dim PresentationRow As Integer
-    Dim DataManagementRow As Integer
-    Dim OtherRow As Integer
-    Dim InventorModulesRow As Integer
-    Dim OthersRow As Integer
-    Dim BestPracticesRow As Integer
-    Dim WhatsNewRow As Integer
+'    'Excel rows:
+'    Dim sketchingRow As Integer
+'    Dim PartRow As Integer
+'    Dim AssemblyRow As Integer
+'    Dim DetailingRow As Integer
+'    Dim PresentationRow As Integer
+'    Dim DataManagementRow As Integer
+'    Dim OtherRow As Integer
+'    Dim InventorModulesRow As Integer
+'    Dim OthersRow As Integer
+'    Dim BestPracticesRow As Integer
+'    Dim WhatsNewRow As Integer
     
     Call GetSectionRows(ws.usedRange, sketchingRow, PartRow, AssemblyRow, DetailingRow, PresentationRow, DataManagementRow, OtherRow, InventorModulesRow, OthersRow, BestPracticesRow, WhatsNewRow)
     'for debugging purposes:
@@ -97,7 +110,7 @@ Sub Export_Table_Data_Word()
     
     Dim i As Integer
     Dim tmpCControl As ContentControl
-    Dim tmpTable As Table
+    'Dim tmpTable As Table
     For i = 1 To r.Rows.count
         If Not r.Cells(i, 2).Value = "" Then
             Dim tmpRange As Range
@@ -151,7 +164,7 @@ Sub Export_Table_Data_Word()
 
 End Sub
 
-Function tmpTable(ByVal wdDoc As Document, ByVal excelRow As Integer) As Table
+Function tmpTable(ByVal wdDoc As Word.Document, ByVal excelRow As Integer) As Table
     Dim tmpCControl As ContentControl
     Select Case excelRow
         Case sketchingRow To PartRow
