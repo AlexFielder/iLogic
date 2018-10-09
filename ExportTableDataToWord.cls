@@ -34,7 +34,7 @@ Const cOtherFeaturesCCName As String = "OtherFeatures"
 Const cBestPracticesCCName As String = "BestPractices"
 Const cWhatsNewCCName As String = "WhatsNew"
 
-'Excel rows:
+'Excel rows - we populate these later:
 Public sketchingRow As Integer
 Public PartRow As Integer
 Public AssemblyRow As Integer
@@ -46,6 +46,7 @@ Public InventorModulesRow As Integer
 Public OthersRow As Integer
 Public BestPracticesRow As Integer
 Public WhatsNewRow As Integer
+
 
 
 Sub Export_Table_Data_Word()
@@ -76,19 +77,6 @@ Sub Export_Table_Data_Word()
     'for debugging only:
     wdApp.Visible = True
     Set wdDoc = wdApp.Documents.Add(wbBook.Path & "\" & stWordDocument)
-    
-'    'Excel rows:
-'    Dim sketchingRow As Integer
-'    Dim PartRow As Integer
-'    Dim AssemblyRow As Integer
-'    Dim DetailingRow As Integer
-'    Dim PresentationRow As Integer
-'    Dim DataManagementRow As Integer
-'    Dim OtherRow As Integer
-'    Dim InventorModulesRow As Integer
-'    Dim OthersRow As Integer
-'    Dim BestPracticesRow As Integer
-'    Dim WhatsNewRow As Integer
     
     Call GetSectionRows(ws.usedRange, sketchingRow, PartRow, AssemblyRow, DetailingRow, PresentationRow, DataManagementRow, OtherRow, InventorModulesRow, OthersRow, BestPracticesRow, WhatsNewRow)
     'for debugging purposes:
@@ -165,41 +153,41 @@ Sub Export_Table_Data_Word()
 End Sub
 
 Function tmpTable(ByVal wdDoc As Word.Document, ByVal excelRow As Integer) As Table
-    Dim tmpCControl As ContentControl
+    Dim tmpControl As ContentControl
     Select Case excelRow
         Case sketchingRow To PartRow
-            Set tmpcontrol = findNamedContentControl(wdDoc, cBasicPartsCCName)
-            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+            Set tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
+            Set tmpTable = tmpControl.Range.Tables(1).Select
         Case PartRow To AssemblyRow
-            Set tmpcontrol = findNamedContentControl(wdDoc, cAdvancedPartsCCName)
-            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+            Set tmpControl = findNamedContentControl(wdDoc, cAdvancedPartsCCName)
+            Set tmpTable = tmpControl.Range.Tables(1).Select
         Case AssemblyRow To DetailingRow
-            Set tmpcontrol = findNamedContentControl(wdDoc, cAssemblyCCName)
-            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+            Set tmpControl = findNamedContentControl(wdDoc, cAssemblyCCName)
+            Set tmpTable = tmpControl.Range.Tables(1).Select
         Case DetailingRow To PresentationRow
-            Set tmpcontrol = findNamedContentControl(wdDoc, cDetailingCCName)
-            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+            Set tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
+            Set tmpTable = tmpControl.Range.Tables(1).Select
         Case PresentationRow To DataManagementRow
-            Set tmpcontrol = findNamedContentControl(wdDoc, cPresentationsCCName)
-            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+            Set tmpControl = findNamedContentControl(wdDoc, cPresentationsCCName)
+            Set tmpTable = tmpControl.Range.Tables(1).Select
         Case DataManagementRow To OtherRow
-            Set tmpcontrol = findNamedContentControl(wdDoc, cDataManagementCCName)
-            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+            Set tmpControl = findNamedContentControl(wdDoc, cDataManagementCCName)
+            Set tmpTable = tmpControl.Range.Tables(1).Select
         Case OtherRow To InventorModulesRow
-            Set tmpcontrol = findNamedContentControl(wdDoc, cOtherCCName)
-            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+            Set tmpControl = findNamedContentControl(wdDoc, cOtherCCName)
+            Set tmpTable = tmpControl.Range.Tables(1).Select
         Case InventorModulesRow To OthersRow
-            Set tmpcontrol = findNamedContentControl(wdDoc, cInventorModulesCCName)
-            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+            Set tmpControl = findNamedContentControl(wdDoc, cInventorModulesCCName)
+            Set tmpTable = tmpControl.Range.Tables(1).Select
         Case OthersRow To BestPracticesRow
-            Set tmpcontrol = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
-            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+            Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
+            Set tmpTable = tmpControl.Range.Tables(1).Select
         Case BestPracticesRow To WhatsNewRow
-            Set tmpcontrol = findNamedContentControl(wdDoc, cBestPracticesCCName)
-            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+            Set tmpControl = findNamedContentControl(wdDoc, cBestPracticesCCName)
+            Set tmpTable = tmpControl.Range.Tables(1).Select
         Case WhatsNewRow To ws.usedRange.Rows.count
-            Set tmpcontrol = findNamedContentControl(wdDoc, cWhatsNewCCName)
-            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+            Set tmpControl = findNamedContentControl(wdDoc, cWhatsNewCCName)
+            Set tmpTable = tmpControl.Range.Tables(1).Select
         Case Else
             'do nothing
     End Select
