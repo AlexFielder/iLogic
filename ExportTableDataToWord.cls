@@ -132,8 +132,8 @@ Sub Export_Table_Data_Word()
                 Dim descrStr As String
                 descrStr = ws.Cells(i, 2).Value
                 
-                topicCell.Range.InsertAfter topicStr 'insert value from Excel column A
-                descrCell.Range.InsertAfter descrStr 'insert value from Excel column B
+                topicCell.Range.Text = topicStr  'insert value from Excel column A
+                descrCell.Range.Text = descrStr 'insert value from Excel column B
                 count = count + 1
             End If
             'determines which table we need to add the rows to:
@@ -201,36 +201,47 @@ Function tmpTable(ByVal wdDoc As Word.Document, ByVal excelRow As Integer, ByVal
     Select Case excelRow
         Case sketchingRow To PartRow
             Set tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
+            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case PartRow To AssemblyRow
             Set tmpControl = findNamedContentControl(wdDoc, cAdvancedPartsCCName)
+            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case AssemblyRow To DetailingRow
             Set tmpControl = findNamedContentControl(wdDoc, cAssemblyCCName)
+            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case DetailingRow To PresentationRow
             Set tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
+            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case PresentationRow To DataManagementRow
             Set tmpControl = findNamedContentControl(wdDoc, cPresentationsCCName)
+            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case DataManagementRow To OtherRow
             Set tmpControl = findNamedContentControl(wdDoc, cDataManagementCCName)
+            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case OtherRow To InventorModulesRow
             Set tmpControl = findNamedContentControl(wdDoc, cOtherCCName)
+            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case InventorModulesRow To OthersRow
             Set tmpControl = findNamedContentControl(wdDoc, cInventorModulesCCName)
+            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case OthersRow To BestPracticesRow
             Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
+            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case BestPracticesRow To WhatsNewRow
             Set tmpControl = findNamedContentControl(wdDoc, cBestPracticesCCName)
+            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case WhatsNewRow To UsedRowCount
             Set tmpControl = findNamedContentControl(wdDoc, cWhatsNewCCName)
+            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case Else
             'do nothing
