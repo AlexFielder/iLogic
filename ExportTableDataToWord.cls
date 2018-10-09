@@ -83,7 +83,7 @@ Sub Export_Table_Data_Word()
     Set wdDoc = wdApp.Documents.Add(wbBook.Path & "\" & stWordDocument)
     
     'may need this in case changing the LockContentControl change doesn't work!
-    ' Call EnterExitDesignMode(wdApp, True)
+    Call EnterExitDesignMode(wdApp, True)
     
     Call GetSectionRows(ws.usedRange, sketchingRow, PartRow, AssemblyRow, DetailingRow, PresentationRow, DataManagementRow, OtherRow, InventorModulesRow, OthersRow, BestPracticesRow, WhatsNewRow)
     'for debugging purposes:
@@ -119,13 +119,15 @@ Sub Export_Table_Data_Word()
                 Dim topicCell As Word.Cell
                 Dim descrCell As Word.Cell
                 Set wdTable = tmpTable(wdDoc, i, r.Rows.count)
-                If lastTable Is Nothing Or Not lastTable Is wdTable Then
+                If lastTable Is Nothing Then
                     Set lastTable = wdTable
+                ElseIf Not lastTable Is wdTable Then
+                    wordTableDataRowStart = 2
                 Else
                     wordTableDataRowStart = wordTableDataRowStart + 1
                 End If
                 'gets to here and crashes for some reason:
-                'wdTable.Rows.Add (wdTable.Rows.count)
+                wdTable.Rows.Add (wdTable.Rows.count)
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
                 Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
                 Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
@@ -146,7 +148,7 @@ Sub Export_Table_Data_Word()
     lnCountItems = 1
     
     'may need this in case changing the LockContentControl change doesn't work!
-    ' Call EnterExitDesignMode(wdApp, False)
+    Call EnterExitDesignMode(wdApp, False)
     
     'Save and close the Word doc.
     With wdDoc
@@ -262,7 +264,7 @@ End Function
 '    EnterExitDesignMode False
 'End Sub
 
-Sub EnterExitDesignMode(ByVal wdApp As Application, bEnter As Boolean)
+Sub EnterExitDesignMode(ByVal wdApp As Word.Application, bEnter As Boolean)
 Dim cbrs As CommandBars
 Const sMsoName As String = "DesignMode"
 
