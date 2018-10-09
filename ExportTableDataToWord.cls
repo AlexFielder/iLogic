@@ -21,6 +21,19 @@ Const cOtherFeaturesSectionValue As String = "Other Features"
 Const cBestPracticesSectionValue As String = "Best Practices"
 Const cWhatsNewSectionValue As String = "Whats New"
 
+'Word Constant ContentControl name values:
+Const cBasicPartsCCName As String = "BasicParts"
+Const cAdvancedPartsCCName As String = "AdvancedParts"
+Const cAssemblyCCName As String = "AssemblySubjects"
+Const cDetailingCCName As String = "Detailing"
+Const cPresentationsCCName As String = "PresentationSubjects"
+Const cDataManagementCCName As String = "DataManagementSubjects"
+Const cOtherCCName As String = "OtherSubjects"
+Const cInventorModulesCCName As String = "InventorModules"
+Const cOtherFeaturesCCName As String = "OtherFeatures"
+Const cBestPracticesCCName As String = "BestPractices"
+Const cWhatsNewCCName As String = "WhatsNew"
+
 
 Sub Export_Table_Data_Word()
 
@@ -81,8 +94,10 @@ Sub Export_Table_Data_Word()
     'Set exportRange = r.Find(What:="ExportYes", LookIn:=xlValues, LookAt:=XlLookAt.xlWhole, SearchOrder:=XlSearchOrder.xlByColumns, MatchCase:=False, MatchByte:=False)
     Dim count As Integer
     count = 1
-    ' this will need amending to either case > number or case < number or if statements
+    
     Dim i As Integer
+    Dim tmpCControl As ContentControl
+    Dim tmpTable As Table
     For i = 1 To r.Rows.count
         If Not r.Cells(i, 2).Value = "" Then
             Dim tmpRange As Range
@@ -91,44 +106,16 @@ Sub Export_Table_Data_Word()
             Set foundrange = tmpRange.Find(What:="ExportYes", LookIn:=xlValues, LookAt:=XlLookAt.xlWhole, MatchCase:=False, MatchByte:=False)
             If Not foundrange Is Nothing Then
                 Dim wdTable As Table
-                Set wdTable = wdApp.ActiveDocument.Tables(1)
+                Set wdTable = tmpTable(wdDoc, i)
                 wdTable.Rows.Add
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
-                Set vaData = wdApp.ActiveDocument.Tables(1).Cell(2, 1)
+                Set vaData = wdTable.Cell(2, 1)
                 Dim descrCell As String
                 descrCell = ws.Cells(i, 2).Value
                 vaData.Range.InsertAfter descrCell 'insert value from Excel column B
                 count = count + 1
             End If
             'determines which table we need to add the rows to:
-            Select Case i
-                Case sketchingRow To PartRow
-                
-                Case PartRow To AssemblyRow
-                
-                Case AssemblyRow To DetailingRow
-                
-                Case DetailingRow To PresentationRow
-                
-                Case PresentationRow To DataManagementRow
-                
-                Case DataManagementRow To OtherRow
-                
-                Case OtherRow To InventorModulesRow
-                
-                Case InventorModulesRow To OthersRow
-                
-                Case OthersRow To BestPracticesRow
-                
-                Case BestPracticesRow To WhatsNewRow
-                
-                Case WhatsNewRow To ws.usedRange.Rows.count
-                
-                Case Else
-                    'do nothing
-            End Select
-            
-            
         End If
     Next i
     
@@ -163,6 +150,47 @@ Sub Export_Table_Data_Word()
            "been updated!", vbInformation
 
 End Sub
+
+Function tmpTable(ByVal wdDoc As Document, ByVal excelRow As Integer) As Table
+    Dim tmpCControl As ContentControl
+    Select Case excelRow
+        Case sketchingRow To PartRow
+            Set tmpcontrol = findNamedContentControl(wdDoc, cBasicPartsCCName)
+            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+        Case PartRow To AssemblyRow
+            Set tmpcontrol = findNamedContentControl(wdDoc, cAdvancedPartsCCName)
+            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+        Case AssemblyRow To DetailingRow
+            Set tmpcontrol = findNamedContentControl(wdDoc, cAssemblyCCName)
+            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+        Case DetailingRow To PresentationRow
+            Set tmpcontrol = findNamedContentControl(wdDoc, cDetailingCCName)
+            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+        Case PresentationRow To DataManagementRow
+            Set tmpcontrol = findNamedContentControl(wdDoc, cPresentationsCCName)
+            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+        Case DataManagementRow To OtherRow
+            Set tmpcontrol = findNamedContentControl(wdDoc, cDataManagementCCName)
+            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+        Case OtherRow To InventorModulesRow
+            Set tmpcontrol = findNamedContentControl(wdDoc, cOtherCCName)
+            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+        Case InventorModulesRow To OthersRow
+            Set tmpcontrol = findNamedContentControl(wdDoc, cInventorModulesCCName)
+            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+        Case OthersRow To BestPracticesRow
+            Set tmpcontrol = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
+            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+        Case BestPracticesRow To WhatsNewRow
+            Set tmpcontrol = findNamedContentControl(wdDoc, cBestPracticesCCName)
+            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+        Case WhatsNewRow To ws.usedRange.Rows.count
+            Set tmpcontrol = findNamedContentControl(wdDoc, cWhatsNewCCName)
+            Set tmpTable = tmpcontrol.Range.Tables(1).Select
+        Case Else
+            'do nothing
+    End Select
+End Function
 
 
 Sub GetSectionRows(ByVal usedRange As Range, ByRef sketchingRow As Integer, ByRef PartRow As Integer, ByRef AssemblyRow As Integer, ByRef DetailingRow As Integer, ByRef PresentationRow As Integer, _
@@ -207,4 +235,17 @@ Function searchForSectionRangeByTerm(sectionSearchRange As Range, searchterm As 
     Next i
 End Function
 
+Function findNamedContentControl(wordDoc As Document, controlName As String) As ContentControl
+    Dim Occ As ContentControl
+    For Each Occ In oDoc.ContentControls
+        If Occ.Title = controlName Then
+            findNamedContentControl = Occ
+            Exit For    'stop looking
+        End If
+    Next Occ
+End Function
 
+Function findTableinContentControl(contentCont As ContentControl) As Table
+    findTableinContentControl = contentCont.Range.Tables(1)
+End Function
+End Function
