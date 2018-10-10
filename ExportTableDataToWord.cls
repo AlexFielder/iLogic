@@ -125,7 +125,7 @@ Sub Export_Table_Data_Word()
                 
                 Set wdTable = tmpTable(wdDoc, i, r.Rows.Count, sectionDataRowStart, sectionDataRowEnd)
                 Set SumRange = ws.Cells(sectionDataRowStart, 9) ' column I
-                SumRange.Formula = "=SUM(" & Range(Cells(sectionDataRowStart, 9), Cells(sectionDataRowEnd, 9)).Address(False, False) & ")" '.Value = Excel.WorksheetFunction.Sum(ws.Range(sectionDataRowStart, sectionDataRowEnd))
+                SumRange.Formula = "=SUM(" & Range(Cells(sectionDataRowStart + 2, 9), Cells(sectionDataRowEnd - 1, 9)).Address(False, False) & ")/60/6.5" '.Value = Excel.WorksheetFunction.Sum(ws.Range(sectionDataRowStart, sectionDataRowEnd))
                 If lastTableHeader = "" Then
                     lastTableHeader = wdTable.Cell(1, 1).Range.Text
                 ElseIf Not lastTableHeader = wdTable.Cell(1, 1).Range.Text Then
@@ -144,8 +144,10 @@ Sub Export_Table_Data_Word()
                 topicStr = ws.Cells(i, 1).Value
                 Dim descrStr As String
                 descrStr = ws.Cells(i, 2).Value
+                Dim TotalDaysDbl As Double
+                TotalDaysDbl = WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0) * 0.5
                 Dim TotalDaysStr As String
-                TotalDaysStr = SumRange.Value 'ws.Cells.Formula
+                TotalDaysStr = CStr(TotalDaysDbl) ' Round(SumRange.Value2, 1) 'ws.Cells.Formula
                 
                 topicCell.Range.Text = topicStr  'insert value from Excel column A
                 descrCell.Range.Text = descrStr 'insert value from Excel column B
