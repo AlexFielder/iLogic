@@ -100,34 +100,35 @@ Sub Export_Table_Data_Word()
     Dim exportRange As Range
     'this should work but doesn't of course!
     'Set exportRange = r.Find(What:="ExportYes", LookIn:=xlValues, LookAt:=XlLookAt.xlWhole, SearchOrder:=XlSearchOrder.xlByColumns, MatchCase:=False, MatchByte:=False)
-    Dim count As Integer
-    count = 1
+    Dim Count As Integer
+    Count = 1
     
     Dim i As Integer
     Dim wordTableDataRowStart As Integer
     wordTableDataRowStart = 2
     Dim tmpCControl As ContentControl
-    Dim lastTable As Table
-    For i = 1 To r.Rows.count
+    Dim lastTableHeader As String
+    For i = 1 To r.Rows.Count
         If Not r.Cells(i, 2).Value = "" Then
             Dim tmpRange As Range
-            Set tmpRange = r.Range(r.Cells(i, 1), r.Cells(i, r.Columns.count))
+            Set tmpRange = r.Range(r.Cells(i, 1), r.Cells(i, r.Columns.Count))
             Dim foundrange As Range
             Set foundrange = tmpRange.Find(What:="ExportYes", LookIn:=xlValues, LookAt:=XlLookAt.xlWhole, MatchCase:=False, MatchByte:=False)
             If Not foundrange Is Nothing Then
                 Dim wdTable As Word.Table
                 Dim topicCell As Word.Cell
                 Dim descrCell As Word.Cell
-                Set wdTable = tmpTable(wdDoc, i, r.Rows.count)
-                If lastTable Is Nothing Then
-                    Set lastTable = wdTable
-                ElseIf Not lastTable Is wdTable Then
+                Set wdTable = tmpTable(wdDoc, i, r.Rows.Count)
+                If lastTableHeader = "" Then
+                    lastTableHeader = wdTable.Cell(1, 1).Range.Text
+                ElseIf Not lastTableHeader = wdTable.Cell(1, 1).Range.Text Then
                     wordTableDataRowStart = 2
+                    lastTableHeader = wdTable.Cell(1, 1).Range.Text
                 Else
                     wordTableDataRowStart = wordTableDataRowStart + 1
                 End If
                 'gets to here and crashes for some reason:
-                wdTable.Rows.Add (wdTable.Rows.count)
+                wdTable.Rows.Add (wdTable.Rows(wdTable.Rows.Count))
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
                 Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
                 Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
@@ -139,7 +140,7 @@ Sub Export_Table_Data_Word()
                 
                 topicCell.Range.Text = topicStr  'insert value from Excel column A
                 descrCell.Range.Text = descrStr 'insert value from Excel column B
-                count = count + 1
+                Count = Count + 1
             End If
             'determines which table we need to add the rows to:
         End If
@@ -273,7 +274,7 @@ Const sMsoName As String = "DesignMode"
         If cbrs.GetEnabledMso(sMsoName) Then
             If bEnter <> cbrs.GetPressedMso(sMsoName) Then
                 cbrs.ExecuteMso sMsoName
-                Stop
+'                Stop
             End If
         End If
     End If
@@ -283,7 +284,7 @@ Sub GetSectionRows(ByVal usedRange As Range, ByRef sketchingRow As Integer, ByRe
                         ByRef DataManagementRow As Integer, ByRef OtherRow As Integer, ByRef InventorModulesRow As Integer, ByRef OthersRow As Integer, ByRef BestPracticesRow As Integer, ByRef WhatsNewRow As Integer)
 
 Dim searchRangeStart As Range: Set searchRangeStart = usedRange.Cells(1, 1)
-Dim searchRangeEnd As Range: Set searchRangeEnd = usedRange.Cells(usedRange.Rows.count, 1)
+Dim searchRangeEnd As Range: Set searchRangeEnd = usedRange.Cells(usedRange.Rows.Count, 1)
 
 Dim sectionSearchRange As Range: Set sectionSearchRange = usedRange.Range(searchRangeStart, searchRangeEnd)
 
@@ -314,7 +315,7 @@ Function searchForSectionRange(ByVal searchrange As Range, searchterm As String)
 End Function
 
 Function searchForSectionRangeByTerm(sectionSearchRange As Range, searchterm As String) As Range
-    For i = 1 To sectionSearchRange.Rows.count
+    For i = 1 To sectionSearchRange.Rows.Count
         If sectionSearchRange.Cells(i, 1).Value = searchterm Then
             searchForSectionRangeByTerm = sectionSearchRange.Range(i, 1) ' SectionSearchRange.Cells(i, 1).Value
         End If
