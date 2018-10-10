@@ -126,9 +126,8 @@ Sub Export_Table_Data_Word()
                     lastTableHeader = wdTable.Cell(1, 1).Range.Text
                 Else
                     wordTableDataRowStart = wordTableDataRowStart + 1
+                    wdTable.Rows.Add (wdTable.Rows(wdTable.Rows.Count - 1))
                 End If
-                'gets to here and crashes for some reason:
-                wdTable.Rows.Add (wdTable.Rows(wdTable.Rows.Count))
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
                 Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
                 Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
