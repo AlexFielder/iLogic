@@ -118,7 +118,14 @@ Sub Export_Table_Data_Word()
                 Dim wdTable As Word.Table
                 Dim topicCell As Word.Cell
                 Dim descrCell As Word.Cell
-                Set wdTable = tmpTable(wdDoc, i, r.Rows.Count)
+                Dim TotalDaysCell As Word.Cell
+                Dim sectionDataRowStart As Integer
+                Dim sectionDataRowEnd As Integer
+                Dim SumRange As Range
+                
+                Set wdTable = tmpTable(wdDoc, i, r.Rows.Count, sectionDataRowStart, sectionDataRowEnd)
+                Set SumRange = ws.Cells(sectionDataRowStart, 9) ' column I
+                SumRange.Value = Excel.WorksheetFunction.Sum(ws.Range(sectionDataRowStart, sectionDataRowEnd))
                 If lastTableHeader = "" Then
                     lastTableHeader = wdTable.Cell(1, 1).Range.Text
                 ElseIf Not lastTableHeader = wdTable.Cell(1, 1).Range.Text Then
@@ -131,14 +138,19 @@ Sub Export_Table_Data_Word()
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
                 Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
                 Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
+                Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 2)
                 
                 Dim topicStr As String
                 topicStr = ws.Cells(i, 1).Value
                 Dim descrStr As String
                 descrStr = ws.Cells(i, 2).Value
+                Dim TotalDaysStr As String
+                TotalDaysStr = SumRange.Value 'ws.Cells.Formula
                 
                 topicCell.Range.Text = topicStr  'insert value from Excel column A
                 descrCell.Range.Text = descrStr 'insert value from Excel column B
+                ' this will keep getting set and reset so maybe need to only do it we're next to the sectionDataRowEnd value?
+                TotalDaysCell.Range.Text = TotalDaysStr
                 Count = Count + 1
             End If
             'determines which table we need to add the rows to:
@@ -204,26 +216,40 @@ ERROR_HANDLER:
 
 End Function
 
-Function tmpTable(ByVal wdDoc As Word.Document, ByVal excelRow As Integer, ByVal UsedRowCount) As Word.Table
+Function tmpTable(ByVal wdDoc As Word.Document, _
+                    ByVal excelRow As Integer, _
+                    ByVal UsedRowCount As Integer, _
+                    ByRef sectionDataRowStart As Integer, _
+                    ByRef sectionDataRowEnd As Integer) As Word.Table
     Dim tmpControl As ContentControl
     Select Case excelRow
         Case sketchingRow To PartRow
+            Set sectionDataRowStart = sketchingRow
+            Set sectionDataRowEnd = PartRow
             Set tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case PartRow To AssemblyRow
+            Set sectionDataRowStart = PartRow
+            Set sectionDataRowEnd = AssemblyRow
             Set tmpControl = findNamedContentControl(wdDoc, cAdvancedPartsCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case AssemblyRow To DetailingRow
+            Set sectionDataRowStart = AssemblyRow
+            Set sectionDataRowEnd = DetailingRow
             Set tmpControl = findNamedContentControl(wdDoc, cAssemblyCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case DetailingRow To PresentationRow
+            Set sectionDataRowStart = DetailingRow
+            Set sectionDataRowEnd = PresentationRow
             Set tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case PresentationRow To DataManagementRow
+            Set sectionDataRowStart = PresentationRow
+            Set sectionDataRowEnd = DataManagementRow
             Set tmpControl = findNamedContentControl(wdDoc, cPresentationsCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
@@ -232,22 +258,32 @@ Function tmpTable(ByVal wdDoc As Word.Document, ByVal excelRow As Integer, ByVal
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case OtherRow To InventorModulesRow
+            Set sectionDataRowStart = OtherRow
+            Set sectionDataRowEnd = InventorModulesRow
             Set tmpControl = findNamedContentControl(wdDoc, cOtherCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case InventorModulesRow To OthersRow
+            Set sectionDataRowStart = InventorModulesRow
+            Set sectionDataRowEnd = OthersRow
             Set tmpControl = findNamedContentControl(wdDoc, cInventorModulesCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case OthersRow To BestPracticesRow
+            Set sectionDataRowStart = OthersRow
+            Set sectionDataRowEnd = BestPracticesRow
             Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case BestPracticesRow To WhatsNewRow
+            Set sectionDataRowStart = BestPracticesRow
+            Set sectionDataRowEnd = WhatsNewRow
             Set tmpControl = findNamedContentControl(wdDoc, cBestPracticesCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case WhatsNewRow To UsedRowCount
+            Set sectionDataRowStart = WhatsNewRow
+            Set sectionDataRowEnd = UsedRowCount
             Set tmpControl = findNamedContentControl(wdDoc, cWhatsNewCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
