@@ -224,36 +224,38 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
     Dim tmpControl As ContentControl
     Select Case excelRow
         Case sketchingRow To PartRow
-            Set sectionDataRowStart = sketchingRow
-            Set sectionDataRowEnd = PartRow
+            sectionDataRowStart = sketchingRow
+            sectionDataRowEnd = PartRow
             Set tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case PartRow To AssemblyRow
-            Set sectionDataRowStart = PartRow
-            Set sectionDataRowEnd = AssemblyRow
+            sectionDataRowStart = PartRow
+            sectionDataRowEnd = AssemblyRow
             Set tmpControl = findNamedContentControl(wdDoc, cAdvancedPartsCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case AssemblyRow To DetailingRow
-            Set sectionDataRowStart = AssemblyRow
-            Set sectionDataRowEnd = DetailingRow
+            sectionDataRowStart = AssemblyRow
+            sectionDataRowEnd = DetailingRow
             Set tmpControl = findNamedContentControl(wdDoc, cAssemblyCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case DetailingRow To PresentationRow
-            Set sectionDataRowStart = DetailingRow
-            Set sectionDataRowEnd = PresentationRow
+            sectionDataRowStart = DetailingRow
+            sectionDataRowEnd = PresentationRow
             Set tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case PresentationRow To DataManagementRow
-            Set sectionDataRowStart = PresentationRow
-            Set sectionDataRowEnd = DataManagementRow
+            sectionDataRowStart = PresentationRow
+            sectionDataRowEnd = DataManagementRow
             Set tmpControl = findNamedContentControl(wdDoc, cPresentationsCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case DataManagementRow To OtherRow
+            sectionDataRowStart = DataManagementRow
+            sectionDataRowEnd = OtherRow
             Set tmpControl = findNamedContentControl(wdDoc, cDataManagementCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
