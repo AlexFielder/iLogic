@@ -260,32 +260,32 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case OtherRow To InventorModulesRow
-            Set sectionDataRowStart = OtherRow
-            Set sectionDataRowEnd = InventorModulesRow
+            sectionDataRowStart = OtherRow
+            sectionDataRowEnd = InventorModulesRow
             Set tmpControl = findNamedContentControl(wdDoc, cOtherCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case InventorModulesRow To OthersRow
-            Set sectionDataRowStart = InventorModulesRow
-            Set sectionDataRowEnd = OthersRow
+            sectionDataRowStart = InventorModulesRow
+            sectionDataRowEnd = OthersRow
             Set tmpControl = findNamedContentControl(wdDoc, cInventorModulesCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case OthersRow To BestPracticesRow
-            Set sectionDataRowStart = OthersRow
-            Set sectionDataRowEnd = BestPracticesRow
+            sectionDataRowStart = OthersRow
+            sectionDataRowEnd = BestPracticesRow
             Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case BestPracticesRow To WhatsNewRow
-            Set sectionDataRowStart = BestPracticesRow
-            Set sectionDataRowEnd = WhatsNewRow
+            sectionDataRowStart = BestPracticesRow
+            sectionDataRowEnd = WhatsNewRow
             Set tmpControl = findNamedContentControl(wdDoc, cBestPracticesCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case WhatsNewRow To UsedRowCount
-            Set sectionDataRowStart = WhatsNewRow
-            Set sectionDataRowEnd = UsedRowCount
+            sectionDataRowStart = WhatsNewRow
+            sectionDataRowEnd = UsedRowCount
             Set tmpControl = findNamedContentControl(wdDoc, cWhatsNewCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
