@@ -125,7 +125,7 @@ Sub Export_Table_Data_Word()
                 
                 Set wdTable = tmpTable(wdDoc, i, r.Rows.Count, sectionDataRowStart, sectionDataRowEnd)
                 Set SumRange = ws.Cells(sectionDataRowStart, 9) ' column I
-                SumRange.Value = Excel.WorksheetFunction.Sum(ws.Range(sectionDataRowStart, sectionDataRowEnd))
+                SumRange.Formula = "=SUM(" & Range(Cells(sectionDataRowStart, 9), Cells(sectionDataRowEnd, 9)).Address(False, False) & ")" '.Value = Excel.WorksheetFunction.Sum(ws.Range(sectionDataRowStart, sectionDataRowEnd))
                 If lastTableHeader = "" Then
                     lastTableHeader = wdTable.Cell(1, 1).Range.Text
                 ElseIf Not lastTableHeader = wdTable.Cell(1, 1).Range.Text Then
