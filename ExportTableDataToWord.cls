@@ -135,7 +135,7 @@ Sub Export_Table_Data_Word()
                     lastTableHeader = wdTable.Cell(1, 1).Range.Text
                 Else
                     wordTableDataRowStart = wordTableDataRowStart + 1
-                    wdTable.Rows.Add (wdTable.Rows(wdTable.Rows.Count - 1))
+                    wdTable.Rows.Add (wdTable.Rows(wdTable.Rows.Count)) ' - 1))
                 End If
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
                 Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
@@ -150,6 +150,30 @@ Sub Export_Table_Data_Word()
                 TotalDaysDbl = WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0) * 0.5
                 Dim TotalDaysStr As String
                 TotalDaysStr = CStr(TotalDaysDbl) ' Round(SumRange.Value2, 1) 'ws.Cells.Formula
+                
+                If Not topicCell.Shading.BackgroundPatternColor = wdColorAutomatic Then
+                    With topicCell
+                        .Shading.BackgroundPatternColor = wdColorAutomatic
+                        With .Range
+                            With .Font
+                                .TextColor = wdColorAutomatic
+                                .Bold = False
+                            End With
+                        End With
+                    End With
+                End If
+                
+                If Not descrCell.Shading.BackgroundPatternColor = wdColorAutomatic Then
+                    With descrCell
+                        .Shading.BackgroundPatternColor = wdColorAutomatic
+                        With .Range
+                            With .Font
+                                .TextColor = wdColorAutomatic
+                                .Bold = False
+                            End With
+                        End With
+                    End With
+                End If
                 
                 topicCell.Range.Text = topicStr  'insert value from Excel column A
                 descrCell.Range.Text = descrStr 'insert value from Excel column B
