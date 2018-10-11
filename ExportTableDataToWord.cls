@@ -48,12 +48,14 @@ Public BestPracticesRow As Integer
 Public WhatsNewRow As Integer
 
 Public weCreatedWord As Boolean
-
+Public weAreDebugging As Boolean
 
 
 
 Sub Export_Table_Data_Word()
     weCreatedWord = False
+    'change this when we're done with development
+    weAreDebugging = True
     'Name of the existing Word document
     Const stWordDocument As String = "Template.dotx" 'this needs to exist in the folder this Excel file is in!
     
@@ -167,10 +169,12 @@ Sub Export_Table_Data_Word()
     'Save and close the Word doc.
     With wdDoc
         .SaveAs (wbBook.Path & "\Training Survey.docx")
-        .Close
+        If Not weAreDebugging Then
+            .Close
+        End If
     End With
     
-    If weCreatedWord Then
+    If weCreatedWord And Not weAreDebugging Then
         wdApp.Quit
     End If
     
