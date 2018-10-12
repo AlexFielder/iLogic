@@ -1,0 +1,54 @@
+﻿AddReference "System.Drawing"
+
+Imports System.Windows.Forms
+Imports System.Drawing
+
+Public Sub main()
+	CreateDockableWindow(ThisApplication)
+End Sub
+
+
+Public Shared Function CreateChildDialog() As Long
+    Dim dc As Form = New Form()
+    dc.Text = "Child Dialog"
+    dc.HelpButton = CSharpImpl.__Assign(dc.MinimizeBox, CSharpImpl.__Assign(dc.MaximizeBox, False))
+    dc.ShowIcon = CSharpImpl.__Assign(dc.ShowInTaskbar, False)
+    dc.TopMost = True
+    dc.Height = 100
+    dc.Width = 300
+    dc.MinimumSize = New Size(dc.Width, dc.Height)
+    Dim margin As Integer = 5
+    Dim size As Size = dc.ClientSize
+    Dim tb As System.Windows.Forms.TextBox = New System.Windows.Forms.TextBox()
+    tb.TextAlign = HorizontalAlignment.Right
+    tb.Height = 20
+    tb.Width = size.Width - 2 * margin
+    tb.Location = New System.Drawing.Point(margin, margin)
+    tb.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
+    dc.Controls.Add(tb)
+    dc.Show()
+    Return dc.Handle.ToInt64()
+End Function
+
+Public Shared Sub CreateDockableWindow(ByVal app As Inventor.Application)
+    Dim uiMan As UserInterfaceManager = app.UserInterfaceManager
+	If Not uiMan.DockableWindows("INAW_UIMiscs_DockableWindow1") Is Nothing Then
+		uiMan.DockableWindows("INAW_UIMiscs_DockableWindow1").Delete
+	End If
+    Dim docableWin As DockableWindow = uiMan.DockableWindows.Add(Guid.NewGuid().ToString(), "INAW_UIMiscs_DockableWindow1", "INAW - DockableWindow #1")
+    docableWin.AddChild(CreateChildDialog())
+    docableWin.DisabledDockingStates = DockingStateEnum.kDockLeft Or DockingStateEnum.kDockTop
+    docableWin.DockingState = DockingStateEnum.kDockRight
+    docableWin.ShowVisibilityCheckBox = True
+    docableWin.ShowTitleBar = True
+    docableWin.SetMinimumSize(100, 100)
+    docableWin.Visible = True
+End Sub
+
+Private Class CSharpImpl
+    <Obsolete("Please refactor calling code to use normal Visual Basic assignment")>
+    Shared Function __Assign(Of T)(ByRef target As T, value As T) As T
+        target = value
+        Return value
+    End Function
+End Class
