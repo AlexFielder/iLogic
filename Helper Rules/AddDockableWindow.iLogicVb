@@ -2,12 +2,19 @@
 
 Imports System.Windows.Forms
 Imports System.Drawing
-
+''' <summary>
+''' based on the code from here: 
+''' http://spiderinnet2.typepad.com/blog/2013/09/inventor-net-ui-miscellaneous-dockablewindow.html
+''' </summary>
 Public Sub main()
 	CreateDockableWindow(ThisApplication)
 End Sub
 
-
+''' <summary>
+''' creates a new System.Windows.Forms.Form object and returns its handle so it can
+''' be used in a newly created DockableWindow object
+''' </summary>
+''' <returns></returns>
 Public Shared Function CreateChildDialog() As Long
     Dim dc As Form = New Form()
     dc.Text = "Child Dialog"
@@ -32,6 +39,10 @@ Public Shared Function CreateChildDialog() As Long
     Return dc.Handle.ToInt64()
 End Function
 
+''' <summary>
+''' Creates a new DockableWindow object
+''' </summary>
+''' <param name="app"></param>
 Public Shared Sub CreateDockableWindow(ByVal app As Inventor.Application)
     Dim uiMan As UserInterfaceManager = app.UserInterfaceManager
 	If Not uiMan.DockableWindows("INAW_UIMiscs_DockableWindow1") Is Nothing Then
