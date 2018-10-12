@@ -13,6 +13,8 @@ Public Shared Function CreateChildDialog() As Long
     dc.Text = "Child Dialog"
     dc.HelpButton = CSharpImpl.__Assign(dc.MinimizeBox, CSharpImpl.__Assign(dc.MaximizeBox, False))
     dc.ShowIcon = CSharpImpl.__Assign(dc.ShowInTaskbar, False)
+	dc.ControlBox = False
+	dc.FormBorderStyle = 0
     dc.TopMost = True
     dc.Height = 100
     dc.Width = 300
