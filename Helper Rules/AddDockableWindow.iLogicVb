@@ -19,7 +19,7 @@ Public Shared Function CreateChildDialog() As Long
     dc.Height = 100
     dc.Width = 300
     dc.MinimumSize = New Size(dc.Width, dc.Height)
-    Dim margin As Integer = 5
+    Dim margin As Integer = 15
     Dim size As Size = dc.ClientSize
     Dim tb As System.Windows.Forms.TextBox = New System.Windows.Forms.TextBox()
     tb.TextAlign = HorizontalAlignment.Right
