@@ -348,7 +348,7 @@ Const sMsoName As String = "DesignMode"
 End Sub
 
 Sub GetSectionRows(ByVal usedRange As Range, ByRef sketchingRow As Integer, ByRef PartRow As Integer, ByRef AssemblyRow As Integer, ByRef DetailingRow As Integer, ByRef PresentationRow As Integer, _
-                        ByRef DataManagementRow As Integer, ByRef OtherRow As Integer, ByRef InventorModulesRow As Integer, ByRef OthersRow As Integer, ByRef BestPracticesRow As Integer, ByRef WhatsNewRow As Integer)
+                        ByRef DataManagementRow As Integer, ByRef iLogicRow As Integer, ByRef InventorModulesRow As Integer, ByRef OthersRow As Integer, ByRef BestPracticesRow As Integer, ByRef WhatsNewRow As Integer)
 
 Dim searchRangeStart As Range: Set searchRangeStart = usedRange.Cells(1, 1)
 Dim searchRangeEnd As Range: Set searchRangeEnd = usedRange.Cells(usedRange.Rows.Count, 1)
@@ -356,16 +356,16 @@ Dim searchRangeEnd As Range: Set searchRangeEnd = usedRange.Cells(usedRange.Rows
 Dim sectionSearchRange As Range: Set sectionSearchRange = usedRange.Range(searchRangeStart, searchRangeEnd)
 
 'section rows:
-sketchingRow = searchForSectionRange(sectionSearchRange, cSketchingSectionValue)
+'sketchingRow = searchForSectionRange(sectionSearchRange, cSketchingSectionValue)
 PartRow = searchForSectionRange(sectionSearchRange, cPartModellingSectionValue)
 AssemblyRow = searchForSectionRange(sectionSearchRange, cAssemblyModellingSectionValue)
 DetailingRow = searchForSectionRange(sectionSearchRange, cDetailingSectionValue)
-PresentationRow = searchForSectionRange(sectionSearchRange, cPresentationSectionValue)
+'PresentationRow = searchForSectionRange(sectionSearchRange, cPresentationSectionValue)
 DataManagementRow = searchForSectionRange(sectionSearchRange, cDataManagementSectionValue)
-OtherRow = searchForSectionRange(sectionSearchRange, cOtherSectionValue)
+iLogicRow = searchForSectionRange(sectionSearchRange, cOtherSectionValue)
 InventorModulesRow = searchForSectionRange(sectionSearchRange, cInventorModulesSectionValue)
 OthersRow = searchForSectionRange(sectionSearchRange, cOtherFeaturesSectionValue)
-BestPracticesRow = searchForSectionRange(sectionSearchRange, cBestPracticesSectionValue)
+'BestPracticesRow = searchForSectionRange(sectionSearchRange, cBestPracticesSectionValue)
 WhatsNewRow = searchForSectionRange(sectionSearchRange, cWhatsNewSectionValue)
 
 
