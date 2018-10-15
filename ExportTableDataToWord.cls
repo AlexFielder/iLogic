@@ -38,10 +38,18 @@ Public InventorModulesRow As Integer
 Public OthersRow As Integer
 Public WhatsNewRow As Integer
 
+'Boolean Values
 Public weCreatedWord As Boolean
 Public weAreDebugging As Boolean
-
-
+'Booleans for section deletion
+Public partsRequired As Boolean
+Public assembliesRequired As Boolean
+Public detailingRequired As Boolean
+Public dataManagementRequired As Boolean
+Public iLogicRequired As Boolean
+Public inventorModulesRequired As Boolean
+Public otherFeaturesRequired As Boolean
+Public whatsNewRequired As Boolean
 
 Sub Export_Table_Data_Word()
     weCreatedWord = False
@@ -101,22 +109,29 @@ Sub Export_Table_Data_Word()
     wordTableDataRowStart = 2
     Dim tmpCControl As ContentControl
     Dim lastTableHeader As String
+    Dim ccList As Collection
+    Set ccList = New Collection
     For i = 1 To r.Rows.Count
         If Not r.Cells(i, 2).Value = "" Then
             Dim tmpRange As Range
             Set tmpRange = r.Range(r.Cells(i, 1), r.Cells(i, r.Columns.Count))
             Dim foundrange As Range
             Set foundrange = tmpRange.Find(What:="ExportYes", LookIn:=xlValues, LookAt:=XlLookAt.xlWhole, MatchCase:=False, MatchByte:=False)
+            
+            Dim wdTable As Word.Table
+            Dim sectionDataRowStart As Integer
+            Dim sectionDataRowEnd As Integer
+            Dim ThisControl As ContentControl
+            Set wdTable = tmpTable(wdDoc, i, r.Rows.Count, sectionDataRowStart, sectionDataRowEnd, ThisControl)
+            ccList.Add (ThisControl)
             If Not foundrange Is Nothing Then
-                Dim wdTable As Word.Table
+                Dim headerCell As Word.Cell
                 Dim topicCell As Word.Cell
                 Dim descrCell As Word.Cell
                 Dim TotalDaysCell As Word.Cell
-                Dim sectionDataRowStart As Integer
-                Dim sectionDataRowEnd As Integer
-                Dim SumRange As Range
                 
-                Set wdTable = tmpTable(wdDoc, i, r.Rows.Count, sectionDataRowStart, sectionDataRowEnd)
+                Dim SumRange As Range
+                Call SetSectionDefaultRequirements(ThisControl)
                 Set SumRange = ws.Cells(sectionDataRowStart, 9) ' column I
                 SumRange.Formula = "=SUM(" & Range(Cells(sectionDataRowStart + 2, 9), Cells(sectionDataRowEnd - 1, 9)).Address(False, False) & ")/60/6.5" '.Value = Excel.WorksheetFunction.Sum(ws.Range(sectionDataRowStart, sectionDataRowEnd))
                 Debug.Print "SumRange.Value: " & SumRange.Value
@@ -130,6 +145,7 @@ Sub Export_Table_Data_Word()
                     wdTable.Rows.Add (wdTable.Rows(wdTable.Rows.Count)) ' - 1))
                 End If
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
+                Set headerCell = wdTable.Cell(1, 1)
                 Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
                 Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
                 Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 2)
@@ -142,10 +158,11 @@ Sub Export_Table_Data_Word()
                 TotalDaysDbl = WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0.25) '* 0.5
                 Debug.Print "Totaldays rounded using .Text function: " & WorksheetFunction.Text(SumRange.Value, "# ?/?")
                 Debug.Print "Totaldays rounded: " & CStr(TotalDaysDbl)
+                'Debug.Print dTime & vbTab & Format(Trunc(dTime), "hh:mm")
                 'returns a message for EVERY row
                 'MsgBox ("Total Days for " + lastTableHeader + " : " + CStr(TotalDaysDbl))
                 Dim TotalDaysStr As String
-                TotalDaysStr = CStr(TotalDaysDbl) ' Round(SumRange.Value2, 1) 'ws.Cells.Formula
+                TotalDaysStr = CStr(SumRange.Value) 'TotalDaysDbl) ' Round(SumRange.Value2, 1) 'ws.Cells.Formula
                 
                 If Not topicCell.Shading.BackgroundPatternColor = wdColorAutomatic Then
                     With topicCell
@@ -183,6 +200,8 @@ Sub Export_Table_Data_Word()
     
     lnCountItems = 1
     
+    DeleteUnusedSections (ccList)
+    
     'may need this in case changing the LockContentControl change doesn't work!
     Call EnterExitDesignMode(wdApp, False)
     
@@ -209,6 +228,60 @@ Sub Export_Table_Data_Word()
     MsgBox "The " & stWordDocument & "'s table has succcessfully " & vbNewLine & _
            "been updated!", vbInformation
 
+End Sub
+
+Public Sub DeleteUnusedSection(ByVal contentControlList As Collection)
+
+For i = 1 To contentControlList.Length
+    Dim cControl As ContentControl
+    Set cControl = contentControlList(i)
+    Select Case cControl.Title
+        Case cBasicPartsCCName
+            Call DeleteUnusedCControlByName(cControl, partsRequired)
+        Case cAssemblyCCName
+            Call DeleteUnusedCControlByName(cControl, assembliesRequired)
+        Case cDetailingCCName
+            Call DeleteUnusedCControlByName(cControl, detailingRequired)
+        Case cDataManagementCCName
+            Call DeleteUnusedCControlByName(cControl, dataManagementRequired)
+        Case ciLogicrCCName
+            Call DeleteUnusedCControlByName(cControl, iLogicRequired)
+        Case cInventorModulesCCName
+            Call DeleteUnusedCControlByName(cControl, inventorModulesRequired)
+        Case cOtherFeaturesCCName
+            Call DeleteUnusedCControlByName(cControl, otherFeaturesRequired)
+        Case cWhatsNewCCName
+            Call DeleteUnusedCControlByName(cControl, whatsNewRequired)
+        Case Else
+    End Select
+End Sub
+
+Public Sub DeleteUnusedCControlByName(ByVal cControlsection As ContentControl, ByVal DeleteSection As Boolean)
+    If DeleteSection = True Then
+        cControlsection.Delete
+    End If
+End Sub
+
+Public Sub SetSectionDefaultRequirements(ByVal cControlsection As ContentControl)
+    Select Case cControlsection.Title
+        Case cBasicPartsCCName
+            partsRequired = True
+        Case cAssemblyCCName
+            assembliesRequired = True
+        Case cDetailingCCName
+            detailingRequired = True
+        Case cDataManagementCCName
+            dataManagementRequired = True
+        Case ciLogicrCCName
+            iLogicRequired = True
+        Case cInventorModulesCCName
+            inventorModulesRequired = True
+        Case cOtherFeaturesCCName
+            otherFeaturesRequired = True
+        Case cWhatsNewCCName
+            whatsNewRequired = True
+        Case Else
+    End Select
 End Sub
 
 Function Trunc(vTime As Date) As Date
@@ -263,56 +336,57 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
                     ByVal excelRow As Integer, _
                     ByVal UsedRowCount As Integer, _
                     ByRef sectionDataRowStart As Integer, _
-                    ByRef sectionDataRowEnd As Integer) As Word.Table
-    Dim tmpControl As ContentControl
+                    ByRef sectionDataRowEnd As Integer, _
+                    ByRef tmpControl As ContentControl) As Word.Table
+'    Dim tmpControl As ContentControl
     Select Case excelRow
         Case PartRow To AssemblyRow
             sectionDataRowStart = PartRow
             sectionDataRowEnd = AssemblyRow
-            Set tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
-            tmpControl.LockContentControl = False
+            tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
+'            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case AssemblyRow To DetailingRow
             sectionDataRowStart = AssemblyRow
             sectionDataRowEnd = DetailingRow
-            Set tmpControl = findNamedContentControl(wdDoc, cAssemblyCCName)
-            tmpControl.LockContentControl = False
+            tmpControl = findNamedContentControl(wdDoc, cAssemblyCCName)
+'            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case DetailingRow To DataManagementRow
             sectionDataRowStart = DetailingRow
             sectionDataRowEnd = DataManagementRow
-            Set tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
-            tmpControl.LockContentControl = False
+            tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
+'            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case DataManagementRow To iLogicRow
             sectionDataRowStart = DataManagementRow
             sectionDataRowEnd = iLogicRow
-            Set tmpControl = findNamedContentControl(wdDoc, cDataManagementCCName)
-            tmpControl.LockContentControl = False
+            tmpControl = findNamedContentControl(wdDoc, cDataManagementCCName)
+'            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case iLogicRow To InventorModulesRow
             sectionDataRowStart = iLogicRow
             sectionDataRowEnd = InventorModulesRow
-            Set tmpControl = findNamedContentControl(wdDoc, ciLogicrCCName)
-            tmpControl.LockContentControl = False
+            tmpControl = findNamedContentControl(wdDoc, ciLogicrCCName)
+'            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case InventorModulesRow To OthersRow
             sectionDataRowStart = InventorModulesRow
             sectionDataRowEnd = OthersRow
-            Set tmpControl = findNamedContentControl(wdDoc, cInventorModulesCCName)
-            tmpControl.LockContentControl = False
+            tmpControl = findNamedContentControl(wdDoc, cInventorModulesCCName)
+'            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case OthersRow To WhatsNewRow
             sectionDataRowStart = OthersRow
             sectionDataRowEnd = WhatsNewRow
-            Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
-            tmpControl.LockContentControl = False
+            tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
+'            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case WhatsNewRow To UsedRowCount
             sectionDataRowStart = WhatsNewRow
             sectionDataRowEnd = UsedRowCount
-            Set tmpControl = findNamedContentControl(wdDoc, cWhatsNewCCName)
-            tmpControl.LockContentControl = False
+            tmpControl = findNamedContentControl(wdDoc, cWhatsNewCCName)
+'            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case Else
             'do nothing
