@@ -9,42 +9,33 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Option Explicit
 'Constant values = don't change these unless the values in Excel are updated!
-'Const cSketchingSectionValue As String = "Sketching"
 Const cPartModellingSectionValue As String = "Part Modelling"
 Const cAssemblyModellingSectionValue As String = "Assembly Modelling"
 Const cDetailingSectionValue As String = "Detailing"
-'Const cPresentationSectionValue As String = "Presentation"
 Const cDataManagementSectionValue As String = "Data Management"
 Const cOtherSectionValue As String = "iLogic"
 Const cInventorModulesSectionValue As String = "Inventor Modules"
 Const cOtherFeaturesSectionValue As String = "Other Features"
-'Const cBestPracticesSectionValue As String = "Best Practices"
 Const cWhatsNewSectionValue As String = "Whats New"
 
 'Word Constant ContentControl name values:
 Const cBasicPartsCCName As String = "PartSubjects"
-'Const cAdvancedPartsCCName As String = "AdvancedParts"
 Const cAssemblyCCName As String = "AssemblySubjects"
 Const cDetailingCCName As String = "Detailing"
-'Const cPresentationsCCName As String = "PresentationSubjects"
 Const cDataManagementCCName As String = "DataManagementSubjects"
 Const ciLogicrCCName As String = "iLogicSubjects"
 Const cInventorModulesCCName As String = "InventorModules"
 Const cOtherFeaturesCCName As String = "OtherFeatures"
-'Const cBestPracticesCCName As String = "BestPractices"
 Const cWhatsNewCCName As String = "WhatsNew"
 
 'Excel rows - we populate these later:
-'Public sketchingRow As Integer
 Public PartRow As Integer
 Public AssemblyRow As Integer
 Public DetailingRow As Integer
-'Public PresentationRow As Integer
 Public DataManagementRow As Integer
 Public iLogicRow As Integer
 Public InventorModulesRow As Integer
 Public OthersRow As Integer
-'Public BestPracticesRow As Integer
 Public WhatsNewRow As Integer
 
 Public weCreatedWord As Boolean
@@ -253,12 +244,6 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
                     ByRef sectionDataRowEnd As Integer) As Word.Table
     Dim tmpControl As ContentControl
     Select Case excelRow
-'        Case sketchingRow To PartRow
-'            sectionDataRowStart = sketchingRow
-'            sectionDataRowEnd = PartRow
-'            Set tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
-'            tmpControl.LockContentControl = False
-'            Set tmpTable = tmpControl.Range.Tables(1)
         Case PartRow To AssemblyRow
             sectionDataRowStart = PartRow
             sectionDataRowEnd = AssemblyRow
@@ -271,12 +256,6 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             Set tmpControl = findNamedContentControl(wdDoc, cAssemblyCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
-'        Case DetailingRow To PresentationRow
-'            sectionDataRowStart = DetailingRow
-'            sectionDataRowEnd = PresentationRow
-'            Set tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
-'            tmpControl.LockContentControl = False
-'            Set tmpTable = tmpControl.Range.Tables(1)
         Case DetailingRow To DataManagementRow
             sectionDataRowStart = PresentationRow
             sectionDataRowEnd = DataManagementRow
@@ -301,12 +280,6 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             Set tmpControl = findNamedContentControl(wdDoc, cInventorModulesCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
-'        Case OthersRow To BestPracticesRow
-'            sectionDataRowStart = OthersRow
-'            sectionDataRowEnd = BestPracticesRow
-'            Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
-'            tmpControl.LockContentControl = False
-'            Set tmpTable = tmpControl.Range.Tables(1)
         Case OthersRow To WhatsNewRow
             sectionDataRowStart = BestPracticesRow
             sectionDataRowEnd = WhatsNewRow
@@ -356,16 +329,13 @@ Dim searchRangeEnd As Range: Set searchRangeEnd = usedRange.Cells(usedRange.Rows
 Dim sectionSearchRange As Range: Set sectionSearchRange = usedRange.Range(searchRangeStart, searchRangeEnd)
 
 'section rows:
-'sketchingRow = searchForSectionRange(sectionSearchRange, cSketchingSectionValue)
 PartRow = searchForSectionRange(sectionSearchRange, cPartModellingSectionValue)
 AssemblyRow = searchForSectionRange(sectionSearchRange, cAssemblyModellingSectionValue)
 DetailingRow = searchForSectionRange(sectionSearchRange, cDetailingSectionValue)
-'PresentationRow = searchForSectionRange(sectionSearchRange, cPresentationSectionValue)
 DataManagementRow = searchForSectionRange(sectionSearchRange, cDataManagementSectionValue)
 iLogicRow = searchForSectionRange(sectionSearchRange, cOtherSectionValue)
 InventorModulesRow = searchForSectionRange(sectionSearchRange, cInventorModulesSectionValue)
 OthersRow = searchForSectionRange(sectionSearchRange, cOtherFeaturesSectionValue)
-'BestPracticesRow = searchForSectionRange(sectionSearchRange, cBestPracticesSectionValue)
 WhatsNewRow = searchForSectionRange(sectionSearchRange, cWhatsNewSectionValue)
 
 
