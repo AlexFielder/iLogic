@@ -35,16 +35,16 @@ Const cOtherFeaturesCCName As String = "OtherFeatures"
 Const cWhatsNewCCName As String = "WhatsNew"
 
 'Excel rows - we populate these later:
-Public sketchingRow As Integer
+'Public sketchingRow As Integer
 Public PartRow As Integer
 Public AssemblyRow As Integer
 Public DetailingRow As Integer
-Public PresentationRow As Integer
+'Public PresentationRow As Integer
 Public DataManagementRow As Integer
-Public OtherRow As Integer
+Public iLogicRow As Integer
 Public InventorModulesRow As Integer
 Public OthersRow As Integer
-Public BestPracticesRow As Integer
+'Public BestPracticesRow As Integer
 Public WhatsNewRow As Integer
 
 Public weCreatedWord As Boolean
@@ -87,7 +87,7 @@ Sub Export_Table_Data_Word()
     'may need this in case changing the LockContentControl change doesn't work!
     Call EnterExitDesignMode(wdApp, True)
     
-    Call GetSectionRows(ws.usedRange, sketchingRow, PartRow, AssemblyRow, DetailingRow, PresentationRow, DataManagementRow, OtherRow, InventorModulesRow, OthersRow, BestPracticesRow, WhatsNewRow)
+    Call GetSectionRows(ws.usedRange, PartRow, AssemblyRow, DetailingRow, DataManagementRow, iLogicRow, InventorModulesRow, OthersRow, WhatsNewRow)
     'for debugging purposes:
 '    MsgBox ("sketching row: " & CStr(sketchingRow) & vbCrLf & "parts row: " & CStr(PartRow) & vbCrLf & _
 '            "Assembly row: " & CStr(AssemblyRow) & vbCrLf & "Detailing Row: " & CStr(DetailingRow) & vbCrLf & _
@@ -347,8 +347,8 @@ Const sMsoName As String = "DesignMode"
     End If
 End Sub
 
-Sub GetSectionRows(ByVal usedRange As Range, ByRef sketchingRow As Integer, ByRef PartRow As Integer, ByRef AssemblyRow As Integer, ByRef DetailingRow As Integer, ByRef PresentationRow As Integer, _
-                        ByRef DataManagementRow As Integer, ByRef iLogicRow As Integer, ByRef InventorModulesRow As Integer, ByRef OthersRow As Integer, ByRef BestPracticesRow As Integer, ByRef WhatsNewRow As Integer)
+Sub GetSectionRows(ByVal usedRange As Range, ByRef PartRow As Integer, ByRef AssemblyRow As Integer, ByRef DetailingRow As Integer, ByRef DataManagementRow As Integer, _
+                    ByRef iLogicRow As Integer, ByRef InventorModulesRow As Integer, ByRef OthersRow As Integer, ByRef WhatsNewRow As Integer)
 
 Dim searchRangeStart As Range: Set searchRangeStart = usedRange.Cells(1, 1)
 Dim searchRangeEnd As Range: Set searchRangeEnd = usedRange.Cells(usedRange.Rows.Count, 1)
