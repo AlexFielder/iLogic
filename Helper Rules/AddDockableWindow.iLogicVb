@@ -17,7 +17,10 @@ End Sub
 ''' </summary>
 ''' <returns>the Long of the new Windows form</returns>
  Public Function CreateChildDialog() As Long
+	Dim textSize As Size = Nothing
     Dim dc As Form = New Form()
+	dc.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
+	dc.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
     dc.Text = "Child Dialog"
     dc.HelpButton = CSharpImpl.__Assign(dc.MinimizeBox, CSharpImpl.__Assign(dc.MaximizeBox, False))
     dc.ShowIcon = CSharpImpl.__Assign(dc.ShowInTaskbar, False)
@@ -36,8 +39,60 @@ End Sub
     tb.Location = New System.Drawing.Point(margin, margin)
     tb.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
     dc.Controls.Add(tb)
+	'Designation
+	Dim lblDesignation As Label = New Label
+	lblDesignation.Text = "Designation:"
+	lblDesignation.Location = New System.Drawing.Point(margin, margin + 30 + 2.5)
+	lblDesignation.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
+	lblDesignation.AutoSize = True
+	lblDesignation.Size = New System.Drawing.Size(66, 13)
+'	Logger.Debug(lblDesignation.Width)
+	dc.Controls.Add(lblDesignation)
+	Dim cbBoxDesignation As ComboBox = New ComboBox
+	cbBoxDesignation.Text = "Designation"
+	cbBoxDesignation.Location = New System.Drawing.Point(((size.Width * 0.25)) + margin, margin + 30)
+	cbBoxDesignation.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
+	cbBoxDesignation.Width = (size.Width * 0.75) - 2 * margin
+	dc.Controls.Add(cbBoxDesignation)
+	'Length
+	Dim lblLength As Label = New Label
+	lblLength.Text = "Length:"
+	lblLength.Location = New System.Drawing.Point(margin, lblDesignation.Location.Y + 30)
+	lblLength.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
+	lblLength.AutoSize = True
+	lblLength.Size = New System.Drawing.Size(66, 13)
+'	Logger.Debug(lblLength.Width)
+	dc.Controls.Add(lblLength)
+	Dim cbBoxLength As ComboBox = New ComboBox
+	cbBoxLength.Text = "Length"
+	cbBoxLength.Location = New System.Drawing.Point(((size.Width * 0.25)) + margin, cbBoxDesignation.Location.Y + 30)
+	cbBoxLength.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
+	cbBoxLength.Width = (size.Width * 0.75) - 2 * margin
+	dc.Controls.Add(cbBoxLength)
+	'Diameter
+	Dim lblDiameter As Label = New Label
+	lblDiameter.Text = "Diameter:"
+	lblDiameter.Location = New System.Drawing.Point(margin, lblLength.Location.Y + 30)
+	lblDiameter.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
+	lblDiameter.AutoSize = True
+	lblDiameter.Size = New System.Drawing.Size(43, 13)
+'	Logger.Debug(lblLength.Width)
+	dc.Controls.Add(lblDiameter)
+	Dim cbBoxDiameter As ComboBox = New ComboBox
+	cbBoxDiameter.Text = "Diameter"
+	cbBoxDiameter.Location = New System.Drawing.Point(((size.Width * 0.25)) + margin, cbBoxLength.Location.Y + 30)
+	cbBoxDiameter.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
+	cbBoxDiameter.Width = (size.Width * 0.75) - 2 * margin
+	dc.Controls.Add(cbBoxDiameter)
+	
+	'display form
     dc.Show()
     Return dc.Handle.ToInt64()
+End Function
+
+Function measureText(stringtoMeasure As String) As Size
+	Dim arialBold = New Font("Arial", 6.0F)
+	Dim textSize As Size = TextRenderer.MeasureText(stringtoMeasure, arialBold)
 End Function
 
 ''' <summary>
@@ -52,7 +107,7 @@ End Function
 											Where win.Internalname.ToUpper() = dockableWinInternalName.ToUpper()
 											Select win).FirstOrDefault()
 	If Not dockableWin Is Nothing Then
-		Break
+'		Break
 		dockableWin.Delete
 	Else
 		Logger.Debug("no existing DockableWindow found")
@@ -60,7 +115,7 @@ End Function
     dockableWin = uiMan.DockableWindows.Add(Guid.NewGuid().ToString(), dockableWinInternalName, "INAW - DockableWindow #1")
     dockableWin.AddChild(CreateChildDialog())
     dockableWin.DisabledDockingStates = DockingStateEnum.kDockLeft Or DockingStateEnum.kDockTop
-    dockableWin.DockingState = DockingStateEnum.kDockRight
+    dockableWin.DockingState = DockingStateEnum.kDockLastKnown
     dockableWin.ShowVisibilityCheckBox = True
     dockableWin.ShowTitleBar = True
     dockableWin.SetMinimumSize(100, 100)
