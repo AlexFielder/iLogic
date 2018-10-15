@@ -9,29 +9,29 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Option Explicit
 'Constant values = don't change these unless the values in Excel are updated!
-Const cSketchingSectionValue As String = "Sketching"
+'Const cSketchingSectionValue As String = "Sketching"
 Const cPartModellingSectionValue As String = "Part Modelling"
 Const cAssemblyModellingSectionValue As String = "Assembly Modelling"
 Const cDetailingSectionValue As String = "Detailing"
-Const cPresentationSectionValue As String = "Presentation"
+'Const cPresentationSectionValue As String = "Presentation"
 Const cDataManagementSectionValue As String = "Data Management"
-Const cOtherSectionValue As String = "Other"
+Const cOtherSectionValue As String = "iLogic"
 Const cInventorModulesSectionValue As String = "Inventor Modules"
 Const cOtherFeaturesSectionValue As String = "Other Features"
-Const cBestPracticesSectionValue As String = "Best Practices"
+'Const cBestPracticesSectionValue As String = "Best Practices"
 Const cWhatsNewSectionValue As String = "Whats New"
 
 'Word Constant ContentControl name values:
-Const cBasicPartsCCName As String = "BasicParts"
-Const cAdvancedPartsCCName As String = "AdvancedParts"
+Const cBasicPartsCCName As String = "PartSubjects"
+'Const cAdvancedPartsCCName As String = "AdvancedParts"
 Const cAssemblyCCName As String = "AssemblySubjects"
 Const cDetailingCCName As String = "Detailing"
-Const cPresentationsCCName As String = "PresentationSubjects"
+'Const cPresentationsCCName As String = "PresentationSubjects"
 Const cDataManagementCCName As String = "DataManagementSubjects"
-Const cOtherCCName As String = "OtherSubjects"
+Const cOtherCCName As String = "iLogicSubjects"
 Const cInventorModulesCCName As String = "InventorModules"
 Const cOtherFeaturesCCName As String = "OtherFeatures"
-Const cBestPracticesCCName As String = "BestPractices"
+'Const cBestPracticesCCName As String = "BestPractices"
 Const cWhatsNewCCName As String = "WhatsNew"
 
 'Excel rows - we populate these later:
