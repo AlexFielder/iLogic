@@ -124,7 +124,7 @@ Sub Export_Table_Data_Word()
             Dim thisControl As ContentControl
             Set wdTable = tmpTable(wdDoc, i, r.Rows.Count, sectionDataRowStart, sectionDataRowEnd, thisControl)
             If Not thisControl Is Nothing Then
-                ccList.Add (thisControl)
+                ccList.Add thisControl
             End If
             If Not foundrange Is Nothing Then
                 Dim headerCell As Word.Cell
@@ -234,28 +234,29 @@ End Sub
 
 Public Sub DeleteUnusedSections(ByVal contentControlList As Collection)
 
-For i = 1 To contentControlList.Length
-    Dim cControl As ContentControl
-    Set cControl = contentControlList(i)
-    Select Case cControl.Title
-        Case cBasicPartsCCName
-            Call DeleteUnusedCControlByName(cControl, partsRequired)
-        Case cAssemblyCCName
-            Call DeleteUnusedCControlByName(cControl, assembliesRequired)
-        Case cDetailingCCName
-            Call DeleteUnusedCControlByName(cControl, detailingRequired)
-        Case cDataManagementCCName
-            Call DeleteUnusedCControlByName(cControl, dataManagementRequired)
-        Case ciLogicrCCName
-            Call DeleteUnusedCControlByName(cControl, iLogicRequired)
-        Case cInventorModulesCCName
-            Call DeleteUnusedCControlByName(cControl, inventorModulesRequired)
-        Case cOtherFeaturesCCName
-            Call DeleteUnusedCControlByName(cControl, otherFeaturesRequired)
-        Case cWhatsNewCCName
-            Call DeleteUnusedCControlByName(cControl, whatsNewRequired)
-        Case Else
-    End Select
+    For i = 1 To contentControlList.Count
+        Dim cControl As ContentControl
+        Set cControl = contentControlList(i)
+        Select Case cControl.Title
+            Case cBasicPartsCCName
+                Call DeleteUnusedCControlByName(cControl, partsRequired)
+            Case cAssemblyCCName
+                Call DeleteUnusedCControlByName(cControl, assembliesRequired)
+            Case cDetailingCCName
+                Call DeleteUnusedCControlByName(cControl, detailingRequired)
+            Case cDataManagementCCName
+                Call DeleteUnusedCControlByName(cControl, dataManagementRequired)
+            Case ciLogicrCCName
+                Call DeleteUnusedCControlByName(cControl, iLogicRequired)
+            Case cInventorModulesCCName
+                Call DeleteUnusedCControlByName(cControl, inventorModulesRequired)
+            Case cOtherFeaturesCCName
+                Call DeleteUnusedCControlByName(cControl, otherFeaturesRequired)
+            Case cWhatsNewCCName
+                Call DeleteUnusedCControlByName(cControl, whatsNewRequired)
+            Case Else
+        End Select
+    Next
 End Sub
 
 Public Sub DeleteUnusedCControlByName(ByVal cControlsection As ContentControl, ByVal DeleteSection As Boolean)
@@ -394,7 +395,7 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             'do nothing
     End Select
     If Not tmpControl Is Nothing Then
-        thisControl = tmpControl
+       Set thisControl = tmpControl
     End If
 End Function
 
