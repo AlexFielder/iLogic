@@ -46,7 +46,6 @@ End Sub
 	lblDesignation.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
 	lblDesignation.AutoSize = True
 	lblDesignation.Size = New System.Drawing.Size(66, 13)
-'	Logger.Debug(lblDesignation.Width)
 	dc.Controls.Add(lblDesignation)
 	Dim cbBoxDesignation As ComboBox = New ComboBox
 	cbBoxDesignation.Text = "Designation"
@@ -61,7 +60,6 @@ End Sub
 	lblLength.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
 	lblLength.AutoSize = True
 	lblLength.Size = New System.Drawing.Size(66, 13)
-'	Logger.Debug(lblLength.Width)
 	dc.Controls.Add(lblLength)
 	Dim cbBoxLength As ComboBox = New ComboBox
 	cbBoxLength.Text = "Length"
@@ -76,7 +74,6 @@ End Sub
 	lblDiameter.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
 	lblDiameter.AutoSize = True
 	lblDiameter.Size = New System.Drawing.Size(43, 13)
-'	Logger.Debug(lblLength.Width)
 	dc.Controls.Add(lblDiameter)
 	Dim cbBoxDiameter As ComboBox = New ComboBox
 	cbBoxDiameter.Text = "Diameter"
@@ -100,8 +97,8 @@ End Function
 ''' </summary>
 ''' <param name="app"></param>
  Public Sub CreateDockableWindow(ByVal app As Inventor.Application)
-	 Logger.Debug("made it this far")
-	Dim dockableWinInternalName As String = "INAW_UIMiscs_DockableWindow1"
+'	 Logger.Debug("made it this far")
+	Dim dockableWinInternalName As String = "My_Example_Dockable_Window"
     Dim uiMan As UserInterfaceManager = app.UserInterfaceManager
 	Dim dockableWin As DockableWindow = (From win As DockableWindow In uiMan.DockableWindows
 											Where win.Internalname.ToUpper() = dockableWinInternalName.ToUpper()
@@ -112,7 +109,7 @@ End Function
 	Else
 		Logger.Debug("no existing DockableWindow found")
 	End If
-    dockableWin = uiMan.DockableWindows.Add(Guid.NewGuid().ToString(), dockableWinInternalName, "INAW - DockableWindow #1")
+    dockableWin = uiMan.DockableWindows.Add(Guid.NewGuid().ToString(), dockableWinInternalName, "DockableWindow #1")
     dockableWin.AddChild(CreateChildDialog())
     dockableWin.DisabledDockingStates = DockingStateEnum.kDockLeft Or DockingStateEnum.kDockTop
     dockableWin.DockingState = DockingStateEnum.kDockLastKnown
