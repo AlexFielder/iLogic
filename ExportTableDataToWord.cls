@@ -138,7 +138,7 @@ Sub Export_Table_Data_Word()
                 Dim descrStr As String
                 descrStr = ws.Cells(i, 2).Value
                 Dim TotalDaysDbl As Double
-                TotalDaysDbl = WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0) * 0.5
+                TotalDaysDbl = WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0.25) * 0.5
                 Dim TotalDaysStr As String
                 TotalDaysStr = CStr(TotalDaysDbl) ' Round(SumRange.Value2, 1) 'ws.Cells.Formula
                 
@@ -257,19 +257,19 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case DetailingRow To DataManagementRow
-            sectionDataRowStart = PresentationRow
+            sectionDataRowStart = DetailingRow
             sectionDataRowEnd = DataManagementRow
             Set tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case DataManagementRow To iLogicRow
             sectionDataRowStart = DataManagementRow
-            sectionDataRowEnd = OtherRow
+            sectionDataRowEnd = iLogicRow
             Set tmpControl = findNamedContentControl(wdDoc, cDataManagementCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case iLogicRow To InventorModulesRow
-            sectionDataRowStart = OtherRow
+            sectionDataRowStart = iLogicRow
             sectionDataRowEnd = InventorModulesRow
             Set tmpControl = findNamedContentControl(wdDoc, ciLogicrCCName)
             tmpControl.LockContentControl = False
@@ -281,7 +281,7 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case OthersRow To WhatsNewRow
-            sectionDataRowStart = BestPracticesRow
+            sectionDataRowStart = OthersRow
             sectionDataRowEnd = WhatsNewRow
             Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
             tmpControl.LockContentControl = False
