@@ -211,6 +211,23 @@ Sub Export_Table_Data_Word()
 
 End Sub
 
+Function Trunc(vTime As Date) As Date
+Dim iHr, iMin As Integer
+Dim iQtr    As Integer
+Dim MyTime  As Date
+    iHr = Hour(vTime)
+    iMin = Minute(vTime)
+    iQtr = Int(iMin / 15)
+    If iMin - (iQtr * 15) < 4 Then
+        MyTime = DateAdd("h", iHr, 0)
+        MyTime = DateAdd("n", iQtr * 15, MyTime)
+    Else
+        MyTime = DateAdd("h", iHr, 0)
+        MyTime = DateAdd("n", (iQtr + 1) * 15, MyTime)
+    End If
+    Trunc = MyTime
+End Function
+
 Public Function CreateWord(Optional bVisible As Boolean = True) As Object
 
     Dim oTempWD As Object
