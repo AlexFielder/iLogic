@@ -119,6 +119,7 @@ Sub Export_Table_Data_Word()
                 Set wdTable = tmpTable(wdDoc, i, r.Rows.Count, sectionDataRowStart, sectionDataRowEnd)
                 Set SumRange = ws.Cells(sectionDataRowStart, 9) ' column I
                 SumRange.Formula = "=SUM(" & Range(Cells(sectionDataRowStart + 2, 9), Cells(sectionDataRowEnd - 1, 9)).Address(False, False) & ")/60/6.5" '.Value = Excel.WorksheetFunction.Sum(ws.Range(sectionDataRowStart, sectionDataRowEnd))
+                Debug.Print "SumRange.Value: " & SumRange.Value
                 If lastTableHeader = "" Then
                     lastTableHeader = wdTable.Cell(1, 1).Range.Text
                 ElseIf Not lastTableHeader = wdTable.Cell(1, 1).Range.Text Then
@@ -138,7 +139,11 @@ Sub Export_Table_Data_Word()
                 Dim descrStr As String
                 descrStr = ws.Cells(i, 2).Value
                 Dim TotalDaysDbl As Double
-                TotalDaysDbl = WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0.25) * 0.5
+                TotalDaysDbl = WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0.25) '* 0.5
+                Debug.Print "Totaldays rounded using .Text function: " & WorksheetFunction.Text(SumRange.Value, "# ?/?")
+                Debug.Print "Totaldays rounded: " & CStr(TotalDaysDbl)
+                'returns a message for EVERY row
+                'MsgBox ("Total Days for " + lastTableHeader + " : " + CStr(TotalDaysDbl))
                 Dim TotalDaysStr As String
                 TotalDaysStr = CStr(TotalDaysDbl) ' Round(SumRange.Value2, 1) 'ws.Cells.Formula
                 
