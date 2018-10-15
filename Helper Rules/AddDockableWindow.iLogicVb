@@ -2,12 +2,12 @@
 
 Imports System.Windows.Forms
 Imports System.Drawing
-
+imports System.Linq
 ''' <summary>
 ''' based on the code from here: 
 ''' http://spiderinnet2.typepad.com/blog/2013/09/inventor-net-ui-miscellaneous-dockablewindow.html
 ''' </summary>
-Public Sub main()
+ Public Sub Main()
 	CreateDockableWindow(ThisApplication)
 End Sub
 
@@ -15,8 +15,8 @@ End Sub
 ''' creates a new System.Windows.Forms.Form object and returns its handle so it can
 ''' be used in a newly created DockableWindow object
 ''' </summary>
-''' <returns></returns>
-Public Shared Function CreateChildDialog() As Long
+''' <returns>the Long of the new Windows form</returns>
+ Public Function CreateChildDialog() As Long
     Dim dc As Form = New Form()
     dc.Text = "Child Dialog"
     dc.HelpButton = CSharpImpl.__Assign(dc.MinimizeBox, CSharpImpl.__Assign(dc.MaximizeBox, False))
@@ -27,7 +27,7 @@ Public Shared Function CreateChildDialog() As Long
     dc.Height = 100
     dc.Width = 300
     dc.MinimumSize = New Size(dc.Width, dc.Height)
-    Dim margin As Integer = 15
+    Dim margin As Integer = 5
     Dim size As Size = dc.ClientSize
     Dim tb As System.Windows.Forms.TextBox = New System.Windows.Forms.TextBox()
     tb.TextAlign = HorizontalAlignment.Right
@@ -44,22 +44,30 @@ End Function
 ''' Creates a new DockableWindow object
 ''' </summary>
 ''' <param name="app"></param>
-Public Shared Sub CreateDockableWindow(ByVal app As Inventor.Application)
+ Public Sub CreateDockableWindow(ByVal app As Inventor.Application)
+	 Logger.Debug("made it this far")
+	Dim dockableWinInternalName As String = "INAW_UIMiscs_DockableWindow1"
     Dim uiMan As UserInterfaceManager = app.UserInterfaceManager
-	If Not uiMan.DockableWindows("INAW_UIMiscs_DockableWindow1") Is Nothing Then
-		uiMan.DockableWindows("INAW_UIMiscs_DockableWindow1").Delete
+	Dim dockableWin As DockableWindow = (From win As DockableWindow In uiMan.DockableWindows
+											Where win.Internalname.ToUpper() = dockableWinInternalName.ToUpper()
+											Select win).FirstOrDefault()
+	If Not dockableWin Is Nothing Then
+		Break
+		dockableWin.Delete
+	Else
+		Logger.Debug("no existing DockableWindow found")
 	End If
-    Dim docableWin As DockableWindow = uiMan.DockableWindows.Add(Guid.NewGuid().ToString(), "INAW_UIMiscs_DockableWindow1", "INAW - DockableWindow #1")
-    docableWin.AddChild(CreateChildDialog())
-    docableWin.DisabledDockingStates = DockingStateEnum.kDockLeft Or DockingStateEnum.kDockTop
-    docableWin.DockingState = DockingStateEnum.kDockRight
-    docableWin.ShowVisibilityCheckBox = True
-    docableWin.ShowTitleBar = True
-    docableWin.SetMinimumSize(100, 100)
-    docableWin.Visible = True
+    dockableWin = uiMan.DockableWindows.Add(Guid.NewGuid().ToString(), dockableWinInternalName, "INAW - DockableWindow #1")
+    dockableWin.AddChild(CreateChildDialog())
+    dockableWin.DisabledDockingStates = DockingStateEnum.kDockLeft Or DockingStateEnum.kDockTop
+    dockableWin.DockingState = DockingStateEnum.kDockRight
+    dockableWin.ShowVisibilityCheckBox = True
+    dockableWin.ShowTitleBar = True
+    dockableWin.SetMinimumSize(100, 100)
+    dockableWin.Visible = True
 End Sub
 
-Private Class CSharpImpl
+ Private Class CSharpImpl
     <Obsolete("Please refactor calling code to use normal Visual Basic assignment")>
     Shared Function __Assign(Of T)(ByRef target As T, value As T) As T
         target = value
