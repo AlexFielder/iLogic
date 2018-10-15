@@ -28,7 +28,7 @@ Const cAssemblyCCName As String = "AssemblySubjects"
 Const cDetailingCCName As String = "Detailing"
 'Const cPresentationsCCName As String = "PresentationSubjects"
 Const cDataManagementCCName As String = "DataManagementSubjects"
-Const cOtherCCName As String = "iLogicSubjects"
+Const ciLogicrCCName As String = "iLogicSubjects"
 Const cInventorModulesCCName As String = "InventorModules"
 Const cOtherFeaturesCCName As String = "OtherFeatures"
 'Const cBestPracticesCCName As String = "BestPractices"
@@ -253,16 +253,16 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
                     ByRef sectionDataRowEnd As Integer) As Word.Table
     Dim tmpControl As ContentControl
     Select Case excelRow
-        Case sketchingRow To PartRow
-            sectionDataRowStart = sketchingRow
-            sectionDataRowEnd = PartRow
-            Set tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
-            tmpControl.LockContentControl = False
-            Set tmpTable = tmpControl.Range.Tables(1)
+'        Case sketchingRow To PartRow
+'            sectionDataRowStart = sketchingRow
+'            sectionDataRowEnd = PartRow
+'            Set tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
+'            tmpControl.LockContentControl = False
+'            Set tmpTable = tmpControl.Range.Tables(1)
         Case PartRow To AssemblyRow
             sectionDataRowStart = PartRow
             sectionDataRowEnd = AssemblyRow
-            Set tmpControl = findNamedContentControl(wdDoc, cAdvancedPartsCCName)
+            Set tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case AssemblyRow To DetailingRow
@@ -271,28 +271,28 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             Set tmpControl = findNamedContentControl(wdDoc, cAssemblyCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
-        Case DetailingRow To PresentationRow
-            sectionDataRowStart = DetailingRow
-            sectionDataRowEnd = PresentationRow
+'        Case DetailingRow To PresentationRow
+'            sectionDataRowStart = DetailingRow
+'            sectionDataRowEnd = PresentationRow
+'            Set tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
+'            tmpControl.LockContentControl = False
+'            Set tmpTable = tmpControl.Range.Tables(1)
+        Case DetailingRow To DataManagementRow
+            sectionDataRowStart = PresentationRow
+            sectionDataRowEnd = DataManagementRow
             Set tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
-        Case PresentationRow To DataManagementRow
-            sectionDataRowStart = PresentationRow
-            sectionDataRowEnd = DataManagementRow
-            Set tmpControl = findNamedContentControl(wdDoc, cPresentationsCCName)
-            tmpControl.LockContentControl = False
-            Set tmpTable = tmpControl.Range.Tables(1)
-        Case DataManagementRow To OtherRow
+        Case DataManagementRow To iLogicRow
             sectionDataRowStart = DataManagementRow
             sectionDataRowEnd = OtherRow
             Set tmpControl = findNamedContentControl(wdDoc, cDataManagementCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
-        Case OtherRow To InventorModulesRow
+        Case iLogicRow To InventorModulesRow
             sectionDataRowStart = OtherRow
             sectionDataRowEnd = InventorModulesRow
-            Set tmpControl = findNamedContentControl(wdDoc, cOtherCCName)
+            Set tmpControl = findNamedContentControl(wdDoc, ciLogicrCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case InventorModulesRow To OthersRow
@@ -301,16 +301,16 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             Set tmpControl = findNamedContentControl(wdDoc, cInventorModulesCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
-        Case OthersRow To BestPracticesRow
-            sectionDataRowStart = OthersRow
-            sectionDataRowEnd = BestPracticesRow
-            Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
-            tmpControl.LockContentControl = False
-            Set tmpTable = tmpControl.Range.Tables(1)
-        Case BestPracticesRow To WhatsNewRow
+'        Case OthersRow To BestPracticesRow
+'            sectionDataRowStart = OthersRow
+'            sectionDataRowEnd = BestPracticesRow
+'            Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
+'            tmpControl.LockContentControl = False
+'            Set tmpTable = tmpControl.Range.Tables(1)
+        Case OthersRow To WhatsNewRow
             sectionDataRowStart = BestPracticesRow
             sectionDataRowEnd = WhatsNewRow
-            Set tmpControl = findNamedContentControl(wdDoc, cBestPracticesCCName)
+            Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
             tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case WhatsNewRow To UsedRowCount
@@ -374,7 +374,7 @@ End Sub
 Function searchForSectionRange(ByVal searchrange As Range, searchterm As String) As Integer
     Dim nextRowRange As Range: Set nextRowRange = searchrange.Find(searchterm, LookIn:=xlValues, LookAt:=XlLookAt.xlWhole, MatchCase:=True, MatchByte:=False)
     If nextRowRange Is Nothing Then
-        searchForSectionRange = searchForSectionRangeByTerm(searchrange, cSketchingSectionValue).row
+        searchForSectionRange = searchForSectionRangeByTerm(searchrange, cPartModellingSectionValue).row
     Else
         Dim row As Integer: row = 0
         searchForSectionRange = nextRowRange.row
