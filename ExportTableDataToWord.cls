@@ -111,7 +111,19 @@ Sub Export_Table_Data_Word()
     Dim lastTableHeader As String
     Dim ccList As Collection
     Set ccList = New Collection
+    
+    '(Step 1) Display your Progress Bar
+    ufProgress.LabelProgress.Width = 0
+    ufProgress.Show
+    Dim percentDone As Single
+    
     For i = 1 To r.Rows.Count
+        percentDone = i / r.Rows.Count
+        With ufProgress
+            .LabelCaption.Caption = "Processing Row " & i & " of " & r.Rows.Count
+            .LabelProgress.Width = percentDone * (.FrameProgress.Width)
+        End With
+        DoEvents
         If Not r.Cells(i, 2).Value = "" Then
             Dim tmpRange As Range
             Set tmpRange = r.Range(r.Cells(i, 1), r.Cells(i, r.Columns.Count))
@@ -198,6 +210,7 @@ Sub Export_Table_Data_Word()
             End If
             'determines which table we need to add the rows to:
         End If
+        If i = r.Rows.Count Then Unload ufProgress
     Next i
     
     lnCountItems = 1
@@ -233,10 +246,10 @@ Sub Export_Table_Data_Word()
 End Sub
 
 Public Sub DeleteUnusedSections(ByVal contentControlList As Collection)
-
-    For i = 1 To contentControlList.Count
+    Dim controlnum As Integer
+    For controlnum = 1 To contentControlList.Count
         Dim cControl As ContentControl
-        Set cControl = contentControlList(i)
+        Set cControl = contentControlList(controlnum)
         Select Case cControl.Title
             Case cBasicPartsCCName
                 Call DeleteUnusedCControlByName(cControl, partsRequired)
@@ -260,7 +273,7 @@ Public Sub DeleteUnusedSections(ByVal contentControlList As Collection)
 End Sub
 
 Public Sub DeleteUnusedCControlByName(ByVal cControlsection As ContentControl, ByVal DeleteSection As Boolean)
-    If DeleteSection = True Then
+    If Not DeleteSection = True Then
         cControlsection.Delete
     End If
 End Sub
