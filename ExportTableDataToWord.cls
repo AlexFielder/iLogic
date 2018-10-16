@@ -80,11 +80,15 @@ Sub Export_Table_Data_Word()
     'Set wdApp = New Word.Application
     Set wdApp = CreateWord(True)
     'for debugging only:
-    wdApp.Visible = True
+    If weAreDebugging Then
+        wdApp.Visible = True
+    End If
     Set wdDoc = wdApp.Documents.Add(wbBook.Path & "\" & stWordDocument)
     
     'may need this in case changing the LockContentControl change doesn't work!
     Call EnterExitDesignMode(wdApp, True)
+    
+    Call SetSectionDefaultRequirements
     
     Call GetSectionRows(ws.usedRange, PartRow, AssemblyRow, DetailingRow, DataManagementRow, iLogicRow, InventorModulesRow, OthersRow, WhatsNewRow)
     'for debugging purposes:
@@ -145,7 +149,7 @@ Sub Export_Table_Data_Word()
                 Dim TotalDaysCell As Word.Cell
                 
                 Dim SumRange As Range
-                Call SetSectionDefaultRequirements(thisControl)
+                Call SetSectionRequirementsByName(thisControl)
                 Set SumRange = ws.Cells(sectionDataRowStart, 9) ' column I
                 SumRange.Formula = "=SUM(" & Range(Cells(sectionDataRowStart + 2, 9), Cells(sectionDataRowEnd - 1, 9)).Address(False, False) & ")/60/6.5" '.Value = Excel.WorksheetFunction.Sum(ws.Range(sectionDataRowStart, sectionDataRowEnd))
                 Debug.Print "SumRange.Value: " & SumRange.Value
@@ -216,19 +220,28 @@ Sub Export_Table_Data_Word()
     lnCountItems = 1
     
     Call DeleteUnusedSections(ccList)
-    
+    'update Table of Contents
+    If wdDoc.TablesOfContents.Count = 1 Then wdDoc.TablesOfContents(1).Update
     'may need this in case changing the LockContentControl change doesn't work!
     Call EnterExitDesignMode(wdApp, False)
     
     'Save and close the Word doc.
     With wdDoc
-        .SaveAs (wbBook.Path & "\Training Survey.docx")
-        If Not weAreDebugging Then
+        Dim readOnlyDoc As Boolean
+        readOnlyDoc = IsWordDocOpen(wdApp, wbBook.Path & "\Training Survey.docx")
+        If Not readOnlyDoc Then
+            .SaveAs (wbBook.Path & "\Training Survey.docx")
+        Else
+            MsgBox "Unable to save the resultant document" & vbCrLf & _
+            "Perhaps you or someone else has it open?", vbCritical, "Office 3shit5 strikes again!"
+            wdApp.Visible = True
+        End If
+        If Not weAreDebugging And Not readOnlyDoc Then
             .Close
         End If
     End With
     
-    If weCreatedWord And Not weAreDebugging Then
+    If weCreatedWord And Not weAreDebugging And Not readOnlyDoc Then
         wdApp.Quit
     End If
     
@@ -244,6 +257,44 @@ Sub Export_Table_Data_Word()
            "been updated!", vbInformation
 
 End Sub
+
+Function IsWorkbookOpen(ByVal FileName As String) As Boolean
+    Dim TargetWorkbook As Workbook
+
+    Dim IteratorWorkbook As Workbook
+    For Each IteratorWorkbook In Application.Workbooks
+        If IteratorWorkbook.FullName = FileName Then
+            Set TargetWorkbook = IteratorWorkbook
+        End If
+    Next
+
+    If Not TargetWorkbook Is Nothing Then
+        If TargetWorkbook.ReadOnly Then
+            IsWorkbookOpen = True
+            Exit Function
+        End If
+    End If
+End Function
+
+Function IsWordDocOpen(ByVal wordApp As Word.Application, ByVal FileName As String) As Boolean
+    Dim TargetWordDoc As Word.Document
+
+    Dim IteratorWorddoc As Word.Document
+    For Each IteratorWorddoc In wordApp.Documents
+        If IteratorWorddoc.FullName = FileName Then
+            Set TargetWordDoc = IteratorWorddoc
+            IsWordDocOpen = True
+            Exit Function
+        End If
+    Next
+
+    If Not TargetWordDoc Is Nothing Then
+        If TargetWordDoc.ReadOnly Then
+            IsWordDocOpen = True
+            Exit Function
+        End If
+    End If
+End Function
 
 Public Sub DeleteUnusedSections(ByVal contentControlList As Collection)
     Dim controlnum As Integer
@@ -278,7 +329,7 @@ Public Sub DeleteUnusedCControlByName(ByVal cControlsection As ContentControl, B
     End If
 End Sub
 
-Public Sub SetSectionDefaultRequirements(ByVal cControlsection As ContentControl)
+Public Sub SetSectionRequirementsByName(ByVal cControlsection As ContentControl)
     Select Case cControlsection.Title
         Case cBasicPartsCCName
             partsRequired = True
@@ -298,6 +349,17 @@ Public Sub SetSectionDefaultRequirements(ByVal cControlsection As ContentControl
             whatsNewRequired = True
         Case Else
     End Select
+End Sub
+
+Public Sub SetSectionDefaultRequirements()
+    partsRequired = False
+    assembliesRequired = False
+    detailingRequired = False
+    dataManagementRequired = False
+    iLogicRequired = False
+    inventorModulesRequired = False
+    otherFeaturesRequired = False
+    whatsNewRequired = False
 End Sub
 
 Function Trunc(vTime As Date) As Date
@@ -487,4 +549,6 @@ End Function
 'Function findTableinContentControl(contentCont As ContentControl) As Table
 '    findTableinContentControl = contentCont.Range.Tables(1)
 'End Function
+
+
 
