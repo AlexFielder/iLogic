@@ -1,0 +1,9 @@
+﻿Sub main()
+	If Not RuleArguments.Exists("ParameterValue") Then
+		MessageBox.Show("How did we get here?")
+	Else
+		'Column E changes nothing currently
+		'MessageBox.Show("Hello World")
+	End If
+	
+End Sub

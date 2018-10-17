@@ -4,7 +4,11 @@ Sub Main()
 		MessageBox.Show("This rule only works from the context-sensitive files we need!")
 		Exit Sub
 	Else
-		Dim p As Parameter = Parameter.Param("ParameterName")
-	
+		Dim paramName As String = RuleArguments.Value("ParameterName")
+		Dim p As Parameter = Parameter.Param(paramName)
+		Logger.Debug(paramName & " updated value = " & p.Value)
+		Dim FilterArguments As Inventor.NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap()
+		FilterArguments.Value("ParameterValue") = p.Value
+		iLogicVb.RunExternalRule("Filter" & paramName, FilterArguments)
 	End If
 End Sub

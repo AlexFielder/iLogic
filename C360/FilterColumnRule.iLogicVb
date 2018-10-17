@@ -1,0 +1,15 @@
+﻿Option Explicit On
+Sub Main()
+	If Not RuleArguments.Exists("UniqueValues") And Not RuleArguments.Exists("ColumnToFilter")Then
+		MessageBox.Show("How did we get here?")
+	Else
+		Dim columnToEdit As Parameter = Parameter.Param("column" & RuleArguments.Value("ColumnToFilter"))
+		Dim listofUniqueValues As List(Of String) = RuleArguments.Value("UniqueValues")
+		
+		If Not listofUniqueValues Is Nothing And Not columnToEdit Is Nothing Then
+			listofUniqueValues.Sort()
+			Dim tmpArraylist As ArrayList = New ArrayList(listofUniqueValues)
+			MultiValue.List(columnToEdit) = tmpArraylist
+		End If
+	End If
+End Sub

@@ -1,0 +1,31 @@
+﻿Option Explicit On
+Sub Main()
+	If Not RuleArguments.Exists("ParameterValue") Then
+		MessageBox.Show("How did we get here?")
+	Else
+		'Column O
+		Dim paramValue As String = RuleArguments.Value("ParameterValue")
+		Dim FilterArguments As Inventor.NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap()
+		'this needs to be a list of values to remove/add from the next column along.
+		Dim filterList As List(Of String) = New List(Of String)
+		Select paramValue
+			Case "M"
+				filterList.Add("L0")
+				filterList.Add("L1")
+				filterList.Add("P0")
+			Case "S"
+				filterList.Add("LN")
+				filterList.Add("PN")
+				filterList.Add("L0")
+				filterList.Add("PM")
+				filterList.Add("L1")
+			Case Else
+		End Select
+		FilterArguments.Value("UniqueValues") = filterList
+		FilterArguments.Value("ColumnToFilter") = cNextColumn
+		iLogicVb.RunExternalRule("FilterColumnRule", FilterArguments)
+	End If
+	
+End Sub
+
+Public Const cNextColumn As String = "R"

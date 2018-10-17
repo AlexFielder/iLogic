@@ -1,3 +1,0 @@
-﻿Option Explicit On
-Dim p = Parameter("columnE")
-logger.Debug("columnE updated")
