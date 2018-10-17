@@ -73,8 +73,9 @@ Sub PopulateColumnDefaults(columnlist As String)
 		TempList = TempList.Distinct().ToList()
 		Logger.Debug("Column" & col & "list.Count: " & TempList.Count)
 '		SetArrayListDefaults(col, TempList)
-		Parameter(cDefaultMultivaluePrefix & col & cDefaultMultivalueSuffix) = TempList
-'		MultiValue.List("Column" & col) = TempList
+		Dim tmpArrayList As ArrayList = New ArrayList(TempList)
+'		Parameter(cDefaultMultivaluePrefix & col & cDefaultMultivalueSuffix) = tmpArrayList
+		MultiValue.List(cDefaultMultivaluePrefix & col & cDefaultMultivalueSuffix) = tmpArrayList
 		TempList.Clear()
 	Next
 '	break
