@@ -1,16 +1,16 @@
 ﻿Option Explicit On
 imports System.Linq
 Sub Main()
-	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Populate Multivalue Lists")
+	'Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Populate Multivalue Lists")
 	Dim columns As String = "E,G,I,L,N,O,R" 'this could be automated by adding an "isKey" at the top of each column!?
-	Try
+	'Try
 		Call SetMatchingParameterNames(columns)
 		Call PopulateColumnDefaults(columns)
-		trans.End()
-	Catch ex As Exception
-		Logger.Error("The error was: " & ex.Message)
-		trans.Abort()
-	End Try
+		'trans.End()
+'	Catch ex As Exception
+'		Logger.Error("The error was: " & ex.Message)
+'		trans.Abort()
+'	End Try
 End Sub
 
 Public Const cStartRow As Integer = 7
@@ -62,7 +62,7 @@ Sub PopulateColumnDefaults(columnlist As String)
 		Logger.Debug("columnname: "& col)
 		For MyRow As Integer = cStartRow To cEndRow
 			If Not CStr(GoExcel.CellValue(col & MyRow)) = "" Then
-				If isParamText("Column" & col) And Not TypeOf GoExcel.CellValue(col & MyRow) Is String Then
+				If isParamText(cDefaultMultivaluePrefix & col & cDefaultMultivalueSuffix) And Not TypeOf GoExcel.CellValue(col & MyRow) Is String Then
 					TempList.Add(GoExcel.CellValue(col & MyRow).ToString())
 				Else
 					TempList.Add(GoExcel.CellValue(col & MyRow))
@@ -72,8 +72,9 @@ Sub PopulateColumnDefaults(columnlist As String)
 		TempList.Sort()
 		TempList = TempList.Distinct().ToList()
 		Logger.Debug("Column" & col & "list.Count: " & TempList.Count)
-		SetArrayListDefaults(col, TempList)
-		MultiValue.List("Column" & col) = TempList
+'		SetArrayListDefaults(col, TempList)
+		Parameter(cDefaultMultivaluePrefix & col & cDefaultMultivalueSuffix) = TempList
+'		MultiValue.List("Column" & col) = TempList
 		TempList.Clear()
 	Next
 '	break
