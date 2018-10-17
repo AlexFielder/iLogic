@@ -1,0 +1,2 @@
+﻿Dim p = columnE
+Logger.Debug("columnE updated")
