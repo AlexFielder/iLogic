@@ -1,0 +1,10 @@
+﻿Option Explicit On
+Sub Main()
+	If Not RuleArguments.Exists("ParameterName") Then 'not fired from relevant rule
+		MessageBox.Show("This rule only works from the context-sensitive files we need!")
+		Exit Sub
+	Else
+		Dim p As Parameter = Parameter.Param("ParameterName")
+	
+	End If
+End Sub

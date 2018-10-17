@@ -1,0 +1,111 @@
+﻿Option Explicit On
+imports System.Linq
+Sub Main()
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Populate Multivalue Lists")
+	Dim columns As String = "E,G,I,L,N,O,R" 'this could be automated by adding an "isKey" at the top of each column!?
+	Try
+		Call SetMatchingParameterNames(columns)
+		Call PopulateColumnDefaults(columns)
+		trans.End()
+	Catch ex As Exception
+		Logger.Error("The error was: " & ex.Message)
+		trans.Abort()
+	End Try
+End Sub
+
+Public Const cStartRow As Integer = 7
+Public Const cEndRow As Integer = 50
+Public Const cDefaultMultivaluePrefix As String = "column"
+Public Const cDefaultMultivalueSuffix As String = "defaults"
+Public ColumnAList As New List(Of Object)
+Public ColumnBList As New List(Of Object)
+Public ColumnCList As New List(Of Object)
+Public ColumnDList As New List(Of Object)
+Public ColumnEList As New List(Of Object)
+Public ColumnGList As New List(Of Object)
+Public ColumnIList As New List(Of Object)
+Public ColumnLList As New List(Of Object)
+Public ColumnNList As New List(Of Object)
+Public ColumnOList As New List(Of Object)
+Public ColumnRList As New List(Of Object)
+
+Sub SetMatchingParameterNames(columnlist As String)
+	Dim Doc As AssemblyDocument = ThisApplication.ActiveDocument
+	Dim columns As List(Of String) = columnlist.Split(",").ToList()
+	For Each col As String In columns
+		Dim thisParam As Inventor.Parameter = (From param As Inventor.Parameter In Doc.ComponentDefinition.Parameters
+										Where param.Name = cDefaultMultivaluePrefix & col & cDefaultMultivalueSuffix
+										Select param).FirstOrDefault()
+		If thisParam Is Nothing Then
+			Logger.Debug(cDefaultMultivaluePrefix & col & cDefaultMultivalueSuffix & " does not exist in " & Doc.FullFileName)
+			Doc.ComponentDefinition.Parameters.UserParameters.AddByValue(cDefaultMultivaluePrefix & col & cDefaultMultivalueSuffix, "", UnitsTypeEnum.kTextUnits)
+		Else
+			Logger.Debug(thisParam.Name & " already exists")
+		End If
+	Next
+End Sub
+
+Sub PopulateColumnDefaults(columnlist As String)
+''	break
+'	Dim startRow As Integer = 7
+'	Dim endRow As Integer = 50
+'	'useful for nothing more than opening the excel file!
+	Dim newFilesArray As New ArrayList
+'	'newFilesArray = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\ILOGIC LIST TEST.xlsx", "sheet1", "a1", "a2")
+	newFilesArray = GoExcel.CellValues("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Kawasaki (KPM-UK)\K3VL 3D Model Configurator.xlsx", "sheet1", "a1", "a2")
+
+	Dim columns As List(Of String) = columnlist.Split(",").ToList()
+	
+	Logger.Debug(columns.ToString())
+	Dim TempList As New List(Of Object)
+	For Each col As String In columns
+		Logger.Debug("columnname: "& col)
+		For MyRow As Integer = cStartRow To cEndRow
+			If Not CStr(GoExcel.CellValue(col & MyRow)) = "" Then
+				If isParamText("Column" & col) And Not TypeOf GoExcel.CellValue(col & MyRow) Is String Then
+					TempList.Add(GoExcel.CellValue(col & MyRow).ToString())
+				Else
+					TempList.Add(GoExcel.CellValue(col & MyRow))
+				End If
+			End If
+		Next
+		TempList.Sort()
+		TempList = TempList.Distinct().ToList()
+		Logger.Debug("Column" & col & "list.Count: " & TempList.Count)
+		SetArrayListDefaults(col, TempList)
+		MultiValue.List("Column" & col) = TempList
+		TempList.Clear()
+	Next
+'	break
+End Sub
+
+Function isParamText(ByVal paramName As String) As Boolean
+	Logger.Debug("Parameter is: " & paramName)
+	Dim p As Parameter = Parameter.Param(paramName)
+	If p.Units = "Text" Or  p.units = "Boolean" Then
+		Return True
+	Else
+		Return False	
+	End If
+End Function
+
+Sub SetArrayListDefaults(col As String, tmplist As List(Of Object))
+	Select col
+		Case "E"
+			ColumnEList.addrange(tmplist)
+		Case "G"
+			ColumnGList.addrange(tmplist)
+		Case "I"
+			ColumnIList.addrange(tmplist)
+		Case "L"
+			ColumnLList.addrange(tmplist)
+		Case "N"
+			ColumnNList.addrange(tmplist)
+		Case "O"
+			ColumnOList.addrange(tmplist)
+		Case "R"
+			ColumnRList.addrange(tmplist)
+		Case Else
+			'do nothing
+	End Select
+End Sub
