@@ -3,26 +3,31 @@ Sub Main()
 	If Not RuleArguments.Exists("ParameterValue") Then
 		MessageBox.Show("How did we get here?")
 	Else
-		'Column N doesn't do anything currently.
-'		Dim paramValue As String = RuleArguments.Value("ParameterValue")
-'		Dim FilterArguments As Inventor.NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap()
-'		'this needs to be a list of values to remove/add from the next column along.
-'		Dim filterList As List(Of String) = New List(Of String)
-'		Select paramValue
-'			Case "L"
-'				filterList.Add("C")
-'				filterList.Add("K")
-'			Case "R"
-'				filterList.Add("F")
-'				filterList.Add("K")
-'				filterList.Add("M")
-'				filterList.Add("S")
-'				filterList.Add("T")
-'			Case Else
-'		End Select
-'		FilterArguments.Value("UniqueValues") = filterList
-'		FilterArguments.Value("ColumnToFilter") = cNextColumn
-'		iLogicVb.RunExternalRule("FilterColumnRule", FilterArguments)
+		'Column N
+		Dim paramValue As String = RuleArguments.Value("ParameterValue")
+		Dim FilterArguments As Inventor.NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap()
+		'this needs to be a list of values to remove/add from the next column along.
+		Dim filterList As List(Of String) = New List(Of String)
+		Select paramValue
+			Case "C"
+				filterList.Add("M")
+			Case "F"
+				filterList.Add("M")
+			Case "K"
+				filterList.Add("M")
+				filterList.Add("S")
+			Case "M"
+				filterList.Add("M")
+			Case "S"
+				filterList.Add("M")
+				filterList.Add("S")
+			Case "T"
+				filterList.Add("S")
+			Case Else
+		End Select
+		FilterArguments.Value("UniqueValues") = filterList
+		FilterArguments.Value("ColumnToFilter") = cNextColumn
+		iLogicVb.RunExternalRule("FilterColumnRule", FilterArguments)
 	End If
 	
 End Sub

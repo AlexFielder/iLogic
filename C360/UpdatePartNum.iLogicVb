@@ -1,0 +1,2 @@
+﻿'this format only works correctly when placed in an internal rule!
+PartNum = PartPrefix & columnE & "/" & columnG & "-" & columnI & columnL & columnN & columnO & "-" & columnR

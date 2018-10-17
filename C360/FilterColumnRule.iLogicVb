@@ -3,13 +3,24 @@ Sub Main()
 	If Not RuleArguments.Exists("UniqueValues") And Not RuleArguments.Exists("ColumnToFilter")Then
 		MessageBox.Show("How did we get here?")
 	Else
-		Dim columnToEdit As Parameter = Parameter.Param("column" & RuleArguments.Value("ColumnToFilter"))
+		Dim Doc As AssemblyDocument = ThisApplication.ActiveDocument
+		Dim columnToEdit As Inventor.Parameter = (From param As Inventor.Parameter In Doc.ComponentDefinition.Parameters
+										Where param.Name = "column" & RuleArguments.Value("ColumnToFilter")
+										Select param).FirstOrDefault()
+'		Dim columnToEdit As Inventor.Parameter = Parameter.Param("column" & RuleArguments.Value("ColumnToFilter"))
 		Dim listofUniqueValues As List(Of String) = RuleArguments.Value("UniqueValues")
-		
+		Logger.Debug(columnToEdit.Name)
+		Logger.Debug(debugListValues(listofUniqueValues))
 		If Not listofUniqueValues Is Nothing And Not columnToEdit Is Nothing Then
 			listofUniqueValues.Sort()
 			Dim tmpArraylist As ArrayList = New ArrayList(listofUniqueValues)
-			MultiValue.List(columnToEdit) = tmpArraylist
+			MultiValue.List(columnToEdit.Name) = tmpArraylist
 		End If
 	End If
 End Sub
+
+Function debugListValues(ByVal listofValues As List(Of String)) As String
+	For Each Val As String In listofValues
+		debugListValues = Val & "," & debugListValues
+	Next
+End Function

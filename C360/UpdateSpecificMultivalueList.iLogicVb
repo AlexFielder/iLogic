@@ -1,8 +1,0 @@
-﻿option explicit on
-Sub main()
-	If Not RuleArguments.Exists("") Then
-	
-	Else
-			
-	End If
-End Sub

@@ -12,6 +12,7 @@ Sub main()
 			Case "L"
 				filterList.Add("C")
 				filterList.Add("K")
+				filterList.Add("S")
 			Case "R"
 				filterList.Add("F")
 				filterList.Add("K")
