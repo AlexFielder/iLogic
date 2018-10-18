@@ -45,7 +45,56 @@
 #Region "Get or Set Standard iProperty Values"
 
     ''' <summary>
-    ''' Design Tracking Properties
+    ''' Design Tracking Properties - allows us to get:
+	''' Appearance
+	''' Authority
+	''' CatalogWeblink
+	''' Categories
+	''' CheckedBy
+	''' CostCenter
+	''' CostDesign
+	''' CreationDate
+	''' DateChecked
+	'''	DateEngrApproved
+	''' DateMfgApproved
+	''' Density
+	''' Description
+	''' Designer
+	''' DesignStatus
+	''' DocSubType
+	''' DrawingDeferUpdate
+	''' Engineer
+	''' EngrApprovedBy
+	''' ExternalPropRevId
+	''' FlatPatternDeferUpdate
+	''' FlatPatternExtentsArea
+	''' FlatPatternExtentsLength
+	''' FlatPatternExtentsWidth
+	''' Language
+	''' LastUpdatedWith
+	''' Manufacturer
+	''' Mass
+	''' Material
+	''' MaterialIdentifier
+	''' MfgApproved
+	''' ParameterizedTemplate
+	''' PartIcon
+	''' PartNumber
+	''' PartPropRevId
+	''' Project
+	''' ProxyRefreshDate
+	''' SheetMetalRule
+	''' Standard
+	''' StandardRevision
+	''' StandardsOrganization
+	''' StockNumber
+	''' SurfaceArea
+	''' TemplateRow
+	''' UserStatus
+	''' ValidMass
+	''' Vendor
+	''' Volume
+	''' WeldMaterial
     ''' </summary>
     ''' <param name="DocToUpdate"></param>
     ''' <param name="iPropertyTypeEnum"></param>
@@ -70,7 +119,10 @@
     End Function
 
     ''' <summary>
-    ''' Document Summary Properties
+    ''' Document Summary Properties - allows us to get:
+	''' Category
+	''' Company
+	''' Manager
     ''' </summary>
     ''' <param name="DocToUpdate"></param>
     ''' <param name="iPropertyTypeEnum"></param>
@@ -96,6 +148,16 @@
 
     ''' <summary>
     ''' Summary Properties
+	''' allows us to get:
+	''' Author
+	''' Comments
+	''' CreationTime
+	''' Keywords
+	''' LastSavedBy
+	''' Revision
+	''' Subject
+	''' Thumbnail
+	''' Title
     ''' </summary>
     ''' <param name="DocToUpdate"></param>
     ''' <param name="iPropertyTypeEnum"></param>
@@ -118,6 +180,20 @@
         End If
         Return currentvalue
     End Function
+	
+	''' <summary>
+	''' This signature is slightly different to the others because we can't update 'Standard' Content Centre object iProperties.
+	''' </summary>
+	''' <param name="DocToReadValueFrom"></param>
+	''' <param name="iPropertyTypeEnum"></param>
+	''' <returns></returns>
+	Public Shared Function GetorSetStandardiProperty(ByVal DocToReadValueFrom As PartDocument,
+													 ByVal iPropertyTypeEnum As PropertiesForContentLibraryEnum) As String
+		Dim invContentCentreProperties As PropertySet = DocToReadValueFrom.PropertySets.Item("{B9600981-DEE8-4547-8D7C-E525B3A1727A}")
+		Dim currentValue As String = invContentCentreProperties.ItemByPropId(iPropertyTypeEnum).Value
+		Return currentValue
+	End Function
+	
 #End Region
 #Region "Get or Set Custom iProperty Values"
 
