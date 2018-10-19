@@ -1,0 +1,42 @@
+﻿Public Sub Main()
+    Dim watch = New Stopwatch()
+    Dim array As Integer() = New Integer(999999999) {}
+
+    For i As Integer = 0 To array.Length - 1
+        array(i) = 1
+    Next
+
+    watch.Restart()
+    Dim sum As Integer = 0
+
+    For i As Integer = 0 To array.Length - 1
+        sum += array(i)
+    Next
+
+    Logger.Debug("for loop:" & watch.ElapsedMilliseconds.ToString() & "ms, result:" + sum.ToString())
+    sum = 0
+    watch.Restart()
+    sum = array.Sum()
+    Logger.Debug("linq sum:" & watch.ElapsedMilliseconds.ToString() & "ms, result:" + sum.ToString())
+    sum = 0
+    watch.Restart()
+    Dim length As Integer = array.Length
+
+    For i As Integer = 0 To length - 1
+        sum += array(i)
+    Next
+
+    Logger.Debug("for loop fixed:" & watch.ElapsedMilliseconds.ToString() & "ms, result:" + sum.ToString())
+    sum = 0
+    watch.Restart()
+
+    For Each i As Integer In array
+        sum += i
+    Next
+
+    Logger.Debug("foreach sum:" & watch.ElapsedMilliseconds.ToString() & "ms, result:" + sum.ToString())
+    sum = 0
+    watch.Restart()
+    sum = array.AsParallel().Sum()
+    Logger.Debug("linq parallel sum:" & watch.ElapsedMilliseconds & "ms, result:" + sum.ToString())
+End Sub
