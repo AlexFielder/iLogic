@@ -1,15 +1,25 @@
-﻿Public Sub Main()
-    Dim watch = New Stopwatch()
-    Dim array As Integer() = New Integer(999999999) {}
+﻿''' <summary>
+''' uses c# code from here: https://stackoverflow.com/a/19347286/572634
+''' </summary>
+Public Sub Main()
+	For i = 1 To 10
+		call runloop()
+	Next i
+End Sub
 
-    For i As Integer = 0 To array.Length - 1
+Public Sub runloop()
+    Dim watch = New Stopwatch()
+'	Dim array As Integer() = New Integer(99999999) {}
+    Dim array As Long() = New Long(99999999) {}
+
+    For i As Long = 0 To array.LongLength - 1
         array(i) = 1
     Next
 
     watch.Restart()
-    Dim sum As Integer = 0
+    Dim sum As Long = 0
 
-    For i As Integer = 0 To array.Length - 1
+    For i As Long = 0 To array.LongLength - 1
         sum += array(i)
     Next
 
@@ -20,9 +30,9 @@
     Logger.Debug("linq sum:" & watch.ElapsedMilliseconds.ToString() & "ms, result:" + sum.ToString())
     sum = 0
     watch.Restart()
-    Dim length As Integer = array.Length
+    Dim length As Long = array.LongLength
 
-    For i As Integer = 0 To length - 1
+    For i As Long = 0 To length - 1
         sum += array(i)
     Next
 
@@ -30,7 +40,7 @@
     sum = 0
     watch.Restart()
 
-    For Each i As Integer In array
+    For Each i As Long In array
         sum += i
     Next
 
