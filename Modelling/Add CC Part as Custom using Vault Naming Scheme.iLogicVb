@@ -36,7 +36,10 @@ Public Sub PlaceComponent(ByVal FamilyToPlace As String,
 							ByVal SizeOne As String, 
 							ByVal SizeTwo As String, 
 							ByVal RequiredMaterial As String)
-
+	If Not TypeOf (ThisApplication.ActiveDocument.ComponentDefinition) Is AssemblyComponentDefinition Then
+		MessageBox.Show("Not an assembly!")
+		Exit Sub
+	End If
 	Dim oAssCompDef As AssemblyComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
 
 	Dim oTransG As TransientGeometry = ThisApplication.TransientGeometry

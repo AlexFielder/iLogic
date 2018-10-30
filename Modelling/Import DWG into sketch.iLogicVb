@@ -1,8 +1,55 @@
 ﻿Option explicit on
 
 Sub main()
-	Call AssociativelyImportAutoCADDWGSample()
-'	Call ImportDWGIntoSketch()	
+	Call CreateImportedDWGComponentSample("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Blog - Webinar\Inventor LT\companion cube..dwg")
+	'neither of these work with .dxfs
+	'Call CreateImportedDWGComponentSample("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Inventor 2019\companion cube.dxf") 'F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Blog - Webinar\Inventor LT\companion cube..dwg")
+	'Call ImportDWGIntoSketch("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Inventor 2019\companion cube.dxf")
+End Sub
+
+Sub CreateImportedDWGComponentSample(ByVal filename As String)
+    Dim oDoc As PartDocument = ThisApplication.Documents.Add(kPartDocumentObject)
+          
+    Dim oCompDef As PartComponentDefinition = oDoc.ComponentDefinition
+    
+    Dim oRefComponents As ReferenceComponents = oCompDef.ReferenceComponents
+    
+    ' Create a ImportedComponentDefinition based on an AutoCAD file.
+    Dim oImportedCompDef As ImportedComponentDefinition = oRefComponents.ImportedComponents.CreateDefinition(filename)
+    
+    Dim oImportedDWGDef As ImportedDWGComponentDefinition
+    
+    If oImportedCompDef.Type = kImportedDWGComponentDefinitionObject Then
+        oImportedDWGDef = oImportedCompDef
+    Else
+		Exit Sub
+    End If
+    
+    Dim oMatrix As Matrix = ThisApplication.TransientGeometry.CreateMatrix
+    oMatrix.SetTranslation(ThisApplication.TransientGeometry.CreateVector(0, 0, 10))
+    
+    oImportedDWGDef.Transformation = oMatrix
+    
+    ' Create the ImportedComponent
+    Dim oImportedComponent As ImportedComponent = oRefComponents.ImportedComponents.Add(oImportedDWGDef)
+    
+    Dim oImportedDWGComponent As ImportedDWGComponent
+    
+    If oImportedComponent.Type = ObjectTypeEnum.kImportedDWGComponentObject Then
+        oImportedDWGComponent = oImportedComponent
+        
+        Dim oSk As PlanarSketch = oCompDef.Sketches.Add(oCompDef.WorkPlanes(3))
+        
+        ' Get the DWGBlockDefinition for model space.
+        Dim oDWGModelSpaceDef As DWGBlockDefinition = oImportedDWGComponent.ModelSpaceDefinition
+        
+        ' Project DWG entities to planar sketch.
+        Dim oDWGEntity As DWGEntity
+        For Each oDWGEntity In oDWGModelSpaceDef.Entities
+         
+            Call oSk.AddByProjectingEntity(oDWGEntity)
+        Next
+    End If
 End Sub
 
 Sub AssociativelyImportAutoCADDWGSample()
@@ -17,14 +64,14 @@ Sub AssociativelyImportAutoCADDWGSample()
     Dim oImportedComp As ImportedComponent = oPartCompDef.ReferenceComponents.ImportedComponents.Add(oImportedDWGCompDef)
 End Sub
 
-Sub ImportDWGIntoSketch()
+Sub ImportDWGIntoSketch(ByVal filename As String)
     ' Get the DWG translator.
     Dim oDWGTranslator As TranslatorAddIn = ThisApplication.ApplicationAddIns.ItemById("{C24E3AC2-122E-11D5-8E91-0010B541CD80}") 
 
     Dim oDataMedium As DataMedium = ThisApplication.TransientObjects.CreateDataMedium
         
     ' Specify a DWG file to import it into sketch
-    oDataMedium.FileName = "C:\Temp\abc.dwg"
+    oDataMedium.FileName = filename
  
     Dim oTranslationContext As TranslationContext = ThisApplication.TransientObjects.CreateTranslationContext
     oTranslationContext.Type = kFileBrowseIOMechanism
