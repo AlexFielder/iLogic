@@ -30,7 +30,7 @@ Sub CreateImportedDWGComponentSample(ByVal filename As String, Optional Thicknes
     End If
     
     Dim oMatrix As Matrix = ThisApplication.TransientGeometry.CreateMatrix
-    oMatrix.SetTranslation(ThisApplication.TransientGeometry.CreateVector(0, 0, 10))
+    oMatrix.SetTranslation(ThisApplication.TransientGeometry.CreateVector(0, 0, 0))
     
     oImportedDWGDef.Transformation = oMatrix
     
