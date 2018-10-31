@@ -11,7 +11,7 @@ End Sub
 ''' This rule runs without error if there are no dimensions in the original .dwg file.
 ''' </summary>
 ''' <param name="filename"></param>
-Sub CreateImportedDWGComponentSample(ByVal filename As String)
+Sub CreateImportedDWGComponentSample(ByVal filename As String, Optional Thickness As String = "0.0")
     Dim oDoc As PartDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject, ThisApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kPartDocumentObject))
           
     Dim oCompDef As PartComponentDefinition = oDoc.ComponentDefinition
@@ -66,9 +66,30 @@ Sub CreateImportedDWGComponentSample(ByVal filename As String)
 	regionProps.Accuracy = AccuracyEnum.kMedium
 	
 	Dim oExtrudeDef As ExtrudeDefinition = oCompDef.Features.ExtrudeFeatures.CreateExtrudeDefinition(newProfile, kJoinOperation)
+	If thickness = "0.0" Then
+		thickness = InputBox("Extrusion Thickness?", "Extrusion Thickness", "10 mm")
+	End If
 	Call oExtrudeDef.SetDistanceExtent(1, PartFeatureExtentDirectionEnum.kNegativeExtentDirection)
 	
 	Dim oExtrude As ExtrudeFeature = oCompDef.Features.ExtrudeFeatures.Add(oExtrudeDef)
+	oExtrude.SetEndOfPart(True)
+	'set last parameter to "Thickness"
+	Dim ModelParamList As List(Of ModelParameter) = New List(Of ModelParameter)
+	For Each MParameter As ModelParameter In oCompDef.Parameters.ModelParameters
+		ModelParamList.Add(MParameter)	
+	Next
+	Logger.Debug(ModelParamList.Count)
+	Dim minParam As Parameter = Nothing
+	'Dim minParamNum As Integer = 0
+	If ModelParamList.Count > 0 Then
+		ModelParamList.Sort(Function(x As ModelParameter, y As ModelParameter) x.Name.CompareTo(y.Name))
+		minParam = (From param As ModelParameter In ModelParamList Select param).First()
+	End If
+	Dim p As ModelParameter = minParam 'oCompDef.Parameters("d142") 'Parameter.Param("d142")
+	p.Name = "Thickness"
+	p.Expression = Thickness
+	oCompDef.SetEndOfPartToTopOrBottom(False)
+	
 End Sub
 
 Sub AssociativelyImportAutoCADDWGSample()
