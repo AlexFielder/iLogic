@@ -1,14 +1,18 @@
 ﻿Option explicit on
 
+'''
 Sub main()
 	Call CreateImportedDWGComponentSample("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Blog - Webinar\Inventor LT\companion cube..dwg")
 	'neither of these work with .dxfs
 	'Call CreateImportedDWGComponentSample("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Inventor 2019\companion cube.dxf") 'F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Blog - Webinar\Inventor LT\companion cube..dwg")
 	'Call ImportDWGIntoSketch("F:\Onedrive For Business\OneDrive - GRAITEC\Inventor\Designs\Inventor 2019\companion cube.dxf")
 End Sub
-
+''' <summary>
+''' This rule runs without error if there are no dimensions in the original .dwg file.
+''' </summary>
+''' <param name="filename"></param>
 Sub CreateImportedDWGComponentSample(ByVal filename As String)
-    Dim oDoc As PartDocument = ThisApplication.Documents.Add(kPartDocumentObject)
+    Dim oDoc As PartDocument = ThisApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject, ThisApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kPartDocumentObject))
           
     Dim oCompDef As PartComponentDefinition = oDoc.ComponentDefinition
     
@@ -19,7 +23,7 @@ Sub CreateImportedDWGComponentSample(ByVal filename As String)
     
     Dim oImportedDWGDef As ImportedDWGComponentDefinition
     
-    If oImportedCompDef.Type = kImportedDWGComponentDefinitionObject Then
+    If oImportedCompDef.Type = ObjectTypeEnum.kImportedDWGComponentDefinitionObject Then
         oImportedDWGDef = oImportedCompDef
     Else
 		Exit Sub
@@ -35,21 +39,36 @@ Sub CreateImportedDWGComponentSample(ByVal filename As String)
     
     Dim oImportedDWGComponent As ImportedDWGComponent
     
+	Dim oSk As PlanarSketch = Nothing
+	
     If oImportedComponent.Type = ObjectTypeEnum.kImportedDWGComponentObject Then
         oImportedDWGComponent = oImportedComponent
         
-        Dim oSk As PlanarSketch = oCompDef.Sketches.Add(oCompDef.WorkPlanes(3))
+        oSk = oCompDef.Sketches.Add(oCompDef.WorkPlanes(3))
         
         ' Get the DWGBlockDefinition for model space.
         Dim oDWGModelSpaceDef As DWGBlockDefinition = oImportedDWGComponent.ModelSpaceDefinition
         
         ' Project DWG entities to planar sketch.
-        Dim oDWGEntity As DWGEntity
-        For Each oDWGEntity In oDWGModelSpaceDef.Entities
-         
-            Call oSk.AddByProjectingEntity(oDWGEntity)
+        For Each oDWGEntity As DWGEntity In oDWGModelSpaceDef.Entities
+			If Not oDWGEntity.Type = ObjectTypeEnum.kDWGEntityProxyObject Or Not oDWGEntity.Type = ObjectTypeEnum.kDWGEntityObject Then
+'         	If Not TypeOf(oDWGEntity) Is ObjectTypeEnum.kDWGEntityProxyObject Or Not TypeOf(oDWGEntity) Is ObjectTypeEnum.kDWGEntityObject Then
+            	Call oSk.AddByProjectingEntity(oDWGEntity)
+			Else
+				Logger.Debug("DWG Entity Type: " & oDWGEntity.Type)
+			End If
         Next
     End If
+	oImportedDWGComponent.Visible = False
+	
+	Dim newProfile As Profile = oSk.Profiles.AddForSolid
+	Dim regionProps As RegionProperties = newProfile.RegionProperties
+	regionProps.Accuracy = AccuracyEnum.kMedium
+	
+	Dim oExtrudeDef As ExtrudeDefinition = oCompDef.Features.ExtrudeFeatures.CreateExtrudeDefinition(newProfile, kJoinOperation)
+	Call oExtrudeDef.SetDistanceExtent(1, PartFeatureExtentDirectionEnum.kNegativeExtentDirection)
+	
+	Dim oExtrude As ExtrudeFeature = oCompDef.Features.ExtrudeFeatures.Add(oExtrudeDef)
 End Sub
 
 Sub AssociativelyImportAutoCADDWGSample()

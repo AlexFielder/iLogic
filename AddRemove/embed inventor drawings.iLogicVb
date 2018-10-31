@@ -15,7 +15,7 @@ Sub Main()
 	Dim selectedfile As String = String.Empty
 	Dim oFileDlg As inventor.FileDialog = Nothing
 	InventorVb.Application.CreateFileDialog(oFileDlg)
-	oFileDlg.Filter = "Dwg files (*.dwg)|*.dwg|Excel files (*.xlsx)|*.xlsx|pdf files (*.pdf)|*.pdf|Inventor parts (*.ipt)|*.ipt|Inventor iFeatures (*.ide)|*.ide|XML Parameter files (*.xml)|*.xml|Step files (*.stp;*.step;*.stpz)|*.stp;*.step;*.stpz|Other files (*.*)|*.*"
+	oFileDlg.Filter = "Step files (*.stp;*.step;*.stpz)|*.stp;*.step;*.stpz|Dwg files (*.dwg)|*.dwg|Excel files (*.xlsx)|*.xlsx|pdf files (*.pdf)|*.pdf|Inventor parts (*.ipt)|*.ipt|Inventor iFeatures (*.ide)|*.ide|XML Parameter files (*.xml)|*.xml|Other files (*.*)|*.*"
 	oFileDlg.InitialDirectory = FolderName
 	oFileDlg.CancelError = True
 	oFileDlg.MultiSelectEnabled = True

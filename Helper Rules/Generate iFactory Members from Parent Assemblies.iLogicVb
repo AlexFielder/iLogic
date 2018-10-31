@@ -10,6 +10,7 @@
 		For Each subdoc As Inventor.Document In thisAssy.ReferencedDocuments
 			If TypeOf subdoc Is PartDocument Then
 				If subdoc.componentdefinition.isiPartFactory Then
+					Logger.Debug(subdoc.FullFileName)
 					updatestatusbar(subdoc.FullFileName)
 					GenerateFactoryMembers(subdoc)
 				End If
@@ -39,11 +40,13 @@ Public Sub ProcessSubAssemblies(ByVal AssyDoc As AssemblyDocument)
     For Each subdoc As Inventor.Document In AssyDoc.ReferencedDocuments
         If TypeOf subdoc Is PartDocument Then
             If subdoc.componentdefinition.isiPartFactory Then
+				Logger.Debug("Processing: " & subdoc.FullFileName)
                 updatestatusbar("Processing: " & subdoc.FullFileName)
                 GenerateFactoryMembers(subdoc)
             End If
         Else 'Assembly
             If subdoc.componentdefinition.isiAssemblyFactory Then
+				logger.Debug("Processing: " & subdoc.FullFileName)
                 updatestatusbar("Processing: " & subdoc.FullFileName)
                 GenerateFactoryMembers(subdoc)
                 ProcessSubAssemblies(subdoc)
