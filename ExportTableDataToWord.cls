@@ -463,17 +463,19 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
-        Case WhatsNewRow To UsedRowCount
+        Case WhatsNewRow To TotalTrainingDays
             sectionDataRowStart = WhatsNewRow
-            sectionDataRowEnd = UsedRowCount
+            sectionDataRowEnd = TotalTrainingDays
             Set tmpControl = findNamedContentControl(wdDoc, cWhatsNewCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
-        Case Else
+        Case TotalTrainingDays To UsedRowCount
             'we're probably ready to populate the Total Days.
-            sectionDataRowStart = 0
-            sectionDataRowEnd = 0
+            sectionDataRowStart = TotalTrainingDays
+            sectionDataRowEnd = UsedRowCount
             Set tmpControl = findNamedContentControl(wdDoc, cTotalDaysCCName)
+        Case Else
+            'do nothing
     End Select
     If Not tmpControl Is Nothing Then
        Set thisControl = tmpControl
