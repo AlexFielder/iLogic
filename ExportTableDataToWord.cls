@@ -127,8 +127,10 @@ Sub Export_Table_Data_Word()
     ufProgress.Show
     Dim percentDone As Single
     
-    For i = 1 To r.Rows.Count
-        percentDone = i / r.Rows.Count
+    TotalTrainingDays = 0
+    
+    For i = 1 To TotalTrainingDaysRow ' r.Rows.Count
+        percentDone = i / TotalTrainingDaysRow ' r.Rows.Count
         With ufProgress
             .LabelCaption.Caption = "Processing Row " & i & " of " & r.Rows.Count
             .LabelProgress.Width = percentDone * (.FrameProgress.Width)
@@ -188,9 +190,12 @@ Sub Export_Table_Data_Word()
                 Set headerCell = wdTable.Cell(1, 1)
                 Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
                 Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
-                If i >= TotalTrainingDaysRow Then
-                    Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 1)
+                If i = TotalTrainingDaysRow Then
+                    'both of these should work
+                    'Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 1)
+                    Set descrCell = wdTable.Cell(wdTable.Rows.Count, 1)
                 Else
+                    Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
                     Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 2)
                 End If
                 Dim topicStr As String
@@ -225,9 +230,10 @@ Sub Export_Table_Data_Word()
                 topicCell.Range.Text = topicStr  'insert value from Excel column A
                 descrCell.Range.Text = descrStr 'insert value from Excel column B
                 ' this will keep getting set and reset so maybe need to only do it we're next to the sectionDataRowEnd value?
-                If i >= TotalTrainingDaysRow Then
-                    TotalDaysCell.Range.Text = CStr(TotalTrainingDays)
-                Else
+'                If i >= TotalTrainingDaysRow Then
+'                    TotalDaysCell.Range.Text = CStr(TotalTrainingDays)
+'                Else
+                If Not i = TotalTrainingDaysRow Then
                     TotalDaysCell.Range.Text = TotalDaysStr
                 End If
                 Count = Count + 1
@@ -483,7 +489,7 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
-        Case WhatsNewRow To TotalTrainingDaysRow
+        Case WhatsNewRow To TotalTrainingDaysRow - 2
             sectionDataRowStart = WhatsNewRow
             sectionDataRowEnd = TotalTrainingDaysRow
             Set tmpControl = findNamedContentControl(wdDoc, cWhatsNewCCName)
@@ -494,6 +500,7 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             sectionDataRowStart = TotalTrainingDaysRow
             sectionDataRowEnd = UsedRowCount
             Set tmpControl = findNamedContentControl(wdDoc, cTotalTrainingDaysCCName)
+            Set tmpTable = tmpControl.Range.Tables(1)
         Case Else
             'do nothing
     End Select
