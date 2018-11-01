@@ -17,6 +17,7 @@ Const cOtherSectionValue As String = "iLogic"
 Const cInventorModulesSectionValue As String = "Inventor Modules"
 Const cOtherFeaturesSectionValue As String = "Other Features"
 Const cWhatsNewSectionValue As String = "Whats New"
+Const cTotalTrainingDaysSectionValue As String = "Total Training Days"
 
 'Word Constant ContentControl name values:
 Const cBasicPartsCCName As String = "PartSubjects"
@@ -38,6 +39,7 @@ Public iLogicRow As Integer
 Public InventorModulesRow As Integer
 Public OthersRow As Integer
 Public WhatsNewRow As Integer
+Public TotalTrainingDays As Integer
 
 'Boolean Values
 Public weCreatedWord As Boolean
@@ -91,7 +93,7 @@ Sub Export_Table_Data_Word()
     
     Call SetSectionDefaultRequirements
     
-    Call GetSectionRows(ws.usedRange, PartRow, AssemblyRow, DetailingRow, DataManagementRow, iLogicRow, InventorModulesRow, OthersRow, WhatsNewRow)
+    Call GetSectionRows(ws.usedRange, PartRow, AssemblyRow, DetailingRow, DataManagementRow, iLogicRow, InventorModulesRow, OthersRow, WhatsNewRow, TotalTrainingDays)
     'for debugging purposes:
 '    MsgBox ("sketching row: " & CStr(sketchingRow) & vbCrLf & "parts row: " & CStr(PartRow) & vbCrLf & _
 '            "Assembly row: " & CStr(AssemblyRow) & vbCrLf & "Detailing Row: " & CStr(DetailingRow) & vbCrLf & _
@@ -468,7 +470,10 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case Else
-            'do nothing
+            'we're probably ready to populate the Total Days.
+            sectionDataRowStart = 0
+            sectionDataRowEnd = 0
+            Set tmpControl = findNamedContentControl(wdDoc, cTotalDaysCCName)
     End Select
     If Not tmpControl Is Nothing Then
        Set thisControl = tmpControl
@@ -499,7 +504,7 @@ Const sMsoName As String = "DesignMode"
 End Sub
 
 Sub GetSectionRows(ByVal usedRange As Range, ByRef PartRow As Integer, ByRef AssemblyRow As Integer, ByRef DetailingRow As Integer, ByRef DataManagementRow As Integer, _
-                    ByRef iLogicRow As Integer, ByRef InventorModulesRow As Integer, ByRef OthersRow As Integer, ByRef WhatsNewRow As Integer)
+                    ByRef iLogicRow As Integer, ByRef InventorModulesRow As Integer, ByRef OthersRow As Integer, ByRef WhatsNewRow As Integer, ByRef TotalTrainingDaysRow As Integer)
 
 Dim searchRangeStart As Range: Set searchRangeStart = usedRange.Cells(1, 1)
 Dim searchRangeEnd As Range: Set searchRangeEnd = usedRange.Cells(usedRange.Rows.Count, 1)
@@ -515,7 +520,7 @@ iLogicRow = searchForSectionRange(sectionSearchRange, cOtherSectionValue)
 InventorModulesRow = searchForSectionRange(sectionSearchRange, cInventorModulesSectionValue)
 OthersRow = searchForSectionRange(sectionSearchRange, cOtherFeaturesSectionValue)
 WhatsNewRow = searchForSectionRange(sectionSearchRange, cWhatsNewSectionValue)
-
+TotalTrainingDaysRow = searchForSectionRange(sectionSearchRange, cTotalTrainingDaysSectionValue)
 
 End Sub
 
