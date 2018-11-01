@@ -1,5 +1,6 @@
 ﻿Option Explicit On
-imports System.Linq
+Imports System.Linq
+''' This rule is designed to populate a series of supplied column parameters, creating them as required.
 Sub Main()
 	'Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Populate Multivalue Lists")
 	Dim columns As String = "E,G,I,L,N,O,R" 'this could be automated by adding an "isKey" at the top of each column!?

@@ -27,6 +27,7 @@ Const ciLogicrCCName As String = "iLogicSubjects"
 Const cInventorModulesCCName As String = "InventorModules"
 Const cOtherFeaturesCCName As String = "OtherFeatures"
 Const cWhatsNewCCName As String = "WhatsNew"
+Const cTotalDaysCCName As String = "TotalDays"
 
 'Excel rows - we populate these later:
 Public PartRow As Integer
