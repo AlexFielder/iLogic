@@ -46,6 +46,7 @@ Public TotalTrainingDays As Double
 'Boolean Values
 Public weCreatedWord As Boolean
 Public weAreDebugging As Boolean
+
 'Booleans for section deletion
 Public partsRequired As Boolean
 Public assembliesRequired As Boolean
@@ -65,8 +66,8 @@ Sub Export_Table_Data_Word()
     Const stWordDocument As String = "Template.dotx" 'this needs to exist in the folder this Excel file is in!
     
     'Word objects.
-    Dim wdApp As Word.Application
-    Dim wdDoc As Word.Document
+    Dim wdapp As Word.Application
+    Dim wddoc As Word.Document
     Dim wdCell As Word.Cell
     
     'Excel objects
@@ -84,15 +85,15 @@ Sub Export_Table_Data_Word()
     Set ws = wbBook.Worksheets("Inventor Survey Beta")
     
     'Set wdApp = New Word.Application
-    Set wdApp = CreateWord(True)
+    Set wdapp = CreateWord(True)
     'for debugging only:
     If weAreDebugging Then
-        wdApp.Visible = True
+        wdapp.Visible = True
     End If
-    Set wdDoc = wdApp.Documents.Add(wbBook.Path & "\" & stWordDocument)
+    Set wddoc = wdapp.Documents.Add(wbBook.Path & "\" & stWordDocument)
     
     'may need this in case changing the LockContentControl change doesn't work!
-    Call EnterExitDesignMode(wdApp, True)
+    Call EnterExitDesignMode(wdapp, True)
     
     Call SetSectionDefaultRequirements
     
@@ -146,7 +147,7 @@ Sub Export_Table_Data_Word()
             Dim sectionDataRowStart As Integer
             Dim sectionDataRowEnd As Integer
             Dim thisControl As ContentControl
-            Set wdTable = tmpTable(wdDoc, i, r.Rows.Count, sectionDataRowStart, sectionDataRowEnd, thisControl)
+            Set wdTable = tmpTable(wddoc, i, r.Rows.Count, sectionDataRowStart, sectionDataRowEnd, thisControl)
             If Not thisControl Is Nothing Then
                 ccList.Add thisControl
             End If
@@ -190,19 +191,22 @@ Sub Export_Table_Data_Word()
                 Set headerCell = wdTable.Cell(1, 1)
                 Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
 '                Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
+                Dim topicStr As String
+                topicStr = ws.Cells(i, 1).Value
+                Dim descrStr As String
+                
                 If i = TotalTrainingDaysRow Then
                     'both of these should work
                     'Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 1)
                     Set descrCell = wdTable.Cell(wdTable.Rows.Count, 1)
+                    descrStr = CStr(Round(ws.Cells(i, 2).Value2, 2))
                 Else
                     Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
                     Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
                     Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 2)
+                    descrStr = ws.Cells(i, 2).Value
                 End If
-                Dim topicStr As String
-                topicStr = ws.Cells(i, 1).Value
-                Dim descrStr As String
-                descrStr = ws.Cells(i, 2).Value
+                
                 
                 If Not topicCell.Shading.BackgroundPatternColor = wdColorAutomatic Then
                     With topicCell
@@ -235,7 +239,6 @@ Sub Export_Table_Data_Word()
                 End If
                 Count = Count + 1
             End If
-            'determines which table we need to add the rows to:
         End If
         If i = r.Rows.Count Then Unload ufProgress
     Next i
@@ -244,34 +247,36 @@ Sub Export_Table_Data_Word()
     
     Call DeleteUnusedSections(ccList)
     'update Table of Contents
-    If wdDoc.TablesOfContents.Count = 1 Then wdDoc.TablesOfContents(1).Update
+    If wddoc.TablesOfContents.Count = 1 Then wddoc.TablesOfContents(1).Update
     'may need this in case changing the LockContentControl change doesn't work!
-    Call EnterExitDesignMode(wdApp, False)
+    Call EnterExitDesignMode(wdapp, False)
+    
+    Call CloseWord(wdapp, wddoc, wbBook)
     
     'Save and close the Word doc.
-    With wdDoc
-        Dim readOnlyDoc As Boolean
-        readOnlyDoc = IsWordDocOpen(wdApp, wbBook.Path & "\Training Survey.docx")
-        If Not readOnlyDoc Then
-            .SaveAs (wbBook.Path & "\Training Survey.docx")
-        Else
-            MsgBox "Unable to save the resultant document" & vbCrLf & _
-            "Perhaps you or someone else has it open?", vbCritical, "Office 3shit5 strikes again!"
-            wdApp.Visible = True
-        End If
-        If Not weAreDebugging And Not readOnlyDoc Then
-            .Close
-        End If
-    End With
-    
-    If weCreatedWord And Not weAreDebugging And Not readOnlyDoc Then
-        wdApp.Quit
-    End If
+'    With wddoc
+'        Dim readOnlyDoc As Boolean
+'        readOnlyDoc = IsWordDocOpen(wdapp, wbBook.Path & "\Training Survey.docx")
+'        If Not readOnlyDoc Then
+'            .SaveAs (wbBook.Path & "\Training Survey.docx")
+'        Else
+'            MsgBox "Unable to save the resultant document" & vbCrLf & _
+'            "Perhaps you or someone else has it open?", vbCritical, "Office 3shit5 strikes again!"
+'            wdapp.Visible = True
+'        End If
+'        If Not weAreDebugging And Not readOnlyDoc Then
+'            .Close
+'        End If
+'    End With
+'
+'    If weCreatedWord And Not weAreDebugging And Not readOnlyDoc Then
+'        wdapp.Quit
+'    End If
     
     'Null out the variables.
     Set wdCell = Nothing
-    Set wdDoc = Nothing
-    Set wdApp = Nothing
+    Set wddoc = Nothing
+    Set wdapp = Nothing
     Set r = Nothing
     Set ws = Nothing
     Set wbBook = Nothing
@@ -279,6 +284,29 @@ Sub Export_Table_Data_Word()
     MsgBox "The " & stWordDocument & "'s table has succcessfully " & vbNewLine & _
            "been updated!", vbInformation
 
+End Sub
+
+Sub CloseWord(ByVal wdapp As Word.Application, ByVal wddoc As Word.Document, ByVal wbBook As Workbook)
+    'Save and close the Word doc.
+    With wddoc
+        Dim readOnlyDoc As Boolean
+        readOnlyDoc = IsWordDocOpen(wdapp, wbBook.Path & "\Training Survey.docx")
+        If Not readOnlyDoc Then
+            .SaveAs (wbBook.Path & "\Training Survey.docx")
+        Else
+            MsgBox "Unable to save the resultant document" & vbCrLf & _
+            "Perhaps you or someone else has it open?", vbCritical, "Office 3shit5 strikes again!"
+            wdapp.Visible = True
+        End If
+        If Not weAreDebugging And Not readOnlyDoc Then
+            .Close
+        End If
+    End With
+    
+    If weCreatedWord And Not weAreDebugging And Not readOnlyDoc Then
+        wdapp.Quit
+    End If
+End Sub
 End Sub
 
 Function IsWorkbookOpen(ByVal FileName As String) As Boolean
@@ -436,7 +464,7 @@ ERROR_HANDLER:
 
 End Function
 
-Function tmpTable(ByVal wdDoc As Word.Document, _
+Function tmpTable(ByVal wddoc As Word.Document, _
                     ByVal excelRow As Integer, _
                     ByVal UsedRowCount As Integer, _
                     ByRef sectionDataRowStart As Integer, _
@@ -447,56 +475,56 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
         Case PartRow To AssemblyRow
             sectionDataRowStart = PartRow
             sectionDataRowEnd = AssemblyRow
-            Set tmpControl = findNamedContentControl(wdDoc, cBasicPartsCCName)
+            Set tmpControl = findNamedContentControl(wddoc, cBasicPartsCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case AssemblyRow To DetailingRow
             sectionDataRowStart = AssemblyRow
             sectionDataRowEnd = DetailingRow
-            Set tmpControl = findNamedContentControl(wdDoc, cAssemblyCCName)
+            Set tmpControl = findNamedContentControl(wddoc, cAssemblyCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case DetailingRow To DataManagementRow
             sectionDataRowStart = DetailingRow
             sectionDataRowEnd = DataManagementRow
-            Set tmpControl = findNamedContentControl(wdDoc, cDetailingCCName)
+            Set tmpControl = findNamedContentControl(wddoc, cDetailingCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case DataManagementRow To iLogicRow
             sectionDataRowStart = DataManagementRow
             sectionDataRowEnd = iLogicRow
-            Set tmpControl = findNamedContentControl(wdDoc, cDataManagementCCName)
+            Set tmpControl = findNamedContentControl(wddoc, cDataManagementCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case iLogicRow To InventorModulesRow
             sectionDataRowStart = iLogicRow
             sectionDataRowEnd = InventorModulesRow
-            Set tmpControl = findNamedContentControl(wdDoc, ciLogicrCCName)
+            Set tmpControl = findNamedContentControl(wddoc, ciLogicrCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case InventorModulesRow To OthersRow
             sectionDataRowStart = InventorModulesRow
             sectionDataRowEnd = OthersRow
-            Set tmpControl = findNamedContentControl(wdDoc, cInventorModulesCCName)
+            Set tmpControl = findNamedContentControl(wddoc, cInventorModulesCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case OthersRow To WhatsNewRow
             sectionDataRowStart = OthersRow
             sectionDataRowEnd = WhatsNewRow
-            Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
+            Set tmpControl = findNamedContentControl(wddoc, cOtherFeaturesCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case WhatsNewRow To TotalTrainingDaysRow - 2
             sectionDataRowStart = WhatsNewRow
             sectionDataRowEnd = TotalTrainingDaysRow
-            Set tmpControl = findNamedContentControl(wdDoc, cWhatsNewCCName)
+            Set tmpControl = findNamedContentControl(wddoc, cWhatsNewCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
         Case TotalTrainingDaysRow To UsedRowCount
             'we're probably ready to populate the Total Days.
             sectionDataRowStart = TotalTrainingDaysRow
             sectionDataRowEnd = UsedRowCount
-            Set tmpControl = findNamedContentControl(wdDoc, cTotalTrainingDaysCCName)
+            Set tmpControl = findNamedContentControl(wddoc, cTotalTrainingDaysCCName)
             Set tmpTable = tmpControl.Range.Tables(1)
         Case Else
             'do nothing
@@ -514,11 +542,11 @@ End Function
 '    EnterExitDesignMode False
 'End Sub
 
-Sub EnterExitDesignMode(ByVal wdApp As Word.Application, bEnter As Boolean)
+Sub EnterExitDesignMode(ByVal wdapp As Word.Application, bEnter As Boolean)
 Dim cbrs As CommandBars
 Const sMsoName As String = "DesignMode"
 
-    Set cbrs = wdApp.CommandBars
+    Set cbrs = wdapp.CommandBars
     If Not cbrs Is Nothing Then
         If cbrs.GetEnabledMso(sMsoName) Then
             If bEnter <> cbrs.GetPressedMso(sMsoName) Then
