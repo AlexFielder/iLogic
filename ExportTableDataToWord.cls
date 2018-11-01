@@ -98,20 +98,12 @@ Sub Export_Table_Data_Word()
     Call SetSectionDefaultRequirements
     
     Call GetSectionRows(ws.usedRange, PartRow, AssemblyRow, DetailingRow, DataManagementRow, iLogicRow, InventorModulesRow, OthersRow, WhatsNewRow, TotalTrainingDaysRow)
-    'for debugging purposes:
-'    MsgBox ("sketching row: " & CStr(sketchingRow) & vbCrLf & "parts row: " & CStr(PartRow) & vbCrLf & _
-'            "Assembly row: " & CStr(AssemblyRow) & vbCrLf & "Detailing Row: " & CStr(DetailingRow) & vbCrLf & _
-'            "Presentation Row: " & CStr(PresentationRow) & vbCrLf & "Data Management Row: " & CStr(DataManagementRow) & vbCrLf & _
-'            "Other Row: " & CStr(OtherRow) & vbCrLf & "Inventor Modules Row: " & CStr(InventorModulesRow) & vbCrLf & _
-'            "Others Row: " & CStr(OthersRow) & vbCrLf & "Best practices: " & CStr(BestPracticesRow) & vbCrLf & "What's New: " & CStr(WhatsNewRow))
     
     Dim r As Range
     Set r = ws.usedRange
     Dim yesnocol As Integer
     yesnocol = 13 'column M
-    Dim exportRange As Range
-    'this should work but doesn't of course!
-    'Set exportRange = r.Find(What:="ExportYes", LookIn:=xlValues, LookAt:=XlLookAt.xlWhole, SearchOrder:=XlSearchOrder.xlByColumns, MatchCase:=False, MatchByte:=False)
+
     Dim Count As Integer
     Count = 1
     
@@ -169,9 +161,6 @@ Sub Export_Table_Data_Word()
                 Debug.Print "Total days rounded using Round API function: " & CStr(Round(SumRange.Value2, 2))
                 Debug.Print "Totaldays rounded: " & CStr(TotalDaysDbl)
                 
-                'Debug.Print dTime & vbTab & Format(Trunc(dTime), "hh:mm")
-                'returns a message for EVERY row
-                'MsgBox ("Total Days for " + lastTableHeader + " : " + CStr(TotalDaysDbl))
                 Dim TotalDaysStr As String
                 TotalDaysStr = CStr(TotalDaysDbl) ' Round(SumRange.Value2, 2)) 'CStr(SumRange.Value) ' Round(SumRange.Value2, 1) 'ws.Cells.Formula
                 
@@ -253,26 +242,8 @@ Sub Export_Table_Data_Word()
     
     Call CloseWord(wdapp, wddoc, wbBook)
     
-    'Save and close the Word doc.
-'    With wddoc
-'        Dim readOnlyDoc As Boolean
-'        readOnlyDoc = IsWordDocOpen(wdapp, wbBook.Path & "\Training Survey.docx")
-'        If Not readOnlyDoc Then
-'            .SaveAs (wbBook.Path & "\Training Survey.docx")
-'        Else
-'            MsgBox "Unable to save the resultant document" & vbCrLf & _
-'            "Perhaps you or someone else has it open?", vbCritical, "Office 3shit5 strikes again!"
-'            wdapp.Visible = True
-'        End If
-'        If Not weAreDebugging And Not readOnlyDoc Then
-'            .Close
-'        End If
-'    End With
-'
-'    If weCreatedWord And Not weAreDebugging And Not readOnlyDoc Then
-'        wdapp.Quit
-'    End If
-    
+    'hide the progress form
+    ufProgress.Hide
     'Null out the variables.
     Set wdCell = Nothing
     Set wddoc = Nothing
@@ -306,7 +277,6 @@ Sub CloseWord(ByVal wdapp As Word.Application, ByVal wddoc As Word.Document, ByV
     If weCreatedWord And Not weAreDebugging And Not readOnlyDoc Then
         wdapp.Quit
     End If
-End Sub
 End Sub
 
 Function IsWorkbookOpen(ByVal FileName As String) As Boolean
