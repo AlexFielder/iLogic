@@ -132,7 +132,7 @@ Sub Export_Table_Data_Word()
     For i = 1 To TotalTrainingDaysRow ' r.Rows.Count
         percentDone = i / TotalTrainingDaysRow ' r.Rows.Count
         With ufProgress
-            .LabelCaption.Caption = "Processing Row " & i & " of " & r.Rows.Count
+            .LabelCaption.Caption = "Processing Row " & i & " of " & TotalTrainingDaysRow 'r.Rows.Count
             .LabelProgress.Width = percentDone * (.FrameProgress.Width)
         End With
         DoEvents
@@ -189,12 +189,13 @@ Sub Export_Table_Data_Word()
                 'Set vaData = wdApp.ActiveDocument.Tables(1).Range.Cells(count)
                 Set headerCell = wdTable.Cell(1, 1)
                 Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
-                Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
+'                Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
                 If i = TotalTrainingDaysRow Then
                     'both of these should work
                     'Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 1)
                     Set descrCell = wdTable.Cell(wdTable.Rows.Count, 1)
                 Else
+                    Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
                     Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
                     Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 2)
                 End If
@@ -227,13 +228,9 @@ Sub Export_Table_Data_Word()
                     End With
                 End If
                 
-                topicCell.Range.Text = topicStr  'insert value from Excel column A
                 descrCell.Range.Text = descrStr 'insert value from Excel column B
-                ' this will keep getting set and reset so maybe need to only do it we're next to the sectionDataRowEnd value?
-'                If i >= TotalTrainingDaysRow Then
-'                    TotalDaysCell.Range.Text = CStr(TotalTrainingDays)
-'                Else
                 If Not i = TotalTrainingDaysRow Then
+                    topicCell.Range.Text = topicStr  'insert value from Excel column A
                     TotalDaysCell.Range.Text = TotalDaysStr
                 End If
                 Count = Count + 1
