@@ -159,9 +159,24 @@ Sub Export_Table_Data_Word()
                 Set SumRange = ws.Cells(sectionDataRowStart, 9) ' column I
                 SumRange.Formula = "=SUM(" & Range(Cells(sectionDataRowStart + 2, 9), Cells(sectionDataRowEnd - 1, 9)).Address(False, False) & ")/60/6.5" '.Value = Excel.WorksheetFunction.Sum(ws.Range(sectionDataRowStart, sectionDataRowEnd))
                 Debug.Print "SumRange.Value: " & SumRange.Value
+                
+                Dim TotalDaysDbl As Double
+                TotalDaysDbl = WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0.25) '* 0.5
+                Debug.Print "Totaldays rounded using .Text function: " & WorksheetFunction.Text(SumRange.Value, "# ?/?")
+                Debug.Print "Total days rounded using Round API function: " & CStr(Round(SumRange.Value2, 2))
+                Debug.Print "Totaldays rounded: " & CStr(TotalDaysDbl)
+                
+                'Debug.Print dTime & vbTab & Format(Trunc(dTime), "hh:mm")
+                'returns a message for EVERY row
+                'MsgBox ("Total Days for " + lastTableHeader + " : " + CStr(TotalDaysDbl))
+                Dim TotalDaysStr As String
+                TotalDaysStr = CStr(SumRange.Value) 'TotalDaysDbl) ' Round(SumRange.Value2, 1) 'ws.Cells.Formula
+                
                 If lastTableHeader = "" Then
                     lastTableHeader = wdTable.Cell(1, 1).Range.Text
                 ElseIf Not lastTableHeader = wdTable.Cell(1, 1).Range.Text Then
+                    'this should only fire once per table (hopefully!)
+                    TotalTrainingDays = TotalTrainingDays + TotalDaysDbl
                     wordTableDataRowStart = 2
                     lastTableHeader = wdTable.Cell(1, 1).Range.Text
                 Else
@@ -178,17 +193,6 @@ Sub Export_Table_Data_Word()
                 topicStr = ws.Cells(i, 1).Value
                 Dim descrStr As String
                 descrStr = ws.Cells(i, 2).Value
-                Dim TotalDaysDbl As Double
-                TotalDaysDbl = WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0.25) '* 0.5
-                Debug.Print "Totaldays rounded using .Text function: " & WorksheetFunction.Text(SumRange.Value, "# ?/?")
-                Debug.Print "Total days rounded using Round API function: " & CStr(Round(SumRange.Value2, 2))
-                Debug.Print "Totaldays rounded: " & CStr(TotalDaysDbl)
-                
-                'Debug.Print dTime & vbTab & Format(Trunc(dTime), "hh:mm")
-                'returns a message for EVERY row
-                'MsgBox ("Total Days for " + lastTableHeader + " : " + CStr(TotalDaysDbl))
-                Dim TotalDaysStr As String
-                TotalDaysStr = CStr(SumRange.Value) 'TotalDaysDbl) ' Round(SumRange.Value2, 1) 'ws.Cells.Formula
                 
                 If Not topicCell.Shading.BackgroundPatternColor = wdColorAutomatic Then
                     With topicCell
