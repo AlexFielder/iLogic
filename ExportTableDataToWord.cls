@@ -39,7 +39,9 @@ Public iLogicRow As Integer
 Public InventorModulesRow As Integer
 Public OthersRow As Integer
 Public WhatsNewRow As Integer
-Public TotalTrainingDays As Integer
+Public TotalTrainingDaysRow As Integer
+
+Public TotalTrainingDays As Double
 
 'Boolean Values
 Public weCreatedWord As Boolean
@@ -53,6 +55,7 @@ Public iLogicRequired As Boolean
 Public inventorModulesRequired As Boolean
 Public otherFeaturesRequired As Boolean
 Public whatsNewRequired As Boolean
+Public totalTrainingDaysRequired As Boolean
 
 Sub Export_Table_Data_Word()
     weCreatedWord = False
@@ -93,7 +96,7 @@ Sub Export_Table_Data_Word()
     
     Call SetSectionDefaultRequirements
     
-    Call GetSectionRows(ws.usedRange, PartRow, AssemblyRow, DetailingRow, DataManagementRow, iLogicRow, InventorModulesRow, OthersRow, WhatsNewRow, TotalTrainingDays)
+    Call GetSectionRows(ws.usedRange, PartRow, AssemblyRow, DetailingRow, DataManagementRow, iLogicRow, InventorModulesRow, OthersRow, WhatsNewRow, TotalTrainingDaysRow)
     'for debugging purposes:
 '    MsgBox ("sketching row: " & CStr(sketchingRow) & vbCrLf & "parts row: " & CStr(PartRow) & vbCrLf & _
 '            "Assembly row: " & CStr(AssemblyRow) & vbCrLf & "Detailing Row: " & CStr(DetailingRow) & vbCrLf & _
@@ -178,7 +181,9 @@ Sub Export_Table_Data_Word()
                 Dim TotalDaysDbl As Double
                 TotalDaysDbl = WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0.25) '* 0.5
                 Debug.Print "Totaldays rounded using .Text function: " & WorksheetFunction.Text(SumRange.Value, "# ?/?")
+                Debug.Print "Total days rounded using Round API function: " & CStr(Round(SumRange.Value2, 2))
                 Debug.Print "Totaldays rounded: " & CStr(TotalDaysDbl)
+                
                 'Debug.Print dTime & vbTab & Format(Trunc(dTime), "hh:mm")
                 'returns a message for EVERY row
                 'MsgBox ("Total Days for " + lastTableHeader + " : " + CStr(TotalDaysDbl))
@@ -350,6 +355,8 @@ Public Sub SetSectionRequirementsByName(ByVal cControlsection As ContentControl)
             otherFeaturesRequired = True
         Case cWhatsNewCCName
             whatsNewRequired = True
+        Case cTotalTrainingDaysRequired
+            totalTrainingDaysRequired = True
         Case Else
     End Select
 End Sub
@@ -363,6 +370,7 @@ Public Sub SetSectionDefaultRequirements()
     inventorModulesRequired = False
     otherFeaturesRequired = False
     whatsNewRequired = False
+    totalTrainingDaysRequired = True
 End Sub
 
 Function Trunc(vTime As Date) As Date
@@ -463,15 +471,15 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             Set tmpControl = findNamedContentControl(wdDoc, cOtherFeaturesCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
-        Case WhatsNewRow To TotalTrainingDays
+        Case WhatsNewRow To TotalTrainingDaysRow
             sectionDataRowStart = WhatsNewRow
-            sectionDataRowEnd = TotalTrainingDays
+            sectionDataRowEnd = TotalTrainingDaysRow
             Set tmpControl = findNamedContentControl(wdDoc, cWhatsNewCCName)
 '            tmpControl.LockContentControl = False
             Set tmpTable = tmpControl.Range.Tables(1)
-        Case TotalTrainingDays To UsedRowCount
+        Case TotalTrainingDaysRow To UsedRowCount
             'we're probably ready to populate the Total Days.
-            sectionDataRowStart = TotalTrainingDays
+            sectionDataRowStart = TotalTrainingDaysRow
             sectionDataRowEnd = UsedRowCount
             Set tmpControl = findNamedContentControl(wdDoc, cTotalDaysCCName)
         Case Else
