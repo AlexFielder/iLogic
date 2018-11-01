@@ -28,7 +28,7 @@ Const ciLogicrCCName As String = "iLogicSubjects"
 Const cInventorModulesCCName As String = "InventorModules"
 Const cOtherFeaturesCCName As String = "OtherFeatures"
 Const cWhatsNewCCName As String = "WhatsNew"
-Const cTotalDaysCCName As String = "TotalDays"
+Const cTotalTrainingDaysCCName As String = "TotalDays"
 
 'Excel rows - we populate these later:
 Public PartRow As Integer
@@ -161,7 +161,7 @@ Sub Export_Table_Data_Word()
                 Debug.Print "SumRange.Value: " & SumRange.Value
                 
                 Dim TotalDaysDbl As Double
-                TotalDaysDbl = WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0.25) '* 0.5
+                TotalDaysDbl = CStr(Round(SumRange.Value2, 2)) ' WorksheetFunction.RoundUp((SumRange.Value * 0.02) / 0.5, 0.25) '* 0.5
                 Debug.Print "Totaldays rounded using .Text function: " & WorksheetFunction.Text(SumRange.Value, "# ?/?")
                 Debug.Print "Total days rounded using Round API function: " & CStr(Round(SumRange.Value2, 2))
                 Debug.Print "Totaldays rounded: " & CStr(TotalDaysDbl)
@@ -170,13 +170,14 @@ Sub Export_Table_Data_Word()
                 'returns a message for EVERY row
                 'MsgBox ("Total Days for " + lastTableHeader + " : " + CStr(TotalDaysDbl))
                 Dim TotalDaysStr As String
-                TotalDaysStr = CStr(SumRange.Value) 'TotalDaysDbl) ' Round(SumRange.Value2, 1) 'ws.Cells.Formula
+                TotalDaysStr = CStr(TotalDaysDbl) ' Round(SumRange.Value2, 2)) 'CStr(SumRange.Value) ' Round(SumRange.Value2, 1) 'ws.Cells.Formula
                 
                 If lastTableHeader = "" Then
                     lastTableHeader = wdTable.Cell(1, 1).Range.Text
                 ElseIf Not lastTableHeader = wdTable.Cell(1, 1).Range.Text Then
                     'this should only fire once per table (hopefully!)
                     TotalTrainingDays = TotalTrainingDays + TotalDaysDbl
+                    Debug.Print "Total Training Days Running Total= " & CStr(TotalTrainingDays)
                     wordTableDataRowStart = 2
                     lastTableHeader = wdTable.Cell(1, 1).Range.Text
                 Else
@@ -187,8 +188,11 @@ Sub Export_Table_Data_Word()
                 Set headerCell = wdTable.Cell(1, 1)
                 Set topicCell = wdTable.Cell(wordTableDataRowStart, 1)
                 Set descrCell = wdTable.Cell(wordTableDataRowStart, 2)
-                Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 2)
-                
+                If i >= TotalTrainingDaysRow Then
+                    Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 1)
+                Else
+                    Set TotalDaysCell = wdTable.Cell(wdTable.Rows.Count, 2)
+                End If
                 Dim topicStr As String
                 topicStr = ws.Cells(i, 1).Value
                 Dim descrStr As String
@@ -221,7 +225,11 @@ Sub Export_Table_Data_Word()
                 topicCell.Range.Text = topicStr  'insert value from Excel column A
                 descrCell.Range.Text = descrStr 'insert value from Excel column B
                 ' this will keep getting set and reset so maybe need to only do it we're next to the sectionDataRowEnd value?
-                TotalDaysCell.Range.Text = TotalDaysStr
+                If i >= TotalTrainingDaysRow Then
+                    TotalDaysCell.Range.Text = CStr(TotalTrainingDays)
+                Else
+                    TotalDaysCell.Range.Text = TotalDaysStr
+                End If
                 Count = Count + 1
             End If
             'determines which table we need to add the rows to:
@@ -359,7 +367,7 @@ Public Sub SetSectionRequirementsByName(ByVal cControlsection As ContentControl)
             otherFeaturesRequired = True
         Case cWhatsNewCCName
             whatsNewRequired = True
-        Case cTotalTrainingDaysRequired
+        Case cTotalTrainingDaysCCName
             totalTrainingDaysRequired = True
         Case Else
     End Select
@@ -485,7 +493,7 @@ Function tmpTable(ByVal wdDoc As Word.Document, _
             'we're probably ready to populate the Total Days.
             sectionDataRowStart = TotalTrainingDaysRow
             sectionDataRowEnd = UsedRowCount
-            Set tmpControl = findNamedContentControl(wdDoc, cTotalDaysCCName)
+            Set tmpControl = findNamedContentControl(wdDoc, cTotalTrainingDaysCCName)
         Case Else
             'do nothing
     End Select
