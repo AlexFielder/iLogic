@@ -56,5 +56,6 @@ Public Sub ExportVisualBasicCode()
     Next
     
     Application.StatusBar = "Successfully exported " & CStr(count) & " VBA files to " & directory
-    Application.OnTime Now + TimeSerial(0, 0, 10), "ClearStatusBar"
+    MsgBox "Successfully exported " & CStr(count) & " VBA files to " & directory
+    Application.StatusBar = False
 End Sub
