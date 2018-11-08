@@ -83,7 +83,7 @@ Private Sub ExportToStep(LastActiveFeatureName As String)
 		oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
 		Dim oData As DataMedium
 		oData = ThisApplication.TransientObjects.CreateDataMedium
-		oData.FileName = NewPath & LastActiveFeatureName & "-exported.stp"
+		oData.FileName = NewPath & LastActiveFeatureName & ".stp"
 		'oData.FileName = ThisDoc.PathAndFileName(False) & "_" & LastActiveFeatureName & "-exported.stp"
 		oSTEPTranslator.SaveCopyAs(ThisApplication.ActiveDocument, oContext, oOptions, oData)
 		'OpenAndSaveExportedStep(oData.FileName)
