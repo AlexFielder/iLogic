@@ -31,7 +31,7 @@ Sub ExportiFactoryToMultiple(Optional ByVal formatInt As Integer = 0)
             ThisApplication.SilentOperation = False
             ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
 			ExportToStep(oiPart.TableRows.Item(i).MemberName)
-			ExportDXF(oiPart.TableRows.Item(i).MemberName)
+			'ExportDXF(oiPart.TableRows.Item(i).MemberName)
             If oErrorManager.HasErrors Or oErrorManager.HasWarnings Then
                 MessageBox.Show(oErrorManager.LastMessage, "Title")
             End If

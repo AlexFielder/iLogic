@@ -1,0 +1,17 @@
+﻿Option explicit on
+Dim partDoc As PartDocument = ThisApplication.ActiveDocument
+Dim partCompDef As PartComponentDefinition = partDoc.ComponentDefinition
+
+Dim rectPattern As RectangularPatternFeature = partCompDef.Features.RectangularPatternFeatures.Item("Rectangular Pattern1")
+For Each tmpElem As FeaturePatternElement In rectPattern.PatternElements
+	If tmpElem.Suppressed Then
+		tmpElem.Suppressed = False
+	End If
+Next
+Dim Generator As Random = New Random()
+Logger.Debug("Count of pattern elements: " & Convert.ToString(rectPattern.PatternElements.Count))
+Dim randomInt As Integer = Generator.Next(1,rectPattern.PatternElements.Count)
+Logger.Debug("Currently selected Pattern Element: "& Convert.ToString(randomInt))
+Dim patternElem As FeaturePatternElement = rectPattern.PatternElements(randomInt)
+patternElem.Suppressed = True
+iLogicVb.UpdateWhenDone = True
