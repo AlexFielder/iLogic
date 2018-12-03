@@ -29,6 +29,8 @@ File Controls (Application Menu)
         Control: Export to DWG, AppExportDwgCmd, Visible: True
         Control: Export to DWF, AppFilePublishCmd, Visible: True
         Control: Send DWF, AppSendEmailCmd, Visible: True
+    Control: Share, cmdPublishViewShare, Visible: True
+        Control: Share View, cmdCreateViewShare, Visible: True
     Control: Seperator
     Control: Manage, Manage, Visible: True
         Control: Projects, AppProjectsCmd, Visible: True
@@ -75,9 +77,10 @@ Help Controls
         Control: Tour My Home, AppShowHomeBaseOverlayCmd, Visible: True
     Control: Connect, Connect, Visible: True
         Control: Autodesk Account, AppAutodeskAccountCmd, Visible: True
-        Control: Autodesk Labs, AppAutodeskLabs, Visible: True
         Control: Autodesk User Group International (AUGI), AppAUGICmd, Visible: True
         Control: Autodesk Inventor, FWxInventorHomeCmd, Visible: True
+        Control: Join Product Research, AppProductResearchCmd, Visible: True
+        Control: Join Autodesk Feedback Community, AppAlphaBetaCmd, Visible: True
     Control: Seperator
     Control: Team Web, AppTeamWebCmd, Visible: True
     Control: Show Get Started Tab, AppShowGettingStartedCmd, Visible: True
@@ -118,6 +121,10 @@ Ribbon: ZeroDoc
             Control: Back, AppMyHomeBackCmd, Visible: True
         Panel: New Features, id_Panel_GetStartedWhatsNew, Visible: True
             Control: What'sNew, AppWhatsNewCmd, Visible: True
+            Control: HighlightNew, highlight_new_on, Visible: True
+                Control: Highlight New, AppHighlightNewCmd, Visible: True
+                Control: Auto-Hide, AppHighlightNewAutoHideCmd, Visible: True
+                Control: Seperator
         Panel: Windows, id_PanelP_ViewWindow, Visible: False
             Control: UserInterface, INV_View_VisibilityOfControls_Cmd, Visible: True
                 Control: ViewCube, AppViewCubeCmd, Visible: True
@@ -136,13 +143,14 @@ Ribbon: ZeroDoc
                 Control: Tile Vertically, AppVerticalWindowsCmd, Visible: True
             Control: Cascade, AppCascadeWindowsCmd, Visible: True
             Control: New, AppNewWindowCmd, Visible: True
+        Panel: , id_PanelP_ShowPanels, Visible: True
         Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
             Control: Help, AppShowHomeBaseHelpCmd, Visible: True
-        Panel: , id_PanelP_ShowPanels, Visible: True
     Tab: Tools, id_TabTools, Visible: True
         Panel: Options, id_PanelP_ToolsOptions, Visible: True
             Control: ApplicationOptions, AppApplicationOptionsCmd, Visible: True
             Control: DocumentSettings, AppDocumentSettingsCmd, Visible: True
+            Control: MigrateSettings, AppMigrateSettingsCmd, Visible: True
             Control: AutodeskApp Manager, AppAppManagerCmd, Visible: True
             Control: Customize, AppCustomizeCmd, Visible: True
             Control: Links, AppEditLinksCmd, Visible: True
@@ -161,6 +169,8 @@ Ribbon: ZeroDoc
             Control: Inventor Ideas, AppIdeaStationCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Add-Ins, id_AddInsTab, Visible: True
+        Panel: Screencast Add-In, id_ScreencastPanel, Visible: True
+            Control: Launch Screencast, InvChronicle.LaunchChronicle, Visible: True
         Panel: Drawing Tools, DrawingToolsToolbarIntName, Visible: True
             Control: Batch Update Styles, DrawingTools.BatchUpdateStyles, Visible: True
     Tab: Vault, id_TabVault_Upgrade, Visible: True
@@ -219,13 +229,16 @@ Vault, VaultLaunchVaultExplorer, Visible: True
             Control: Show Details, VaultShowDetailsTop, Visible: True
             Control: Vault Options, VaultOption, Visible: True
     Tab: Inventor Debug, id_InventorDebugTab, Visible: False
-    Tab: Autodesk A360, id_OnlineTab, Visible: True
-        Panel: Access, id_Panel_OnlineDocument, Visible: True
-            Control: LaunchA360, AppAutodeskCloudCmd, Visible: True
+    Tab: Collaborate, id_OnlineTab, Visible: True
+        Panel: Share, id_Panel_OnlineDocument, Visible: True
+            Control: Shared
+Views, ShowSharedViewsPanelInternalName, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Graitec Extensions, id_GraitecExtensionsServer, Visible: True
-        Panel: Graitec Extensions, GraitecExtensionsServer.RibbonPanel_47ad2155-de7c-45a8-b8d3-463f00f90437, Visible: True
-            Control: Settings, GraitecExtensionsServer.Button_81bc3cb6-2b5f-4022-9e7f-ebb7e4656d92, Visible: True
+        Panel: Graitec Extensions, GraitecExtensionsServer.RibbonPanel_a5f8d8a3-b613-4fe5-80d0-5b3d4d62081d, Visible: True
+            Control: Settings, GraitecExtensionsServer.Button_c8d94505-9b71-4a2d-a387-a8fcaf120e7a, Visible: True
+        Panel: iLogic: 1.0.0.0, GraitecExtensionsServer.iLogic: 1.0.0.0308adeb0-0540-4ef0-a769-94888e9e6793, Visible: True
+            Control: Dump iLogic Rules, GraitecExtensionsServer.Button_742d75a8-8870-4368-aaa0-fd29b4b627fd, Visible: True
 ------------------------------------------------------------------
 Ribbon: Part
     QAT controls
@@ -239,7 +252,6 @@ Ribbon: Part
             Control: Undo, AppUndoCmd, Visible: True
             Control: Redo, AppRedoCmd, Visible: True
             Control: Open from Vault, VaultOpenFromVault_AppMenu, Visible: False
-            Control: Seperator
             Control: Home, AppShowHomeBaseQatCmd, Visible: True
             Control: Print, AppFilePrintCmd, Visible: False
             Control: iProperties, AppiPropertiesWrapperCmd, Visible: True
@@ -267,7 +279,7 @@ Ribbon: Part
             Control: Adjust, AdjustAppearanceCmd, Visible: True
             Control: Clear, ClearOverridesCmd, Visible: True
             Control: Parameters, AppParametersCmd, Visible: True
-            Control: Measure, AppMeasureDistanceCmd, Visible: False
+            Control: Measure, AppMeasureDistanceCmd, Visible: True
                 Control: Measure, AppMeasureDistanceCmd, Visible: True
                 Control: Region Properties, AppMeasureMomentCmd, Visible: True
             Control: Design Doctor, AppDesignDoctorCmd, Visible: True
@@ -353,11 +365,11 @@ Ribbon: Part
         Panel: Setup, id_PanelP_SheetMetalManage, Visible: True
             Control: Sheet MetalDefaults, SheetMetalStylesCmd, Visible: True
             --- Slideout Controls ---
-            Control: Convert to Standard Part, PartConvertToStandardPartCmd, Visible: True
+            Control: Convert to Standard Part, PartConvertToStandardPartCmd, Visible: False
         Panel: Flat Pattern, id_PanelP_SheetMetalManageUnfold, Visible: True
             Control: DefineA-Side, SheetMetalCreateASideCmd, Visible: True
-            Control: CreateFlat Pattern, SheetMetalFlatPatternCmd, Visible: True
-            Control: Go toFlat Pattern, PartSwitchRepresentationCmd, Visible: True
+            Control: CreateFlat Pattern, SheetMetalFlatPatternCmd, Visible: False
+            Control: Go toFlat Pattern, PartSwitchRepresentationCmd, Visible: False
             Control: MakePart, PartMakePartCmd, Visible: True
             Control: MakeComponents, PartMakeComponentsCmd, Visible: True
         Panel: Parameters, id_PanelP_ToolsParameters, Visible: False
@@ -369,8 +381,6 @@ Ribbon: Part
             Control: Measure, AppMeasureDistanceCmd, Visible: True
             --- Slideout Controls ---
             Control: Region Properties, AppMeasureMomentCmd, Visible: True
-        Panel: InventorNetAddin, MyVBInventorAddin.RibbonPanel_cebac0e7-5969-4e83-b36f-29cc82279c05, Visible: True
-            Control: Button 1, MyVBInventorAddin.Button_1457e03c-d409-45d2-bebf-abeeaffc4ac3, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: True
     Tab: Flat Pattern, id_TabFlatPattern, Visible: False
         Panel: Sketch, id_PanelP_Model2DSketchCreate, Visible: True
@@ -449,7 +459,7 @@ Ribbon: Part
         Panel: Manage, id_PanelP_FlatPatternManage, Visible: True
             Control: Sheet MetalDefaults, SheetMetalStylesCmd, Visible: True
             Control: Bend OrderAnnotation, SheetMetalBendOrderCmd, Visible: True
-        Panel: Folded Part, id_PanelP_FlatPatternExit, Visible: True
+        Panel: Folded Part, id_PanelP_FlatPatternExit, Visible: False
             Control: Go toFolded Part, PartSwitchRepresentationCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: 3D Model, id_TabModel, Visible: True
@@ -537,6 +547,12 @@ Ribbon: Part
                 Control: Center Point of Torus, PartTorusWorkPointCmd, Visible: True
                 Control: Center Point of Sphere, PartSphereWorkPointCmd, Visible: True
             Control: UCS, PartUCSCmd, Visible: True
+        Panel: Simplification, Simplification:PartSimplifyPanel, Visible: False
+            Control: Remove
+Details, SimplificationRemoveDetailCmd, Visible: True
+            Control: Fill Voids, SimplificationFillVoidsCmd, Visible: True
+            Control: Define
+Envelopes, SimplificationPartDefineEnvelopesCmd, Visible: True
         Panel: Pattern, id_PanelP_ModelPattern, Visible: True
             Control: Rectangular, PartRectangularPatternCmd, Visible: True
             Control: Circular, PartCircularPatternCmd, Visible: True
@@ -586,6 +602,39 @@ Ribbon: Part
             Control: Insert iFeature, PartiFeatureInsertCmd, Visible: True
             Control: iFeature from Vault, VaultInsertIFeature, Visible: True
             Control: iFeature Catalog, PartiFeatureInsertGallery, Visible: True
+                Control: Angle_equal, ifeature:CatalogRoot:.\Geometric Shapes\Angle_equal.ide, Visible: True
+                Control: Angle_unequal, ifeature:CatalogRoot:.\Geometric Shapes\Angle_unequal.ide, Visible: True
+                Control: Ball_end_straight, ifeature:CatalogRoot:.\Slots\Ball_end_straight.ide, Visible: True
+                Control: Boss_obround_2_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Boss_obround_2_fillets.ide, Visible: True
+                Control: Boss_obround_top_fillet, ifeature:CatalogRoot:.\Pockets and bosses\Boss_obround_top_fillet.ide, Visible: True
+                Control: Boss_rectangular_2_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Boss_rectangular_2_fillets.ide, Visible: True
+                Control: Boss_rectangular_3_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Boss_rectangular_3_fillets.ide, Visible: True
+                Control: Boss_round, ifeature:CatalogRoot:.\Pockets and bosses\Boss_round.ide, Visible: True
+                Control: Cone, ifeature:CatalogRoot:.\Geometric Shapes\Cone.ide, Visible: True
+                Control: Cone_cut, ifeature:CatalogRoot:.\Geometric Shapes\Cone_cut.ide, Visible: True
+                Control: Cone_rounded, ifeature:CatalogRoot:.\Geometric Shapes\Cone_rounded.ide, Visible: True
+                Control: Cone_rounded_cut, ifeature:CatalogRoot:.\Geometric Shapes\Cone_rounded_cut.ide, Visible: True
+                Control: D-Sub connector, ifeature:CatalogRoot:.\Punches\D-Sub connector.ide, Visible: True
+                Control: D-Sub connector 2, ifeature:CatalogRoot:.\Punches\D-Sub connector 2.ide, Visible: True
+                Control: D-Sub connector 3, ifeature:CatalogRoot:.\Punches\D-Sub connector 3.ide, Visible: True
+                Control: D-Sub connector 4, ifeature:CatalogRoot:.\Punches\D-Sub connector 4.ide, Visible: True
+                Control: D-Sub connector 5, ifeature:CatalogRoot:.\Punches\D-Sub connector 5.ide, Visible: True
+                Control: End_mill_curved, ifeature:CatalogRoot:.\Slots\End_mill_curved.ide, Visible: True
+                Control: End_mill_straight, ifeature:CatalogRoot:.\Slots\End_mill_straight.ide, Visible: True
+                Control: Pocket_obround_2_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Pocket_obround_2_fillets.ide, Visible: True
+                Control: Pocket_obround_pocket_fillet, ifeature:CatalogRoot:.\Pockets and bosses\Pocket_obround_pocket_fillet.ide, Visible: True
+                Control: Pocket_rectangular_2_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Pocket_rectangular_2_fillets.ide, Visible: True
+                Control: Pocket_rectangular_3_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Pocket_rectangular_3_fillets.ide, Visible: True
+                Control: Rectangular_tube, ifeature:CatalogRoot:.\Geometric Shapes\Rectangular_tube.ide, Visible: True
+                Control: Round Emboss, ifeature:CatalogRoot:.\Punches\Round Emboss.ide, Visible: True
+                Control: Semi_sphere, ifeature:CatalogRoot:.\Geometric Shapes\Semi_sphere.ide, Visible: True
+                Control: Semi_sphere_cut, ifeature:CatalogRoot:.\Geometric Shapes\Semi_sphere_cut.ide, Visible: True
+                Control: Sphere, ifeature:CatalogRoot:.\Geometric Shapes\Sphere.ide, Visible: True
+                Control: Square Emboss, ifeature:CatalogRoot:.\Punches\Square Emboss.ide, Visible: True
+                Control: curved slot, ifeature:CatalogRoot:.\Punches\curved slot.ide, Visible: True
+                Control: keyhole, ifeature:CatalogRoot:.\Punches\keyhole.ide, Visible: True
+                Control: keyway, ifeature:CatalogRoot:.\Punches\keyway.ide, Visible: True
+                Control: obround, ifeature:CatalogRoot:.\Punches\obround.ide, Visible: True
         Panel: Harness, id_PanelP_ModelHarness, Visible: False
             Control: Pin, HSL:Cable:Place_Pin, Visible: True
             Control: Pin Group, HSL:Cable:Place_Pin_Group, Visible: True
@@ -603,12 +652,6 @@ Ribbon: Part
             Control: Convert toStandard Part, PartConvertToStandardPartCmd, Visible: False
         Panel: 3D Print, id_PanelP_3DPrint, Visible: False
             Control: 3D Print, App3DPrintEnterCmd, Visible: True
-        Panel: Simplification, Simplification:PartSimplifyPanel, Visible: False
-            Control: Remove
-Details, SimplificationRemoveDetailCmd, Visible: True
-            Control: Fill Voids, SimplificationFillVoidsCmd, Visible: True
-            Control: Define
-Envelopes, SimplificationPartDefineEnvelopesCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: True
     Tab: Sketch, id_TabSketch, Visible: True
         Panel: Sketch, id_PanelP_Model2DSketchCreate, Visible: True
@@ -720,6 +763,11 @@ Curve, MoldBridgeCurve, Visible: True
             --- Slideout Controls ---
             Control: Import from XML, iLogic.XmlImport, Visible: True
             Control: Export to XML, iLogic.XmlExport, Visible: True
+        Panel: pointLinker, coolOrange.PointLinker.Panel, Visible: True
+            Control: pointLinker, coolOrange.PointLinker.PointLinkerSketchCtrlCmd, Visible: True
+            --- Slideout Controls ---
+            Control: Help, coolOrange.PointLinker.HelpCtrlCmd, Visible: True
+            Control: About, coolOrange.PointLinker.AboutCtrlCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: True
     Tab: Annotate, id_TabAdskMBD, Visible: True
         Panel: Geometric Annotation, id_PanelAdskMBDGeometricAnno, Visible: True
@@ -738,7 +786,7 @@ Advisor, MBD_ADDIN_ToleranceAdvisorViewCmd, Visible: True
             Control: GeneralProfile Note, Anno3DGeneralProfileNoteCmd, Visible: True
         Panel: Manage, id_PanelAdskMBDManage, Visible: True
             Control: Scale, MBD_ADDIN_AnnoScaleComboBox, Visible: True
-            Control: Quarter Section View, AssemblyQuarterSectionViewCmd, Visible: True
+            Control: Half Section View, AssemblyQuarterSectionViewCmd, Visible: True
                 Control: Quarter Section View, AssemblyQuarterSectionViewCmd, Visible: True
                 Control: Half Section View, AssemblyHalfSectionViewCmd, Visible: True
                 Control: Three Quarter Section View, AssemblyThreeQuarterSectionViewCmd, Visible: True
@@ -747,6 +795,8 @@ Advisor, MBD_ADDIN_ToleranceAdvisorViewCmd, Visible: True
             Control: 3D PDF, MBD_ADDIN_Proxy3DPDFCmd, Visible: True
             Control: Export to DWF, AppFilePublishCmd, Visible: True
             Control: CAD Format, AppFileExportCADFormatCmd, Visible: True
+            Control: Shared
+Views, ShowSharedViewsPanelInternalName, Visible: True
     Tab: Inspect, id_TabInspect, Visible: True
         Panel: Measure, id_PanelP_AnalysisMeasure, Visible: True
             Control: Measure, AppMeasureDistanceCmd, Visible: True
@@ -788,6 +838,7 @@ Advisor, MBD_ADDIN_ToleranceAdvisorViewCmd, Visible: True
         Panel: Options, id_PanelP_ToolsOptions, Visible: True
             Control: ApplicationOptions, AppApplicationOptionsCmd, Visible: True
             Control: DocumentSettings, AppDocumentSettingsCmd, Visible: True
+            Control: MigrateSettings, AppMigrateSettingsCmd, Visible: True
             Control: AutodeskApp Manager, AppAppManagerCmd, Visible: True
             Control: Customize, AppCustomizeCmd, Visible: True
             Control: Links, AppEditLinksCmd, Visible: True
@@ -835,6 +886,39 @@ Advisor, MBD_ADDIN_ToleranceAdvisorViewCmd, Visible: True
             Control: Insert iFeature, PartiFeatureInsertCmd, Visible: True
             Control: iFeature from Vault, VaultInsertIFeature, Visible: True
             Control: iFeature Catalog, PartiFeatureInsertGallery, Visible: True
+                Control: Angle_equal, ifeature:CatalogRoot:.\Geometric Shapes\Angle_equal.ide, Visible: True
+                Control: Angle_unequal, ifeature:CatalogRoot:.\Geometric Shapes\Angle_unequal.ide, Visible: True
+                Control: Ball_end_straight, ifeature:CatalogRoot:.\Slots\Ball_end_straight.ide, Visible: True
+                Control: Boss_obround_2_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Boss_obround_2_fillets.ide, Visible: True
+                Control: Boss_obround_top_fillet, ifeature:CatalogRoot:.\Pockets and bosses\Boss_obround_top_fillet.ide, Visible: True
+                Control: Boss_rectangular_2_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Boss_rectangular_2_fillets.ide, Visible: True
+                Control: Boss_rectangular_3_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Boss_rectangular_3_fillets.ide, Visible: True
+                Control: Boss_round, ifeature:CatalogRoot:.\Pockets and bosses\Boss_round.ide, Visible: True
+                Control: Cone, ifeature:CatalogRoot:.\Geometric Shapes\Cone.ide, Visible: True
+                Control: Cone_cut, ifeature:CatalogRoot:.\Geometric Shapes\Cone_cut.ide, Visible: True
+                Control: Cone_rounded, ifeature:CatalogRoot:.\Geometric Shapes\Cone_rounded.ide, Visible: True
+                Control: Cone_rounded_cut, ifeature:CatalogRoot:.\Geometric Shapes\Cone_rounded_cut.ide, Visible: True
+                Control: D-Sub connector, ifeature:CatalogRoot:.\Punches\D-Sub connector.ide, Visible: True
+                Control: D-Sub connector 2, ifeature:CatalogRoot:.\Punches\D-Sub connector 2.ide, Visible: True
+                Control: D-Sub connector 3, ifeature:CatalogRoot:.\Punches\D-Sub connector 3.ide, Visible: True
+                Control: D-Sub connector 4, ifeature:CatalogRoot:.\Punches\D-Sub connector 4.ide, Visible: True
+                Control: D-Sub connector 5, ifeature:CatalogRoot:.\Punches\D-Sub connector 5.ide, Visible: True
+                Control: End_mill_curved, ifeature:CatalogRoot:.\Slots\End_mill_curved.ide, Visible: True
+                Control: End_mill_straight, ifeature:CatalogRoot:.\Slots\End_mill_straight.ide, Visible: True
+                Control: Pocket_obround_2_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Pocket_obround_2_fillets.ide, Visible: True
+                Control: Pocket_obround_pocket_fillet, ifeature:CatalogRoot:.\Pockets and bosses\Pocket_obround_pocket_fillet.ide, Visible: True
+                Control: Pocket_rectangular_2_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Pocket_rectangular_2_fillets.ide, Visible: True
+                Control: Pocket_rectangular_3_fillets, ifeature:CatalogRoot:.\Pockets and bosses\Pocket_rectangular_3_fillets.ide, Visible: True
+                Control: Rectangular_tube, ifeature:CatalogRoot:.\Geometric Shapes\Rectangular_tube.ide, Visible: True
+                Control: Round Emboss, ifeature:CatalogRoot:.\Punches\Round Emboss.ide, Visible: True
+                Control: Semi_sphere, ifeature:CatalogRoot:.\Geometric Shapes\Semi_sphere.ide, Visible: True
+                Control: Semi_sphere_cut, ifeature:CatalogRoot:.\Geometric Shapes\Semi_sphere_cut.ide, Visible: True
+                Control: Sphere, ifeature:CatalogRoot:.\Geometric Shapes\Sphere.ide, Visible: True
+                Control: Square Emboss, ifeature:CatalogRoot:.\Punches\Square Emboss.ide, Visible: True
+                Control: curved slot, ifeature:CatalogRoot:.\Punches\curved slot.ide, Visible: True
+                Control: keyhole, ifeature:CatalogRoot:.\Punches\keyhole.ide, Visible: True
+                Control: keyway, ifeature:CatalogRoot:.\Punches\keyway.ide, Visible: True
+                Control: obround, ifeature:CatalogRoot:.\Punches\obround.ide, Visible: True
         Panel: Point Cloud, id_PanelP_ToolsPointCloud, Visible: True
             Control: AutodeskReCap, AppLaunchStudioCloudsCmd, Visible: True
             Control: Attach, AppAttachPointCloudCmd, Visible: True
@@ -856,7 +940,7 @@ Advisor, MBD_ADDIN_ToleranceAdvisorViewCmd, Visible: True
                 Control: Edit Factory Scope, ConfigsEditFamilyScopeCmd, Visible: True
                 Control: Edit Member Scope, ConfigsEditMemberScopeCmd, Visible: True
             Control: Extract iFeature, PartiFeatureExtractCmd, Visible: True
-            Control: IDF Component, HSL:AuthoringSplit, Visible: True
+            Control: Structural Shape, HSL:AuthoringSplit, Visible: True
                 Control: Component, HSL:FDAuthoringToolsButton, Visible: True
                 Control: Tube and Pipe, HSL:Piping:AuthoringTool, Visible: True
                 Control: Connector, HSL:Cable:Connector_Authoring, Visible: True
@@ -1007,11 +1091,10 @@ Advisor, MBD_ADDIN_ToleranceAdvisorViewCmd, Visible: True
             Control: InventorStudio, Archon:Env, Visible: True
             Control: Create
 Mold Design, MoldCreateMoldDesign, Visible: True
+            Control: Tolerance
+Analysis, ToleranceAnalysis:Environment, Visible: True
             Control: BIM
 Content, AEC_Exchange:Environment, Visible: True
-            Control: Dynamic Simulation, DynamicSimulationEnvironmentInternalName, Visible: True
-            Control: Eco Materials Adviser, EcoMaterialsAdviser, Visible: True
-            Control: Frame Analysis, FrameAnalysisEnvironment, Visible: True
         Panel: Convert, id_PanelP_ConvertSheetMetal, Visible: True
             Control: Convert toSheet Metal, PartConvertToSheetMetalCmd, Visible: True
             Control: Convert toStandard Part, PartConvertToStandardPartCmd, Visible: False
@@ -1021,6 +1104,8 @@ Content, AEC_Exchange:Environment, Visible: True
             Control: Add-Ins, AppAddInManagerCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Get Started, id_GetStarted, Visible: True
+        Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
+            Control: Help, AppShowHomeBaseHelpCmd, Visible: True
         Panel: Launch, id_Panel_Launch, Visible: True
             Control: New, AppFileNewCmdSplit, Visible: True
                 Control: New, AppFileNewCmd, Visible: True
@@ -1035,15 +1120,19 @@ Content, AEC_Exchange:Environment, Visible: True
             Control: Learning Path, AppShowHomeBaseLearningCmd, Visible: True
             Control: Help, AppShowHomeBaseHelpCmd, Visible: False
             Control: Back, AppMyHomeBackCmd, Visible: True
-        Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
-            Control: Help, AppShowHomeBaseHelpCmd, Visible: True
         Panel: New Features, id_Panel_GetStartedWhatsNew, Visible: True
             Control: What'sNew, AppWhatsNewCmd, Visible: True
+            Control: HighlightNew, highlight_new_on, Visible: True
+                Control: Highlight New, AppHighlightNewCmd, Visible: True
+                Control: Auto-Hide, AppHighlightNewAutoHideCmd, Visible: True
+                Control: Seperator
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Add-Ins, id_AddInsTab, Visible: True
         Panel: GeneralTools, {95413AE5-1C63-4373-A614-2649F5BF8AA6}, Visible: True
             Control: Check Spelling, Autodesk:GeneralTools:CheckSpellingCmd, Visible: True
             Control: Pitch Helix, Autodesk:GeneralTools:PitchHelixCmd, Visible: True
+        Panel: Screencast Add-In, id_ScreencastPanel, Visible: True
+            Control: Launch Screencast, InvChronicle.LaunchChronicle, Visible: True
         Panel: Drawing Tools, DrawingToolsToolbarIntName, Visible: True
             Control: Batch Update Styles, DrawingTools.BatchUpdateStyles, Visible: True
     Tab: Vault, id_TabVault_Upgrade, Visible: True
@@ -1101,21 +1190,13 @@ Vault, VaultLaunchVaultExplorer, Visible: True
             Control: Undo Check Out, VaultUndoCheckoutTop, Visible: True
             Control: Show Details, VaultShowDetailsTop, Visible: True
             Control: Vault Options, VaultOption, Visible: True
-    Tab: Autodesk A360, id_OnlineTab, Visible: True
-        Panel: Access, id_Panel_OnlineDocument, Visible: True
-            Control: LaunchA360, AppAutodeskCloudCmd, Visible: True
+    Tab: Collaborate, id_OnlineTab, Visible: True
+        Panel: Share, id_Panel_OnlineDocument, Visible: True
+            Control: Shared
+Views, ShowSharedViewsPanelInternalName, Visible: True
         Panel: Web, id_PanelP_ToolsWebTools, Visible: True
             Control: Supplier Content, CCV2OpenCWButton, Visible: True
             Control: Inventor Ideas, AppIdeaStationCmd, Visible: True
-        Panel: Configurator 360, Autodesk:Configurator360Addin:Configurator360RibbonPanel, Visible: True
-            Control: Upload to
-Configurator 360, Autodesk:Configurator360Addin:UploadToC360, Visible: True
-            Control: Seperator
-            Control: Edit Connector, Autodesk:Configurator360Addin:EditConnector, Visible: True
-            Control: Update Connectors, Autodesk:Configurator360Addin:UpdateConnectors, Visible: True
-            Control: Connector Visibility, Autodesk:Configurator360Addin:ConnectorVisibility, Visible: True
-                Control: Show Connectors, Autodesk:Configurator360Addin:ShowConnectors, Visible: True
-                Control: Hide Connectors, Autodesk:Configurator360Addin:HideConnectors, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Exit 2D Sketch, id_TabSketch_Exit, Visible: False
         Panel: Exit, id_PanelP_2DSketchExit, Visible: True
@@ -1232,6 +1313,11 @@ Configurator 360, Autodesk:Configurator360Addin:UploadToC360, Visible: True
             --- Slideout Controls ---
             Control: Import from XML, iLogic.XmlImport, Visible: True
             Control: Export to XML, iLogic.XmlExport, Visible: True
+        Panel: pointLinker, coolOrange.PointLinker.Panel, Visible: True
+            Control: pointLinker, coolOrange.PointLinker.PointLinkerSketchCtrlCmd, Visible: True
+            --- Slideout Controls ---
+            Control: Help, coolOrange.PointLinker.HelpCtrlCmd, Visible: True
+            Control: About, coolOrange.PointLinker.AboutCtrlCmd, Visible: True
     Tab: Exit 3D Sketch, id_Tab3DSketch_Exit, Visible: False
         Panel: Exit, id_PanelP_3DSketchExit, Visible: True
             Control: FinishSketch, Finish3dSketchCmd, Visible: True
@@ -1417,7 +1503,7 @@ Configurator 360, Autodesk:Configurator360Addin:UploadToC360, Visible: True
             --- Slideout Controls ---
             Control: Remote Force, FeaCreateLoadRemoteForceCmd, Visible: True
             Control: Body, FeaCreateLoadBodyCmd, Visible: True
-        Panel: Goals and Criteria, id_PanelA_AFEAGoalsCriteria, Visible: True
+        Panel: Goals and Criteria, id_PanelA_AFEAGoalsCriteria, Visible: False
             Control: PreserveRegion, GddCreatePreservedRegionConstraintCmd, Visible: True
             Control: SymmetryPlane, GddCreateSymmetryPlaneConstraintCmd, Visible: True
             Control: Shape GeneratorSettings, GddToptSimulationSettingsCmd, Visible: True
@@ -1429,7 +1515,7 @@ Configurator 360, Autodesk:Configurator360Addin:UploadToC360, Visible: True
             Control: Mesh Settings, FeaMeshSettingCmd, Visible: True
             Control: Local Mesh Control, FeaCreateLocalMeshControlCmd, Visible: True
             Control: Convergence Settings, FeaConvergenceCmd, Visible: True
-        Panel: Run, id_PanelA_AFEARun, Visible: True
+        Panel: Run, id_PanelA_AFEARun, Visible: False
             Control: GenerateShape, GddToptGenerateShapeCmd, Visible: True
         Panel: Solve, id_PanelA_AFEASolve, Visible: True
             Control: Simulate, FeaSimulateCmd, Visible: True
@@ -1449,7 +1535,7 @@ Configurator 360, Autodesk:Configurator360Addin:UploadToC360, Visible: True
                 Control: Contour Shading, FeaContourPlotCmd, Visible: True
                 Control: No Shading, FeaNoPlotCmd, Visible: True
             Control: Result Displacement Scale, FeaResultScaleCmd, Visible: True
-        Panel: Export, id_PanelA_AFEAExport, Visible: True
+        Panel: Export, id_PanelA_AFEAExport, Visible: False
             Control: PromoteShape, GddToptSaveShapeCmd, Visible: True
         Panel: Report, id_PanelA_AFEAReport, Visible: True
             Control: Report, FeaGenerateReportCmd, Visible: True
@@ -1627,8 +1713,27 @@ Configurator 360, Autodesk:Configurator360Addin:UploadToC360, Visible: True
             Control: DatumID, Anno3DDatumIdCmd, Visible: False
             Control: Design ViewManager, ShowDesignViewsWindowCmd, Visible: False
     Tab: Graitec Extensions, id_GraitecExtensionsServer, Visible: True
-        Panel: Graitec Extensions, GraitecExtensionsServer.RibbonPanel_cc9b08c0-e485-4ee9-9735-802faf238d2e, Visible: True
-            Control: Settings, GraitecExtensionsServer.Button_81bc3cb6-2b5f-4022-9e7f-ebb7e4656d92, Visible: True
+        Panel: Graitec Extensions, GraitecExtensionsServer.RibbonPanel_d46f1e93-90af-4ba3-a3ea-084b6db084a0, Visible: True
+            Control: Settings, GraitecExtensionsServer.Button_c8d94505-9b71-4a2d-a387-a8fcaf120e7a, Visible: True
+        Panel: iLogic: 1.0.0.0, GraitecExtensionsServer.iLogic: 1.0.0.0d54cdafc-2801-48e3-b197-d0ef2a55cb7b, Visible: True
+            Control: Dump iLogic Rules, GraitecExtensionsServer.Button_742d75a8-8870-4368-aaa0-fd29b4b627fd, Visible: True
+        Panel: Cylindrical Holes: 1.2.1.0, GraitecExtensionsServer.Cylindrical Holes: 1.2.1.0562ab50e-9e32-48e7-a550-22feed32516e, Visible: True
+            Control: Radial Holes, GraitecExtensionsServer.Button_9a5a0a8b-7576-43cc-a0cf-5fb4f8a84c87, Visible: True
+    Tab: Tolerance Analysis, ToleranceAnalysis:PartRibbonTab, Visible: False
+        Panel: Stackup, ToleranceAnalysis:PartDefinePanel, Visible: True
+            Control: New Stackup, ToleranceAnalysis:PartMeasurementCmd, Visible: True
+            Control: Add Feature, ToleranceAnalysis:PartFeatureCmd, Visible: True
+        Panel: Report, ToleranceAnalysis:PartReportPanel, Visible: True
+            Control: Take Snapshot, ToleranceAnalysis:SaveCameraCmd, Visible: True
+            Control: Show Snapshot, ToleranceAnalysis:ShowViewCmd, Visible: True
+            Control: Generate Report, ToleranceAnalysis:GenerateReportCmd, Visible: True
+        Panel: Data, ToleranceAnalysis:PartXmlPanel, Visible: True
+            Control: Import, ToleranceAnalysis:ImportXmlCmd, Visible: True
+            Control: Export, ToleranceAnalysis:ExportXmlCmd, Visible: True
+        Panel: Manage, ToleranceAnalysis:PartApplicationPanel, Visible: True
+            Control: Settings, ToleranceAnalysis:SettingsCmd, Visible: True
+        Panel: Help, ToleranceAnalysis:HelpPanel, Visible: True
+            Control: Help, ToleranceAnalysis:HelpCmd, Visible: True
     Tab: BIM Content, id_TabAECExchange, Visible: False
         Panel: MEP Connectors, id_PanelA_AECExchangeConnectors, Visible: True
             Control: Cable Tray
@@ -1650,6 +1755,12 @@ Components, AEC_Exchange:Command:AuthorComponent, Visible: True
 Components, AEC_Exchange:Command:ShareDesignPackage, Visible: True
             Control: Upload to
 Configurator 360, AEC_Exchange:Command:UploadToC360Wrapper, Visible: True
+    Tab: coolOrange, id_TabCoolOrange, Visible: True
+        Panel: pointLinker, coolOrange.PointLinker.Panel, Visible: True
+            Control: pointLinker, coolOrange.PointLinker.PointLinkerCtrlCmd, Visible: True
+            --- Slideout Controls ---
+            Control: Help, coolOrange.PointLinker.HelpCtrlCmd, Visible: True
+            Control: About, coolOrange.PointLinker.AboutCtrlCmd, Visible: True
 ------------------------------------------------------------------
 Ribbon: Assembly
     QAT controls
@@ -1663,7 +1774,6 @@ Ribbon: Assembly
             Control: Undo, AppUndoCmd, Visible: True
             Control: Redo, AppRedoCmd, Visible: True
             Control: Open from Vault, VaultOpenFromVault_AppMenu, Visible: False
-            Control: Seperator
             Control: Home, AppShowHomeBaseQatCmd, Visible: True
             Control: Print, AppFilePrintCmd, Visible: False
             Control: iProperties, AppiPropertiesWrapperCmd, Visible: True
@@ -1672,10 +1782,10 @@ Ribbon: Assembly
                 Control: Return, AppReturnPreviousCmd, Visible: True
                 Control: Return to Parent, AppReturnParentCmd, Visible: True
                 Control: Return to Top, AppReturnTopCmd, Visible: True
-            Control: Local Update, AppUpdateCmd, Visible: True
+            Control: Update, AppUpdateCmd, Visible: True
                 Control: Local Update, AppLocalUpdateCmd, Visible: True
                 Control: Global Update, AppGlobalUpdateWrapperCmd, Visible: True
-            Control: Select Component Priority, ID_QAT_Assembly_Select, Visible: True
+            Control: Select, ID_QAT_Assembly_Select, Visible: True
                 Control: Select Component Priority, AppComponentPriorityWrapperCmd, Visible: True
                 Control: Select Part Priority, AppLeafPriorityWrapperCmd, Visible: True
                 Control: Select Body Priority, AppBodyPriorityWrapperCmd, Visible: True
@@ -1711,7 +1821,7 @@ Ribbon: Assembly
                 Control: Measure, AppMeasureDistanceCmd, Visible: True
                 Control: Region Properties, AppMeasureMomentCmd, Visible: True
             Control: Design Doctor, AppDesignDoctorCmd, Visible: True
-    Tab: Mold Layout, MoldTabLayout, Visible: False
+    Tab: Mold Layout, MoldTabLayout, Visible: True
         Panel: Mold Layout, MoldPanelLayout, Visible: True
             Control: Plastic Part, MoldPlaceMoldablePart, Visible: True
                 Control: Plastic Part, MoldPlaceMoldablePart, Visible: True
@@ -1755,7 +1865,6 @@ Shrinkage, MoldFlowMoldShrinkage, Visible: True
             Control: Set Plot Property, MoldFlowSetPlot, Visible: True
             Control: Examine Results, MoldFlowExamineResults, Visible: True
             Control: Job Manager, MoldFlowJobManager, Visible: True
-            --- Slideout Controls ---
             Control: Export, MoldFlowExport, Visible: True
             Control: Animate Results, MoldFlowAnimate, Visible: True
     Tab: Core/Cavity, MoldTabCoreCavity, Visible: False
@@ -1791,7 +1900,6 @@ and Cavity, MoldGenerateCoreCavity, Visible: True
             Control: Place Core Pin, MoldCorePin, Visible: True
             Control: Create Insert, MoldInsert, Visible: True
             Control: Place Insert, MoldPlaceInsert, Visible: True
-            --- Slideout Controls ---
             Control: Manual Sketch, MoldManualSketch, Visible: True
             Control: Create Heel, MoldHeel, Visible: True
         Panel: Tools, MoldPanelTools, Visible: True
@@ -1801,7 +1909,7 @@ and Cavity, MoldGenerateCoreCavity, Visible: True
             --- Slideout Controls ---
             Control: Export, MoldFlowExport, Visible: True
             Control: Animate Results, MoldFlowAnimate, Visible: True
-    Tab: Mold Assembly, MoldTabMoldBase, Visible: False
+    Tab: Mold Assembly, MoldTabMoldBase, Visible: True
         Panel: Mold Assembly, MoldPanelStandardComponents, Visible: True
             Control: Mold Base, MoldMoldBase, Visible: True
                 Control: Mold Base, MoldMoldBase, Visible: True
@@ -1830,14 +1938,12 @@ Boolean, MoldPartBoolean, Visible: True
 Author, MoldAuthorMoldBase, Visible: True
     Tab: Assemble, id_TabAssemble, Visible: True
         Panel: Component, id_PanelA_AssembleComponent, Visible: True
-            Control: Place, AssemblyPlaceSplit, Visible: True
+            Control: Place fromContent Center, AssemblyPlaceSplit, Visible: True
                 Control: Place, AssemblyPlaceComponentCmd, Visible: True
                 Control: Place from Vault, VaultPlaceFromVault_NonVaultRibbonTab, Visible: True
                 Control: Place fromContent Center, CCV2PlaceButton, Visible: True
                 Control: Place ImportedCAD Files, AssemblyPlaceImportCmd, Visible: True
                 Control: Place iLogic Component, iLogic.PlaceComponent, Visible: True
-                Control: Electrical
-Catalog Browser, InsertComponentCmd, Visible: True
             Control: Create, AssemblyCreateComponentCmd, Visible: True
             --- Slideout Controls ---
             Control: Replace, AssemblyReplaceSplit, Visible: True
@@ -1862,8 +1968,6 @@ Catalog Browser, InsertComponentCmd, Visible: True
             Control: Pattern, AssemblyPatternComponentCmd, Visible: True
             Control: Mirror, AssemblyMirrorComponentCmd, Visible: True
             Control: Copy, AssemblyCopyComponentCmd, Visible: True
-            --- Slideout Controls ---
-            Control: iCopy, iCopyAssemblyCopyCmd, Visible: True
         Panel: Manage, id_PanelA_AssembleManage, Visible: True
             Control: Bill ofMaterials, AssemblyBillOfMaterialsCmd, Visible: True
             Control: Parameters, AppParametersCmd, Visible: True
@@ -1878,20 +1982,20 @@ Catalog Browser, InsertComponentCmd, Visible: True
                 Control: Edit Member Scope, ConfigsEditMemberScopeCmd, Visible: True
         Panel: Productivity, id_PanelA_AssembleAssemblyTools, Visible: True
             Control: Create DerivedSubstitutes, AssemblyBonusToolsSplit, Visible: True
-                Control: Create DerivedSubstitutes, AssemblyBonusTools_CreateSubstitutesCmd, Visible: True
-                Control: UpdateSubstitutes, AssemblyBonusTools_UpdateSubstitutesCmd, Visible: True
-                Control: Save and Replace, AssemblyBonusTools_SaveAndReplaceComponentCmd, Visible: True
+                Control: Create DerivedSubstitutes, AssemblyBonusTools_CreateSubstitutesCmd, Visible: False
+                Control: UpdateSubstitutes, AssemblyBonusTools_UpdateSubstitutesCmd, Visible: False
+                Control: Save and Replace, AssemblyBonusTools_SaveAndReplaceComponentCmd, Visible: False
                 Control: Seperator
-                Control: Add Part, AssemblyBonusTools_AddPartCmd, Visible: True
-                Control: Add Assembly, AssemblyBonusTools_AddAssemblyCmd, Visible: True
+                Control: Add Part, AssemblyBonusTools_AddPartCmd, Visible: False
+                Control: Add Assembly, AssemblyBonusTools_AddAssemblyCmd, Visible: False
                 Control: Seperator
-                Control: Link Levelsof Detail, AssemblyBonusTools_LinkLODsCmd, Visible: True
-                Control: ComponentDerive, AssemblyBonusTools_DeriveComponentCmd, Visible: True
-                Control: Place atComponent Origin, AssemblyBonusTools_PlaceAtComponentOriginCmd, Visible: True
-                Control: RenameBrowser Nodes, AssemblyBonusTools_RenameBrowserNodesCmd, Visible: True
-                Control: Alpha SortComponent, AssemblyBonusTools_AlphaSortComponentsCmd, Visible: True
-                Control: Ground andRoot, AssemblyBonusTools_GroundAndRootComponentCmd, Visible: True
-                Control: Degree ofFreedom Analysis, AssemblyBonusTools_DOFAnalysisCmd, Visible: True
+                Control: Link Levelsof Detail, AssemblyBonusTools_LinkLODsCmd, Visible: False
+                Control: ComponentDerive, AssemblyBonusTools_DeriveComponentCmd, Visible: False
+                Control: Place atComponent Origin, AssemblyBonusTools_PlaceAtComponentOriginCmd, Visible: False
+                Control: RenameBrowser Nodes, AssemblyBonusTools_RenameBrowserNodesCmd, Visible: False
+                Control: Alpha SortComponent, AssemblyBonusTools_AlphaSortComponentsCmd, Visible: False
+                Control: Ground andRoot, AssemblyBonusTools_GroundAndRootComponentCmd, Visible: False
+                Control: Degree ofFreedom Analysis, AssemblyBonusTools_DOFAnalysisCmd, Visible: False
                 Control: Seperator
                 Control: Load Express, AssemblyMakeLightWeightCmd, Visible: True
         Panel: Work Features, id_PanelA_ModelWorkFeatures, Visible: True
@@ -1969,7 +2073,7 @@ Simplified Part, SimplificationCombineComponentsCmd, Visible: True
             Control: Reuse, AFG_CMD_ReuseMember, Visible: True
             Control: Change Reuse, AFG_CMD_EditReuseMember, Visible: True
             Control: Seperator
-            Control: FrameAnalysis, FrameAnalysisEnvironment, Visible: True
+            Control: FrameAnalysis, FrameAnalysisEnvironment, Visible: False
             --- Slideout Controls ---
             Control: Remove End Treatments, AFG_RebuildProfile, Visible: True
             Control: Refresh, AFG_CMD_Refresh, Visible: True
@@ -2188,6 +2292,11 @@ Simplified Part, SimplificationCombineComponentsCmd, Visible: True
             Control: Measure, AppMeasureDistanceCmd, Visible: True
             --- Slideout Controls ---
             Control: Region Properties, AppMeasureMomentCmd, Visible: True
+        Panel: pointLinker, coolOrange.PointLinker.Panel, Visible: True
+            Control: pointLinker, coolOrange.PointLinker.PointLinkerSketchCtrlCmd, Visible: True
+            --- Slideout Controls ---
+            Control: Help, coolOrange.PointLinker.HelpCtrlCmd, Visible: True
+            Control: About, coolOrange.PointLinker.AboutCtrlCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Annotate, id_TabAdskMBD, Visible: True
         Panel: General Annotation, id_PanelAdskMBDGeneralAnno, Visible: True
@@ -2199,7 +2308,7 @@ Simplified Part, SimplificationCombineComponentsCmd, Visible: True
             Control: GeneralNote, Anno3DGeneralNoteCmd, Visible: True
         Panel: Manage, id_PanelAdskMBDManage, Visible: True
             Control: Scale, MBD_ADDIN_AnnoScaleComboBox, Visible: True
-            Control: Quarter Section View, AssemblyQuarterSectionViewCmd, Visible: True
+            Control: Half Section View, AssemblyQuarterSectionViewCmd, Visible: True
                 Control: Quarter Section View, AssemblyQuarterSectionViewCmd, Visible: True
                 Control: Half Section View, AssemblyHalfSectionViewCmd, Visible: True
                 Control: Three Quarter Section View, AssemblyThreeQuarterSectionViewCmd, Visible: True
@@ -2207,6 +2316,8 @@ Simplified Part, SimplificationCombineComponentsCmd, Visible: True
         Panel: Export, id_PanelAdskMBDExport, Visible: True
             Control: 3D PDF, MBD_ADDIN_Proxy3DPDFCmd, Visible: True
             Control: Export to DWF, AppFilePublishCmd, Visible: True
+            Control: Shared
+Views, ShowSharedViewsPanelInternalName, Visible: True
     Tab: Weld, id_TabWeld, Visible: False
         Panel: Process, id_PanelA_WeldProcess, Visible: True
             Control: Preparation, AssemblyWeldPrepFeatureGroupCmd, Visible: True
@@ -2332,6 +2443,7 @@ Simplified Part, SimplificationCombineComponentsCmd, Visible: True
         Panel: Options, id_PanelP_ToolsOptions, Visible: True
             Control: ApplicationOptions, AppApplicationOptionsCmd, Visible: True
             Control: DocumentSettings, AppDocumentSettingsCmd, Visible: True
+            Control: MigrateSettings, AppMigrateSettingsCmd, Visible: True
             Control: AutodeskApp Manager, AppAppManagerCmd, Visible: True
             Control: Customize, AppCustomizeCmd, Visible: True
             Control: Links, AppEditLinksCmd, Visible: True
@@ -2393,7 +2505,6 @@ Simplified Part, SimplificationCombineComponentsCmd, Visible: True
                 Control: Edit Member Scope, ConfigsEditMemberScopeCmd, Visible: True
             Control: Mold Base
 Author, MoldAuthorMoldBase, Visible: True
-            Control: iCopy Author, iCopyAssemblyAuthorCmd, Visible: True
         Panel: iLogic, iLogic.RibbonPanel, Visible: True
             Control: Add Rule, iLogic.AddRule, Visible: True
             Control: iLogic Browser, iLogic.RuleBrowser, Visible: True
@@ -2425,7 +2536,7 @@ Author, MoldAuthorMoldBase, Visible: True
                 Control: 3D Sketches, App3DSketchesVisibilityCmd, Visible: True
                 Control: Sketch Dimensions, AppSketchDimensionsVisibilityCmd, Visible: True
                 Control: 3D Annotations, App3DAnnotationsVisibilityCmd, Visible: True
-                Control: Component 3D Annotations, App3DCompAnnotationsVisibilityCmd, Visible: True
+                Control: Component 3D Annotations, App3DCompAnnotationsVisibilityCmd, Visible: False
                 Control: Seperator
                 Control: Welds, WeldmentGlobalVisibilityCmd, Visible: True
                 Control: Weldment Symbols, WeldmentSymbolsCmd, Visible: True
@@ -2532,17 +2643,14 @@ Author, MoldAuthorMoldBase, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Environments, id_TabEnvironments, Visible: True
         Panel: Begin, id_Panel_EnvironmentsBegin, Visible: True
-            Control: DynamicSimulation, DynamicSimulationEnvironmentInternalName, Visible: True
+            Control: DynamicSimulation, DynamicSimulationEnvironmentInternalName, Visible: False
             Control: StressAnalysis, FEA Environment Internal Name, Visible: True
-            Control: FrameAnalysis, FrameAnalysisEnvironment, Visible: True
+            Control: FrameAnalysis, FrameAnalysisEnvironment, Visible: False
             Control: Seperator
             Control: InventorStudio, Archon:Env, Visible: True
             Control: Seperator
             Control: Cable andHarness, HSL:Cable:Insert_New_Harness, Visible: True
             Control: Tube andPipe, HSL:Piping:CreatePipeRun, Visible: True
-            Control: BIM
-Content, AEC_Exchange:Environment, Visible: True
-            Control: Eco Materials Adviser, EcoMaterialsAdviser, Visible: True
         Panel: Convert, id_PanelA_ConvertWeld, Visible: True
             Control: Convert toWeldment, AssemblyConvertToWeldmentDocCmd, Visible: True
             --- Slideout Controls ---
@@ -2563,6 +2671,8 @@ Content, AEC_Exchange:Environment, Visible: True
             Control: Add-Ins, AppAddInManagerCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Get Started, id_GetStarted, Visible: True
+        Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
+            Control: Help, AppShowHomeBaseHelpCmd, Visible: True
         Panel: Launch, id_Panel_Launch, Visible: True
             Control: New, AppFileNewCmdSplit, Visible: True
                 Control: New, AppFileNewCmd, Visible: True
@@ -2577,12 +2687,16 @@ Content, AEC_Exchange:Environment, Visible: True
             Control: Learning Path, AppShowHomeBaseLearningCmd, Visible: True
             Control: Help, AppShowHomeBaseHelpCmd, Visible: False
             Control: Back, AppMyHomeBackCmd, Visible: True
-        Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
-            Control: Help, AppShowHomeBaseHelpCmd, Visible: True
         Panel: New Features, id_Panel_GetStartedWhatsNew, Visible: True
             Control: What'sNew, AppWhatsNewCmd, Visible: True
+            Control: HighlightNew, highlight_new_on, Visible: True
+                Control: Highlight New, AppHighlightNewCmd, Visible: True
+                Control: Auto-Hide, AppHighlightNewAutoHideCmd, Visible: True
+                Control: Seperator
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Add-Ins, id_AddInsTab, Visible: True
+        Panel: Screencast Add-In, id_ScreencastPanel, Visible: True
+            Control: Launch Screencast, InvChronicle.LaunchChronicle, Visible: True
         Panel: Drawing Tools, DrawingToolsToolbarIntName, Visible: True
             Control: Batch Update Styles, DrawingTools.BatchUpdateStyles, Visible: True
     Tab: Vault, id_TabVault_Upgrade, Visible: True
@@ -2619,7 +2733,12 @@ State, VaultChangeStateTop, Visible: True
             Control: Get
 Revision, VaultGetCheckoutTop, Visible: True
             Control: Revise, VaultReviseTop, Visible: True
-    Tab: Vault, id_TabVault, Visible: False
+    Tab: Electromechanical, id_TabMechatronics, Visible: True
+        Panel: Setup, id_PanelA_Mechatronics, Visible: True
+            Control: Electromechanical
+Link Setup, ACRD:Mechatronics:ProjectSetup, Visible: True
+            Control: Location View, ACRD:Mech:ComponentMap, Visible: True
+    Tab: Vault, id_TabVault, Visible: True
         Panel: Access, id_PanelZ_VaultAccess, Visible: True
             Control: Autodesk
 Vault, VaultLaunchVaultExplorer, Visible: True
@@ -2640,28 +2759,13 @@ Vault, VaultLaunchVaultExplorer, Visible: True
             Control: Undo Check Out, VaultUndoCheckoutTop, Visible: True
             Control: Show Details, VaultShowDetailsTop, Visible: True
             Control: Vault Options, VaultOption, Visible: True
-    Tab: Electromechanical, id_TabMechatronics, Visible: True
-        Panel: Setup, id_PanelA_Mechatronics, Visible: True
-            Control: Electromechanical
-Link Setup, ACRD:Mechatronics:ProjectSetup, Visible: True
-            Control: Location View, ACRD:Mech:ComponentMap, Visible: True
-    Tab: Autodesk A360, id_OnlineTab, Visible: True
-        Panel: Access, id_Panel_OnlineDocument, Visible: True
-            Control: LaunchA360, AppAutodeskCloudCmd, Visible: True
+    Tab: Collaborate, id_OnlineTab, Visible: True
+        Panel: Share, id_Panel_OnlineDocument, Visible: True
+            Control: Shared
+Views, ShowSharedViewsPanelInternalName, Visible: True
         Panel: Web, id_PanelP_ToolsWebTools, Visible: True
             Control: Supplier Content, CCV2OpenCWButton, Visible: True
             Control: Inventor Ideas, AppIdeaStationCmd, Visible: True
-        Panel: Configurator 360, Autodesk:Configurator360Addin:Configurator360RibbonPanel, Visible: True
-            Control: Upload to
-Configurator 360, Autodesk:Configurator360Addin:UploadToC360, Visible: True
-            Control: Seperator
-            Control: Infer Connectors, Autodesk:Configurator360Addin:InferConnectors, Visible: True
-            Control: Edit Connector, Autodesk:Configurator360Addin:EditConnector, Visible: True
-            Control: Connect, Autodesk:Configurator360Addin:Connect, Visible: True
-            Control: Update Connectors, Autodesk:Configurator360Addin:UpdateConnectors, Visible: True
-            Control: Connector Visibility, Autodesk:Configurator360Addin:ConnectorVisibility, Visible: True
-                Control: Show Connectors, Autodesk:Configurator360Addin:ShowConnectors, Visible: True
-                Control: Hide Connectors, Autodesk:Configurator360Addin:HideConnectors, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Exit 2D Sketch, id_TabSketch_Exit, Visible: False
         Panel: Exit, id_PanelA_2DSketchExit, Visible: True
@@ -2681,7 +2785,7 @@ Configurator 360, Autodesk:Configurator360Addin:UploadToC360, Visible: True
             Control: Replace, CCV2ReplaceButton, Visible: True
             Control: Refresh, CCV2RSCButton, Visible: True
         Panel: Component, id_PanelA_TubePipeComponent, Visible: True
-            Control: Place, AssemblyPlaceSplit, Visible: True
+            Control: Place fromContent Center, AssemblyPlaceSplit, Visible: True
                 Control: Place, AssemblyPlaceComponentCmd, Visible: True
                 Control: Place from Vault, VaultPlaceFromVault_NonVaultRibbonTab, Visible: True
                 Control: Place fromContent Center, CCV2PlaceButton, Visible: True
@@ -2816,29 +2920,29 @@ Configurator 360, Autodesk:Configurator360Addin:UploadToC360, Visible: True
         Panel: Exit, id_PanelA_StudioExit, Visible: True
             Control: FinishStudio, AppReturnBaseEnv, Visible: True
     Tab: Dynamic Simulation, id_TabSimulation, Visible: False
-        Panel: Joint, id_PanelA_SimulationJoint, Visible: True
+        Panel: Joint, id_PanelA_SimulationJoint, Visible: False
             Control: Insert Joint, DynamicSimulation_IDS_CMD_ADD_JOINT, Visible: True
             Control: Convert Constraints, DynamicSimulation_IDS_CMD_CONVERT_CONTRAINTS, Visible: True
             Control: Mechanism Status, DynamicSimulation_IDS_CMD_MECHANISM_STATUS, Visible: True
-        Panel: Load, id_PanelA_SimulationLoad, Visible: True
+        Panel: Load, id_PanelA_SimulationLoad, Visible: False
             Control: Force, DynamicSimulation_IDS_CMD_ADD_FORCE, Visible: True
             Control: Torque, DynamicSimulation_IDS_CMD_ADD_TORQUE, Visible: True
-        Panel: Results, id_PanelA_SimulationResults, Visible: True
+        Panel: Results, id_PanelA_SimulationResults, Visible: False
             Control: OutputGrapher, DynamicSimulation_IDS_CMD_GRAPHER, Visible: True
             Control: Dynamic Motion, DynamicSimulation_IDS_CMD_DYNAMIC_MOTION, Visible: True
             Control: Unknown Force, DynamicSimulation_IDS_CMD_UNKNOWN_EFFORT, Visible: True
             Control: Trace, DynamicSimulation_IDS_CMD_ADD_TRACE, Visible: True
-        Panel: Animate, id_PanelA_SimulationAnimate, Visible: True
+        Panel: Animate, id_PanelA_SimulationAnimate, Visible: False
             Control: Publish Movie, DynamicSimulation_IDS_CMD_AVI, Visible: True
             Control: Publish to Studio, DynamicSimulation_IDS_CMD_STUDIO_SYNCHRO, Visible: True
         Panel: Manage, id_PanelA_SimulationMaterial, Visible: True
-            Control: SimulationSettings, DynamicSimulation_IDS_CMD_OPTIONS, Visible: True
-            Control: SimulationPlayer, DynamicSimulation_IDS_CMD_MENU_SIMULATION_PANEL, Visible: True
+            Control: SimulationSettings, DynamicSimulation_IDS_CMD_OPTIONS, Visible: False
+            Control: SimulationPlayer, DynamicSimulation_IDS_CMD_MENU_SIMULATION_PANEL, Visible: False
             Control: Parameters, AppParametersCmd, Visible: True
             --- Slideout Controls ---
             Control: Import from XML, iLogic.XmlImport, Visible: True
             Control: Export to XML, iLogic.XmlExport, Visible: True
-        Panel: Stress Analysis, id_PanelA_SimulationExport, Visible: True
+        Panel: Stress Analysis, id_PanelA_SimulationExport, Visible: False
             Control: Seperator
             Control: Export to FEA, DynamicSimulation_IDS_CMD_SELECT_PARTS, Visible: True
             Control: Seperator
@@ -2918,36 +3022,36 @@ Configurator 360, Autodesk:Configurator360Addin:UploadToC360, Visible: True
         Panel: Exit, id_PanelA_AFEAExit, Visible: True
             Control: FinishStress Analysis, AppReturnBaseEnv, Visible: True
     Tab: Frame Analysis, id_TabIFA, Visible: False
-        Panel: Manage, id_PanelA_IFAManage, Visible: True
+        Panel: Manage, id_PanelA_IFAManage, Visible: False
             Control: CreateSimulation, FrameAnalysisCreateSimulationCmd, Visible: True
-        Panel: Beams, id_PanelA_IFAProperties, Visible: True
+        Panel: Beams, id_PanelA_IFAProperties, Visible: False
             Control: Update, FrameAnalysisBeamUpdateCmd, Visible: True
             Control: Properties, FrameAnalysisBeamPropCmd, Visible: True
             Control: Material, FrameAnalysisMaterialPropCmd, Visible: True
-        Panel: Constraints, id_PanelA_IFAConstraints, Visible: True
+        Panel: Constraints, id_PanelA_IFAConstraints, Visible: False
             Control: Fixed, FrameAnalysisAddSupportFixedCmd, Visible: True
             Control: Pinned, FrameAnalysisAddSupportPinnedCmd, Visible: True
             Control: Floating, FrameAnalysisAddSupportFloatingPinnedCmd, Visible: True
             Control: Custom, FrameAnalysisAddSupportUserCmd, Visible: True
-        Panel: Loads, id_PanelA_IFA_Loads, Visible: True
+        Panel: Loads, id_PanelA_IFA_Loads, Visible: False
             Control: Force, FrameAnalysisAddLoadForceCmd, Visible: True
             Control: ContinuousLoad, FrameAnalysisAddLoadContCmd, Visible: True
             Control: Moment, IFA_Moment_Loads, Visible: True
                 Control: Moment, FrameAnalysisAddLoadMomentCmd, Visible: True
                 Control: Axial Moment, FrameAnalysisAddLoadMomentTorqueCmd, Visible: True
                 Control: Bending Moment, FrameAnalysisAddLoadMomentBendCmd, Visible: True
-        Panel: Connections, id_PanelA_IFA_Connections, Visible: True
+        Panel: Connections, id_PanelA_IFA_Connections, Visible: False
             Control: Release, FrameAnalysisAddReleaseCmd, Visible: True
             Control: Custom Node, FrameAnalysisAddUserNodeCmd, Visible: True
             Control: Rigid Link, FrameAnalysisAddRigidLinkCmd, Visible: True
-        Panel: Solve, id_PanelA_IFA_Solve, Visible: True
+        Panel: Solve, id_PanelA_IFA_Solve, Visible: False
             Control: Simulate, FrameAnalysisSimulateCmd, Visible: True
-        Panel: Result, id_PanelA_IFA_Result, Visible: True
+        Panel: Result, id_PanelA_IFA_Result, Visible: False
             Control: Beam Detail, FrameAnalysisBeamDetailCmd, Visible: True
             Control: Animate, FrameAnalysisAnimateResultsCmd, Visible: True
             Control: Diagram, FrameAnalysisAddGraphCmd, Visible: True
             Control: Probe, FrameAnalysisProbeCmd, Visible: True
-        Panel: Display, id_PanelA_IFA_Display, Visible: True
+        Panel: Display, id_PanelA_IFA_Display, Visible: False
             Control: Color Bar, FrameAnalysisColorbarCmd, Visible: True
             Control: Beam Labels, FrameAnalysisBeamsNumbersCmd, Visible: True
             Control: Node Labels, FrameAnalysisNodesNumbersCmd, Visible: True
@@ -2963,18 +3067,36 @@ Configurator 360, Autodesk:Configurator360Addin:UploadToC360, Visible: True
             Control: Boundary Conditions, FrameAnalysisBoundaryConditionsCmd, Visible: True
             Control: Local Systems, FrameAnalysisBeamLocalSystemCmd, Visible: True
             Control: Load Values, FrameAnalysisLoadInfoCmd, Visible: True
-        Panel: Publish, id_PanelA_IFA_Publish, Visible: True
+        Panel: Publish, id_PanelA_IFA_Publish, Visible: False
             Control: Report, FrameAnalysisReportCmd, Visible: True
             Control: Export, FrameAnalysisExportCmd, Visible: True
-        Panel: Settings, id_PanelA_IFA_Settings, Visible: True
+        Panel: Settings, id_PanelA_IFA_Settings, Visible: False
             Control: Frame AnalysisSettings, FrameAnalysisSettingsCmd, Visible: True
     Tab: Exit Frame Analysis, id_TabIFA_Exit, Visible: False
         Panel: Exit, id_PanelA_IFAExit, Visible: True
             Control: FinishFrame Analysis, AppReturnBaseEnv, Visible: True
     Tab: Inventor Debug, id_InventorDebugTab, Visible: False
     Tab: Graitec Extensions, id_GraitecExtensionsServer, Visible: True
-        Panel: Graitec Extensions, GraitecExtensionsServer.RibbonPanel_6822f722-342d-4cc7-bcfc-fd41eaa64b79, Visible: True
-            Control: Settings, GraitecExtensionsServer.Button_81bc3cb6-2b5f-4022-9e7f-ebb7e4656d92, Visible: True
+        Panel: Graitec Extensions, GraitecExtensionsServer.RibbonPanel_f3cdb14f-478a-4c8d-bb36-50ab2cdd0102, Visible: True
+            Control: Settings, GraitecExtensionsServer.Button_c8d94505-9b71-4a2d-a387-a8fcaf120e7a, Visible: True
+        Panel: iLogic: 1.0.0.0, GraitecExtensionsServer.iLogic: 1.0.0.0ac79d323-96c8-460e-83ca-be0f36c5f33f, Visible: True
+            Control: Dump iLogic Rules, GraitecExtensionsServer.Button_742d75a8-8870-4368-aaa0-fd29b4b627fd, Visible: True
+    Tab: Tolerance Analysis, ToleranceAnalysis:AssemblyRibbonTab, Visible: False
+        Panel: Stackup, ToleranceAnalysis:AssemblyRibbonPanel, Visible: True
+            Control: New Stackup, ToleranceAnalysis:AssemblyMeasurementCmd, Visible: True
+            Control: Add Feature, ToleranceAnalysis:AssemblyFeatureCmd, Visible: True
+            Control: Add Offset, ToleranceAnalysis:OffsetPartCmd, Visible: True
+        Panel: Report, ToleranceAnalysis:AssemblyReportPanel, Visible: True
+            Control: Take Snapshot, ToleranceAnalysis:SaveCameraCmd, Visible: True
+            Control: Show Snapshot, ToleranceAnalysis:ShowViewCmd, Visible: True
+            Control: Generate Report, ToleranceAnalysis:GenerateReportCmd, Visible: True
+        Panel: Data, ToleranceAnalysis:AssemblyXmlPanel, Visible: True
+            Control: Import, ToleranceAnalysis:ImportXmlCmd, Visible: True
+            Control: Export, ToleranceAnalysis:ExportXmlCmd, Visible: True
+        Panel: Manage, ToleranceAnalysis:ApplicationPanel, Visible: True
+            Control: Settings, ToleranceAnalysis:SettingsCmd, Visible: True
+        Panel: Help, ToleranceAnalysis:HelpPanel, Visible: True
+            Control: Help, ToleranceAnalysis:HelpCmd, Visible: True
     Tab: BIM Content, id_TabAECExchange, Visible: False
         Panel: Simplify, id_PanelA_AECExchangeSimplify, Visible: True
             Control: Shrinkwrap
@@ -2999,6 +3121,12 @@ Components, AEC_Exchange:Command:AuthorComponent, Visible: True
 Components, AEC_Exchange:Command:ShareDesignPackage, Visible: True
             Control: Upload to
 Configurator 360, AEC_Exchange:Command:UploadToC360Wrapper, Visible: True
+    Tab: coolOrange, id_TabCoolOrange, Visible: True
+        Panel: pointLinker, coolOrange.PointLinker.Panel, Visible: True
+            Control: pointLinker, coolOrange.PointLinker.PointLinkerCtrlCmd, Visible: True
+            --- Slideout Controls ---
+            Control: Help, coolOrange.PointLinker.HelpCtrlCmd, Visible: True
+            Control: About, coolOrange.PointLinker.AboutCtrlCmd, Visible: True
 ------------------------------------------------------------------
 Ribbon: Drawing
     QAT controls
@@ -3067,6 +3195,11 @@ Ribbon: Drawing
             Control: StartSketch, AppSketch2DWrapperCmd, Visible: True
         Panel: Sheets, id_PanelD_PlaceViewsSheets, Visible: True
             Control: New Sheet, DrawingNewSheetCtxCmd, Visible: True
+        Panel: Drawing Manager, Autodesk:DrawingManager:Panel1, Visible: True
+            Control: Sheet
+Manager, SheetManager, Visible: True
+            Control: Print
+Manager, PrintManager, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Annotate, id_TabAnnotate, Visible: True
         Panel: Dimension, id_PanelD_AnnotateDimension, Visible: True
@@ -3306,6 +3439,11 @@ Ribbon: Drawing
             Control: Show Format, AppLinePropertiesToggleCmd, Visible: True
         Panel: Measure, id_PanelD_ToolsMeasure, Visible: False
             Control: Region Properties, AppMeasureMomentCmd, Visible: True
+        Panel: pointLinker, coolOrange.PointLinker.Panel, Visible: True
+            Control: pointLinker, coolOrange.PointLinker.PointLinkerSketchCtrlCmd, Visible: True
+            --- Slideout Controls ---
+            Control: Help, coolOrange.PointLinker.HelpCtrlCmd, Visible: True
+            Control: About, coolOrange.PointLinker.AboutCtrlCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: True
     Tab: Tools, id_TabTools, Visible: True
         Panel: Measure, id_PanelD_ToolsMeasure, Visible: True
@@ -3313,6 +3451,7 @@ Ribbon: Drawing
         Panel: Options, id_PanelP_ToolsOptions, Visible: True
             Control: ApplicationOptions, AppApplicationOptionsCmd, Visible: True
             Control: DocumentSettings, AppDocumentSettingsCmd, Visible: True
+            Control: MigrateSettings, AppMigrateSettingsCmd, Visible: True
             Control: AutodeskApp Manager, AppAppManagerCmd, Visible: True
             Control: Customize, AppCustomizeCmd, Visible: True
             Control: Links, AppEditLinksCmd, Visible: True
@@ -3430,26 +3569,6 @@ Ribbon: Drawing
             Control: Property Display, HSL:Cable:NB_Display_Properties, Visible: True
             Control: Report, HSL:Cable:Generate_Report, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
-    Tab: Get Started, id_GetStarted, Visible: True
-        Panel: Launch, id_Panel_Launch, Visible: True
-            Control: New, AppFileNewCmdSplit, Visible: True
-                Control: New, AppFileNewCmd, Visible: True
-                Control: Import CADFiles, AppFileImportNewCmd, Visible: True
-            Control: Open, AppFileOpenCmd, Visible: True
-            Control: Projects, AppProjectsCmd, Visible: True
-            Control: OpenSamples, AppOpenSampleFilesCmd, Visible: True
-        Panel: My Home, id_Panel_MyHome, Visible: True
-            Control: Home, AppShowHomeBaseCmd, Visible: True
-            Control: Team Web, AppTeamWebCmd, Visible: True
-            Control: TutorialGallery, TutorialGalleryCmd, Visible: True
-            Control: Learning Path, AppShowHomeBaseLearningCmd, Visible: True
-            Control: Help, AppShowHomeBaseHelpCmd, Visible: False
-            Control: Back, AppMyHomeBackCmd, Visible: True
-        Panel: New Features, id_Panel_GetStartedWhatsNew, Visible: True
-            Control: What'sNew, AppWhatsNewCmd, Visible: True
-        Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
-            Control: Help, AppShowHomeBaseHelpCmd, Visible: True
-        Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Vault, id_TabVault_Upgrade, Visible: True
         Panel: Access, id_PanelZ_VaultAccess, Visible: True
             Control: Autodesk
@@ -3484,6 +3603,30 @@ State, VaultChangeStateTop, Visible: True
             Control: Get
 Revision, VaultGetCheckoutTop, Visible: True
             Control: Revise, VaultReviseTop, Visible: True
+    Tab: Get Started, id_GetStarted, Visible: True
+        Panel: Launch, id_Panel_Launch, Visible: True
+            Control: New, AppFileNewCmdSplit, Visible: True
+                Control: New, AppFileNewCmd, Visible: True
+                Control: Import CADFiles, AppFileImportNewCmd, Visible: True
+            Control: Open, AppFileOpenCmd, Visible: True
+            Control: Projects, AppProjectsCmd, Visible: True
+            Control: OpenSamples, AppOpenSampleFilesCmd, Visible: True
+        Panel: My Home, id_Panel_MyHome, Visible: True
+            Control: Home, AppShowHomeBaseCmd, Visible: True
+            Control: Team Web, AppTeamWebCmd, Visible: True
+            Control: TutorialGallery, TutorialGalleryCmd, Visible: True
+            Control: Learning Path, AppShowHomeBaseLearningCmd, Visible: True
+            Control: Help, AppShowHomeBaseHelpCmd, Visible: False
+            Control: Back, AppMyHomeBackCmd, Visible: True
+        Panel: New Features, id_Panel_GetStartedWhatsNew, Visible: True
+            Control: What'sNew, AppWhatsNewCmd, Visible: True
+            Control: HighlightNew, highlight_new_on, Visible: True
+                Control: Highlight New, AppHighlightNewCmd, Visible: True
+                Control: Auto-Hide, AppHighlightNewAutoHideCmd, Visible: True
+                Control: Seperator
+        Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
+            Control: Help, AppShowHomeBaseHelpCmd, Visible: True
+        Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Vault, id_TabVault, Visible: True
         Panel: Access, id_PanelZ_VaultAccess, Visible: True
             Control: Autodesk
@@ -3508,14 +3651,17 @@ Vault, VaultLaunchVaultExplorer, Visible: True
     Tab: Add-Ins, id_AddInsTab, Visible: True
         Panel: GeneralTools, {95413AE5-1C63-4373-A614-2649F5BF8AA6}, Visible: True
             Control: Check Spelling, Autodesk:GeneralTools:CheckSpellingCmd, Visible: True
+        Panel: Screencast Add-In, id_ScreencastPanel, Visible: True
+            Control: Launch Screencast, InvChronicle.LaunchChronicle, Visible: True
         Panel: Drawing Tools, DrawingToolsToolbarIntName, Visible: True
             Control: Batch Update Styles, DrawingTools.BatchUpdateStyles, Visible: True
             Control: Chain Dimension, DrawingTools.ChainDimCmd, Visible: True
             Control: Alpha Sort Sheets, DrawingTools.AlphaSortSheets, Visible: True
             Control: Revision Cloud, DrawingTools.RevisionCloud, Visible: True
-    Tab: Autodesk A360, id_OnlineTab, Visible: True
-        Panel: Access, id_Panel_OnlineDocument, Visible: True
-            Control: LaunchA360, AppAutodeskCloudCmd, Visible: True
+    Tab: Collaborate, id_OnlineTab, Visible: True
+        Panel: Share, id_Panel_OnlineDocument, Visible: True
+            Control: Shared
+Views, ShowSharedViewsPanelInternalName, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Exit 2D Sketch, id_TabSketch_Exit, Visible: False
         Panel: Exit, id_PanelD_2DSketchExit, Visible: True
@@ -3550,8 +3696,16 @@ Vault, VaultLaunchVaultExplorer, Visible: True
                 Control: Return to Top, AppReturnTopCmd, Visible: True
     Tab: Inventor Debug, id_InventorDebugTab, Visible: False
     Tab: Graitec Extensions, id_GraitecExtensionsServer, Visible: True
-        Panel: Graitec Extensions, GraitecExtensionsServer.RibbonPanel_7a61142a-d377-4abd-8925-6f508a886664, Visible: True
-            Control: Settings, GraitecExtensionsServer.Button_81bc3cb6-2b5f-4022-9e7f-ebb7e4656d92, Visible: True
+        Panel: Graitec Extensions, GraitecExtensionsServer.RibbonPanel_8a232b1d-77b8-4773-bd65-4331acb7dcc7, Visible: True
+            Control: Settings, GraitecExtensionsServer.Button_c8d94505-9b71-4a2d-a387-a8fcaf120e7a, Visible: True
+        Panel: iLogic: 1.0.0.0, GraitecExtensionsServer.iLogic: 1.0.0.0dd03c35c-ffc2-47e9-ae67-8b7b02769a47, Visible: True
+            Control: Dump iLogic Rules, GraitecExtensionsServer.Button_742d75a8-8870-4368-aaa0-fd29b4b627fd, Visible: True
+    Tab: coolOrange, id_TabCoolOrange, Visible: True
+        Panel: pointLinker, coolOrange.PointLinker.Panel, Visible: True
+            Control: pointLinker, coolOrange.PointLinker.PointLinkerCtrlCmd, Visible: True
+            --- Slideout Controls ---
+            Control: Help, coolOrange.PointLinker.HelpCtrlCmd, Visible: True
+            Control: About, coolOrange.PointLinker.AboutCtrlCmd, Visible: True
 ------------------------------------------------------------------
 Ribbon: Presentation
     QAT controls
@@ -3589,6 +3743,7 @@ Ribbon: Presentation
         Panel: Options, id_PanelP_ToolsOptions, Visible: True
             Control: ApplicationOptions, AppApplicationOptionsCmd, Visible: True
             Control: DocumentSettings, AppDocumentSettingsCmd, Visible: True
+            Control: MigrateSettings, AppMigrateSettingsCmd, Visible: True
             Control: AutodeskApp Manager, AppAppManagerCmd, Visible: True
             Control: Customize, AppCustomizeCmd, Visible: True
             Control: Links, AppEditLinksCmd, Visible: True
@@ -3711,7 +3866,9 @@ Ribbon: Presentation
         Panel: Manage, id_PanelD_EnvironmentsAddIns, Visible: True
             Control: Add-Ins, AppAddInManagerCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
-    Tab: Get Started, id_GetStarted, Visible: False
+    Tab: Get Started, id_GetStarted, Visible: True
+        Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
+            Control: Help, AppShowHomeBaseHelpCmd, Visible: True
         Panel: Launch, id_Panel_Launch, Visible: True
             Control: New, AppFileNewCmdSplit, Visible: True
                 Control: New, AppFileNewCmd, Visible: True
@@ -3728,12 +3885,11 @@ Ribbon: Presentation
             Control: Back, AppMyHomeBackCmd, Visible: True
         Panel: New Features, id_Panel_GetStartedWhatsNew, Visible: True
             Control: What'sNew, AppWhatsNewCmd, Visible: True
+            Control: HighlightNew, highlight_new_on, Visible: True
+                Control: Highlight New, AppHighlightNewCmd, Visible: True
+                Control: Auto-Hide, AppHighlightNewAutoHideCmd, Visible: True
+                Control: Seperator
         Panel: , id_PanelP_ShowPanels, Visible: False
-        Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
-            Control: Help, AppShowHomeBaseHelpCmd, Visible: True
-    Tab: Add-Ins, id_AddInsTab, Visible: False
-        Panel: Drawing Tools, DrawingToolsToolbarIntName, Visible: True
-            Control: Batch Update Styles, DrawingTools.BatchUpdateStyles, Visible: True
     Tab: Vault, id_TabVault_Upgrade, Visible: True
         Panel: Access, id_PanelZ_VaultAccess, Visible: True
             Control: Autodesk
@@ -3768,6 +3924,11 @@ State, VaultChangeStateTop, Visible: True
             Control: Get
 Revision, VaultGetCheckoutTop, Visible: True
             Control: Revise, VaultReviseTop, Visible: True
+    Tab: Add-Ins, id_AddInsTab, Visible: True
+        Panel: Screencast Add-In, id_ScreencastPanel, Visible: True
+            Control: Launch Screencast, InvChronicle.LaunchChronicle, Visible: True
+        Panel: Drawing Tools, DrawingToolsToolbarIntName, Visible: True
+            Control: Batch Update Styles, DrawingTools.BatchUpdateStyles, Visible: True
     Tab: Vault, id_TabVault, Visible: True
         Panel: Access, id_PanelZ_VaultAccess, Visible: True
             Control: Autodesk
@@ -3796,13 +3957,14 @@ Vault, VaultLaunchVaultExplorer, Visible: True
                 Control: Return to Parent, AppReturnParentCmd, Visible: True
                 Control: Return to Top, AppReturnTopCmd, Visible: True
     Tab: Inventor Debug, id_InventorDebugTab, Visible: False
-    Tab: Autodesk A360, id_OnlineTab, Visible: True
-        Panel: Access, id_Panel_OnlineDocument, Visible: True
-            Control: LaunchA360, AppAutodeskCloudCmd, Visible: True
+    Tab: Collaborate, id_OnlineTab, Visible: True
+        Panel: Share, id_Panel_OnlineDocument, Visible: True
+            Control: Shared
+Views, ShowSharedViewsPanelInternalName, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Graitec Extensions, id_GraitecExtensionsServer, Visible: True
-        Panel: Graitec Extensions, GraitecExtensionsServer.RibbonPanel_7e7fac89-a68d-4f06-95e5-07c451cf33d3, Visible: True
-            Control: Settings, GraitecExtensionsServer.Button_81bc3cb6-2b5f-4022-9e7f-ebb7e4656d92, Visible: True
+        Panel: Graitec Extensions, GraitecExtensionsServer.RibbonPanel_952167fe-972c-4415-bf97-ec4beff7f126, Visible: True
+            Control: Settings, GraitecExtensionsServer.Button_c8d94505-9b71-4a2d-a387-a8fcaf120e7a, Visible: True
 ------------------------------------------------------------------
 Ribbon: iFeatures
     QAT controls
@@ -3831,6 +3993,7 @@ Ribbon: iFeatures
         Panel: Options, id_PanelP_ToolsOptions, Visible: True
             Control: ApplicationOptions, AppApplicationOptionsCmd, Visible: True
             Control: DocumentSettings, AppDocumentSettingsCmd, Visible: True
+            Control: MigrateSettings, AppMigrateSettingsCmd, Visible: True
             Control: AutodeskApp Manager, AppAppManagerCmd, Visible: True
             Control: Customize, AppCustomizeCmd, Visible: True
             Control: Links, AppEditLinksCmd, Visible: True
@@ -3955,10 +4118,16 @@ Ribbon: iFeatures
             Control: Back, AppMyHomeBackCmd, Visible: True
         Panel: New Features, id_Panel_GetStartedWhatsNew, Visible: True
             Control: What'sNew, AppWhatsNewCmd, Visible: True
+            Control: HighlightNew, highlight_new_on, Visible: True
+                Control: Highlight New, AppHighlightNewCmd, Visible: True
+                Control: Auto-Hide, AppHighlightNewAutoHideCmd, Visible: True
+                Control: Seperator
         Panel: , id_PanelP_ShowPanels, Visible: False
         Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
             Control: Help, AppShowHomeBaseHelpCmd, Visible: True
     Tab: Add-Ins, id_AddInsTab, Visible: False
+        Panel: Screencast Add-In, id_ScreencastPanel, Visible: True
+            Control: Launch Screencast, InvChronicle.LaunchChronicle, Visible: True
         Panel: Drawing Tools, DrawingToolsToolbarIntName, Visible: True
             Control: Batch Update Styles, DrawingTools.BatchUpdateStyles, Visible: True
     Tab: Vault, id_TabVault_Upgrade, Visible: True
@@ -4017,9 +4186,10 @@ Vault, VaultLaunchVaultExplorer, Visible: True
             Control: Show Details, VaultShowDetailsTop, Visible: True
             Control: Vault Options, VaultOption, Visible: True
     Tab: Inventor Debug, id_InventorDebugTab, Visible: False
-    Tab: Autodesk A360, id_OnlineTab, Visible: True
-        Panel: Access, id_Panel_OnlineDocument, Visible: True
-            Control: LaunchA360, AppAutodeskCloudCmd, Visible: True
+    Tab: Collaborate, id_OnlineTab, Visible: True
+        Panel: Share, id_Panel_OnlineDocument, Visible: True
+            Control: Shared
+Views, ShowSharedViewsPanelInternalName, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
 ------------------------------------------------------------------
 Ribbon: UnknownDocument
@@ -4066,7 +4236,7 @@ Ribbon: UnknownDocument
         Panel: Exit, id_PanelU_CustomViewExit, Visible: True
             Control: Finish CustomView, DrawingExitCustomViewCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
-    Tab: Engineer's Notebook, id_TabEngineersNotebook, Visible: True
+    Tab: Engineer's Notebook, id_TabEngineersNotebook, Visible: False
         Panel: Notes, id_PanelU_EngineersNotebookNotes, Visible: True
             Control: Comment, NotebookInsertCommentCmd, Visible: True
             Control: View, NotebookInsertViewCmd, Visible: True
@@ -4096,12 +4266,13 @@ Ribbon: UnknownDocument
             Control: Insert Folder, NotebookInsertFolderCmd, Visible: True
             Control: Insert Object, NotebookInsertNewObjectCmd, Visible: True
         Panel: Exit, id_PanelU_NotebookExit, Visible: True
-            Control: FinishNotebook, AppFileCloseCmd, Visible: True
+            Control: FinishNotebook, NotebookFinishNotebookCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
-    Tab: Tools, id_TabEngineersNotebookTools, Visible: True
+    Tab: Tools, id_TabEngineersNotebookTools, Visible: False
         Panel: Options, id_PanelP_ToolsOptions, Visible: True
             Control: ApplicationOptions, AppApplicationOptionsCmd, Visible: True
             Control: DocumentSettings, AppDocumentSettingsCmd, Visible: True
+            Control: MigrateSettings, AppMigrateSettingsCmd, Visible: True
             Control: AutodeskApp Manager, AppAppManagerCmd, Visible: True
             Control: Customize, AppCustomizeCmd, Visible: True
             Control: Links, AppEditLinksCmd, Visible: True
@@ -4122,7 +4293,7 @@ Ribbon: UnknownDocument
             Control: Supplier Content, CCV2OpenCWButton, Visible: True
             Control: Inventor Ideas, AppIdeaStationCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
-    Tab: View, id_TabEngineersNotebookView, Visible: True
+    Tab: View, id_TabEngineersNotebookView, Visible: False
         Panel: Appearance, id_PanelU_ViewAppearance, Visible: True
             Control: Shaded with Edges, AppVisualStyleSplit, Visible: True
                 Control: Realistic, AppRealisticShadingDisplayCmd, Visible: True
@@ -4136,7 +4307,7 @@ Ribbon: UnknownDocument
                 Control: Watercolor, AppWatercolorDisplayCmd, Visible: True
                 Control: Sketch Illustration, AppIllustrationDisplayCmd, Visible: True
                 Control: Technical Illustration, AppTechnicalIllustrationDisplayCmd, Visible: True
-            Control: Transparency On, AppComponentOpacitySplit, Visible: True
+            Control: Transparency Off, AppComponentOpacitySplit, Visible: True
                 Control: Transparency Off, AppComponentOpacityOffCmd, Visible: True
                 Control: Transparency On, AppComponentOpacityOnCmd, Visible: True
         Panel: Windows, id_PanelP_ViewWindow, Visible: True
@@ -4184,6 +4355,8 @@ Ribbon: UnknownDocument
             Control: Home View, AppIsometricViewCmd, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
     Tab: Get Started, id_GetStarted, Visible: False
+        Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
+            Control: Help, AppShowHomeBaseHelpCmd, Visible: True
         Panel: Launch, id_Panel_Launch, Visible: True
             Control: New, AppFileNewCmdSplit, Visible: True
                 Control: New, AppFileNewCmd, Visible: True
@@ -4200,9 +4373,11 @@ Ribbon: UnknownDocument
             Control: Back, AppMyHomeBackCmd, Visible: True
         Panel: New Features, id_Panel_GetStartedWhatsNew, Visible: True
             Control: What'sNew, AppWhatsNewCmd, Visible: True
+            Control: HighlightNew, highlight_new_on, Visible: True
+                Control: Highlight New, AppHighlightNewCmd, Visible: True
+                Control: Auto-Hide, AppHighlightNewAutoHideCmd, Visible: True
+                Control: Seperator
         Panel: , id_PanelP_ShowPanels, Visible: False
-        Panel: Help, {4d9c80fe-e70f-4c29-b6c7-8a5ac3f40eb2}, Visible: True
-            Control: Help, AppShowHomeBaseHelpCmd, Visible: True
     Tab: Vault, id_TabVault_Upgrade, Visible: True
         Panel: Access, id_PanelZ_VaultAccess, Visible: True
             Control: Autodesk
@@ -4259,8 +4434,9 @@ Vault, VaultLaunchVaultExplorer, Visible: True
             Control: Show Details, VaultShowDetailsTop, Visible: True
             Control: Vault Options, VaultOption, Visible: True
     Tab: Inventor Debug, id_InventorDebugTab, Visible: False
-    Tab: Autodesk A360, id_OnlineTab, Visible: True
-        Panel: Access, id_Panel_OnlineDocument, Visible: True
-            Control: LaunchA360, AppAutodeskCloudCmd, Visible: True
+    Tab: Collaborate, id_OnlineTab, Visible: True
+        Panel: Share, id_Panel_OnlineDocument, Visible: True
+            Control: Shared
+Views, ShowSharedViewsPanelInternalName, Visible: True
         Panel: , id_PanelP_ShowPanels, Visible: False
 ------------------------------------------------------------------
