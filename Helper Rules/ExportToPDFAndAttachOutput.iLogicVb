@@ -46,7 +46,6 @@ Public Function ExportPDF(Optional singleSheet As Boolean = False) As String
 			oSheet = oDocument.Sheets(i)
 			'MessageBox.Show(osheet.Name)
 			Dim oTitleBlock As TitleBlock = oDocument.Sheets(i).TitleBlock
-			Dim oTextBoxes As TextBoxes = oTitleBlock.Definition.Sketch.TextBoxes
 			For Each oTextBox As Inventor.TextBox In oTitleBlock.Definition.Sketch.TextBoxes
 				' MessageBox.Show(otextbox.Text)
 				If oTextBox.Text <> "" Then
@@ -128,7 +127,7 @@ Public Function PrintSheet(ByVal sht As Sheet, ByVal DrawingNum As String, ByVal
 	oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
 	Dim oOptions As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
 	Dim oDataMedium As DataMedium = ThisApplication.TransientObjects.CreateDataMedium
-	If oPDFAddIn.HasSaveCopyAsOptions(oDataMedium, oContext, oOptions) Then
+	If oPDFAddIn.HasSaveCopyAsOptions(oDocument, oContext, oOptions) Then
 		oOptions.Value("All_Color_AS_Black") = 1
 		oOptions.Value("Remove_Line_Weights") = 1
 		oOptions.Value("Vector_Resolution") = 400
