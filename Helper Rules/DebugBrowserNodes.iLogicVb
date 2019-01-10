@@ -1,0 +1,34 @@
+﻿Option Explicit On
+Sub Main()
+	break
+	If Not RuleArguments.Exists("filename") Then
+		If Not TypeOf ThisApplication.ActiveDocument Is PartDocument Then
+			MessageBox.Show("not a part file!")
+			Exit Sub
+		End If
+		Dim partDoc As PartDocument = ThisApplication.ActiveDocument
+		reprocessDerivedcomponent(partDoc)
+	Else
+		Dim filename As String = RuleArguments.Value("filename")
+		logger.Debug("processing: " & filename)
+		Dim partDoc As PartDocument = ThisApplication.Documents.Item(filename)
+'		Dim partDoc As PartDocument = ThisApplication.Documents.Open(filename)
+		reprocessDerivedcomponent(partDoc)
+		partDoc.Save()
+'		partDoc.Close()
+	End If
+End Sub
+
+Sub reprocessDerivedcomponent(ByVal partDoc As PartDocument)
+	Dim top As BrowserNode = partDoc.BrowserPanes("Model").TopNode
+		For Each node As BrowserNode In top.BrowserNodes
+			If Not node.NativeObject Is Nothing Then
+	'			break
+				If TypeOf (node.NativeObject) Is DerivedPartComponent Then
+					partDoc.SelectSet.Clear
+					partDoc.SelectSet.Select(node.NativeObject)
+					ThisApplication.CommandManager.ControlDefinitions.Item("PartEditDerivedPartCtxCmd").Execute2(True)
+				End If
+			End If
+		Next
+End Sub

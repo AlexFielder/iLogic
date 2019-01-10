@@ -37,29 +37,38 @@ End Sub
 ''' </summary>
 ''' <param name="includeSubfolders"></param>
 Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
+	'default folder
+	Dim oDesignProjectMgr As DesignProjectManager = ThisApplication.DesignProjectManager
+	Dim oProject As DesignProject = oDesignProjectMgr.DesignProjects.ItemByName(oDesignProjectMgr.ActiveDesignProject.FullFileName)
+	Dim FolderName As String = oProject.WorkspacePath()
     Dim iLogicAuto As Object = GetiLogicAutomation(ThisApplication)
     Dim folderbrowser As New System.Windows.Forms.FolderBrowserDialog()
-
-    folderbrowser.RootFolder = System.Environment.SpecialFolder.MyComputer
+	folderbrowser.SelectedPath = FolderName
+'	folderbrowser.RootFolder = FolderName
+    'folderbrowser.RootFolder = System.Environment.SpecialFolder.MyComputer
 	'folderbrowser.RootFolder = System.Environment.SpecialFolder.UserProfile
     'folderbrowser.RootFolder = getOneDriveFolderPath()
     folderbrowser.Description = "Select Folder to look for files to process."
     folderbrowser.ShowDialog()
-    Dim foldername As String = folderbrowser.selectedpath
+    foldername = folderbrowser.selectedpath
     If Not foldername = String.Empty Then
         'now we can get/create a list of part files
 		Dim Rulesfolderbrowser As New System.Windows.Forms.FolderBrowserDialog()
     	Rulesfolderbrowser.RootFolder = System.Environment.SpecialFolder.MyComputer
-		RulesFolderbrowser.Description = "Select your external iLogic rules folder:"
-		RulesFolderbrowser.ShowDialog()
+		Rulesfolderbrowser.Description = "Select your external iLogic rules folder:"
+		Rulesfolderbrowser.SelectedPath = getDropBoxFolderPath() & "\iLogic\"
+		Logger.Debug(Rulesfolderbrowser.SelectedPath)
+		Rulesfolderbrowser.ShowDialog()
 		Dim externalRulesFolder As String = rulesFolderBrowser.selectedpath
 		If Not externalRulesFolder = String.Empty Then
 			Dim rulename As String = SelectRuleToProcessPartsWith(externalRulesFolder)
 			'Dim rulename As String = SelectRuleToProcessPartsWith(getDropBoxFolderPath() & "\iLogic\")
 			If Not rulename = String.Empty Then
-				Dim directory As New System.IO.DirectoryInfo(foldername)
-				Dim partlisttoprocess As System.Collections.Generic.IEnumerable(Of fileinfo) = GetFilesByExtensions(directory, ".ipt")
-				
+				Logger.Debug("Running: " & rulename)
+				Dim directory As New System.IO.DirectoryInfo(FolderName)
+				Dim partlisttoprocess As List(Of FileInfo) = GetFilesByExtensions(directory, ".ipt").ToList()
+'				Dim partlisttoprocess As System.Collections.Generic.IEnumerable(Of fileinfo) = GetFilesByExtensions(directory, ".ipt")
+				Logger.Debug("Number of part files to process: "& partlisttoprocess.Count)
 				Dim progressint As Integer = 1
 				Dim percent As Double = Nothing
 	
@@ -75,11 +84,14 @@ Public Sub ProcessPartsinFolder(ByVal includeSubfolders As Boolean)
 						'insert the name of the external rule you wish to run here:
 						'iLogicAuto.RunExternalRule(partdocument, rulename)
 						Dim Args As NameValueMap = ThisApplication.transientobjects.createnamevaluemap
-						Args.Value("Filename") = partdoc.fullfilename
+						Args.Value("Filename") = partdoc.FullFileName
+						Logger.Debug("processing: " & partdoc.FullFileName)
 						iLogicAuto.RunExternalRuleWithArguments(partdoc, rulename, Args)
 						partdoc.Close()
 					Next
 				End If
+			Else
+				MessageBox.Show("You didn't select your external iLogic rules folder!")
 			End If
 		Else
 			MessageBox.Show("You didn't select your external iLogic rules folder!")
@@ -123,13 +135,16 @@ Public Function SelectRuleToProcessPartsWith(ByVal InventorExternalRulesFolderPa
     Return selectedfile
 End Function
 
-Public Function GetFilesByExtensions(dir As DirectoryInfo, ParamArray extensions As String()) As System.Collections.Generic.IEnumerable(Of FileInfo)
+Public Function GetFilesByExtensions(ByVal dir As DirectoryInfo,ByVal ParamArray extensions As String()) As System.Collections.Generic.IEnumerable(Of FileInfo)
+	break
+	Logger.Debug("Path: " & dir.fullname)
     If extensions Is Nothing Then
         Throw New ArgumentNullException("extensions")
     End If
-    Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) And Not (s.FullName.contains("OldVersions")))
+    Dim files As System.Collections.Generic.IEnumerable(Of FileInfo) = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.contains("OldVersions")))
     'Dim files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(Function(s As FileInfo) Not (s.FullName.Contains("-")) OrElse Not (s.FullName.contains("OldVersions")))
     'Return files
+	Logger.Debug(files.ToList().Count())
     Return files.Where(Function(f As FileInfo) extensions.Contains(f.Extension)).Orderby(Function(x As FileInfo) x.Name)
 End Function
 
@@ -158,7 +173,7 @@ Function GetiLogicAutomation(ByVal app As Inventor.Application) As Object
     Return addIn.Automation
 End Function
 
-Private Shared Function getOneDriveFolderPath() As String
+Private Function getOneDriveFolderPath() As String
     Dim value1 = Registry.GetValue("HKEY_CURRENT_USER\Software\Microsoft\SkyDrive", "UserFolder", Nothing)
     Dim path1 = TryCast(value1, String)
     If path1 IsNot Nothing AndAlso System.IO.Directory.Exists(path1) Then Return path1
@@ -171,24 +186,26 @@ Private Shared Function getOneDriveFolderPath() As String
     Return Nothing
 End Function
 
-Private Shared Function getDropBoxFolderPath() As String
+Private Function getDropBoxFolderPath() As String
+	'break
     Dim infoPath = "Dropbox\info.json"
     'Dim Appdata As String = Environment.SpecialFolder.LocalApplicationData
     Dim jsonPath As String = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), infoPath)
     'Dim jsonPath = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), infoPath)
     'debug only
-    MessageBox.Show(jsonPath)
+    'MessageBox.Show(jsonPath)
     If Not System.IO.File.Exists(jsonPath) Then
         jsonPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), infoPath)
         'jsonPath = Path.Combine(Environment.GetEnvironmentVariable("AppData"), infoPath)
     End If
     'debug only
-    MessageBox.Show(jsonPath)
+    'MessageBox.Show(jsonPath)
 
     If Not System.IO.File.Exists(jsonPath) Then
         Throw New Exception("Dropbox could not be found!")
     End If
 
-    Dim dropboxPath As String = System.IO.File.ReadAllText(jsonPath).Split(""""c)(5).Replace("\\", "\")
+    Dim dropboxPath = System.IO.File.ReadAllText(jsonPath).Split(""""c)(13).Replace("\\", "\")
+	logger.debug("Dropbox path: " & dropboxPath)
     Return dropboxPath
 End Function
