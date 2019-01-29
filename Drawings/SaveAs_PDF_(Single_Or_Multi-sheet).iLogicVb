@@ -1,5 +1,6 @@
 ﻿Option Explicit On
 '''Prints the selected sheets to multi-page pdf or single sheet pdf file(s).
+''' 
 Sub Main()
 	Dim oDocument As DrawingDocument = ThisApplication.ActiveDocument
 	Dim oSheets As Sheets
@@ -18,7 +19,7 @@ Sub Main()
 		'MessageBox.Show(osheet.Name)
 		Dim oTitleBlock As TitleBlock =oDocument.Sheets(i).TitleBlock
 		'oTextBoxes=oTitleBlock.Definition.Sketch.TextBoxes
-		For Each oTextBox as textbox In oTitleBlock.Definition.Sketch.TextBoxes
+		For Each oTextBox as Inventor.TextBox In oTitleBlock.Definition.Sketch.TextBoxes
 			' MessageBox.Show(otextbox.Text)
 			If oTextBox.Text <> "" Then
 				Select oTextBox.Text
