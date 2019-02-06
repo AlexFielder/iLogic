@@ -1,0 +1,106 @@
+﻿Sub Main()
+    Dim oDoc As AssemblyDocument
+    oDoc = ThisApplication.ActiveDocument
+
+    Dim oCompdef As AssemblyComponentDefinition
+    oCompdef = oDoc.ComponentDefinition
+
+    Dim oBody1 As SurfaceBody
+    Dim oBody2 As SurfaceBody
+
+    oBody1 = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartBodyFilter, "Select first body")
+    oBody2 = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartBodyFilter, "Select a body to compare")
+
+    Dim oFace As Face
+    Dim oAxis As WorkAxis
+
+    For Each oFace In oBody1.Faces
+
+        If oFace.SurfaceType = SurfaceTypeEnum.kCylinderSurface Then
+            oAxis = oCompdef.WorkAxes.AddFixed(oFace.Geometry.BasePoint, oFace.Geometry.AxisVector)
+
+            Dim comparedFace As Face
+            comparedFace = CompareFaces(oAxis, oBody2, oCompdef)
+
+            If comparedFace Is Nothing Then
+                oAxis.Name = oAxis.Name & "_misaligned"
+            Else
+                Dim oHoleFeature1 As HoleFeature
+                oHoleFeature1 = oFace.CreatedByFeature
+
+                Dim dia1 As Double
+                dia1 = oHoleFeature1.HoleDiameter.Value
+                dia1 = dia1 * 10 'Converting cm to mm
+
+                Dim oHoleFeature2 As HoleFeature
+                oHoleFeature2 = comparedFace.CreatedByFeature
+
+                Dim dia2 As Double
+                dia2 = oHoleFeature2.HoleDiameter.Value
+                dia2 = dia2 * 10 'Converting cm to mm
+
+                If Math.Round(dia1, 4) = Math.Round(dia2, 4) Then
+                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Default")
+                ElseIf Math.Round(dia1, 4) >= Math.Round(dia2, 4) And Math.Round(dia1, 4) <= Math.Round(dia2, 4) + 0.5 Then
+                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Special Type")
+                Else
+                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => Not OK")
+                End If
+
+            End If
+
+        End If
+
+    Next
+
+    Dim oPane As BrowserPane
+    oPane = oDoc.BrowserPanes.ActivePane
+
+    Dim alignedNodes As ObjectCollection
+    alignedNodes = ThisApplication.TransientObjects.CreateObjectCollection
+
+    Dim misAlignedNodes As ObjectCollection
+    misAlignedNodes = ThisApplication.TransientObjects.CreateObjectCollection
+
+    For i = 4 To oCompdef.WorkAxes.Count
+        oAxis = oCompdef.WorkAxes.Item(i)
+        Dim misaligned As Boolean = oAxis.Name.EndsWith("misaligned")
+		
+        Dim oNode As BrowserNode
+
+        If misaligned = True Then
+            oNode = oPane.GetBrowserNodeFromObject(oAxis)
+            misAlignedNodes.Add(oNode)
+        Else
+            oNode = oPane.GetBrowserNodeFromObject(oAxis)
+            alignedNodes.Add(oNode)
+        End If
+
+    Next
+
+    Dim alignedAxes As BrowserFolder
+    alignedAxes = oPane.AddBrowserFolder("Aligned Axes", alignedNodes)
+
+    Dim misAlignedAxes As BrowserFolder
+    misAlignedAxes = oPane.AddBrowserFolder("MisAligned Axes", misAlignedNodes)
+
+End Sub
+
+Public Function CompareFaces(ByVal oAxis1 As WorkAxis, ByVal oBody As SurfaceBody, ByVal compDef As AssemblyComponentDefinition) As Face
+    For Each oFace As Face In oBody.Faces
+        If oFace.SurfaceType = SurfaceTypeEnum.kCylinderSurface Then
+            Dim oAxis As WorkAxis
+
+            oAxis = compDef.WorkAxes.AddFixed(oFace.Geometry.BasePoint, oFace.Geometry.AxisVector)
+
+            If oAxis.Line.IsColinearTo(oAxis1.Line) Then
+                oAxis.Delete()
+                Return oFace
+                Exit Function
+            Else
+                oAxis.Delete()
+            End If
+        End If
+    Next
+    Return Nothing
+End Function
