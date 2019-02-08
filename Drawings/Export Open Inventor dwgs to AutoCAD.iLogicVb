@@ -2,7 +2,7 @@
 Sub Main()
 	Dim sw As New Stopwatch()
     sw.Start()
-	Dim newPath As String = "C:\Users\alex.fielder\OneDrive\Inventor\Designs\sapphire\Cassette Master\Exported dwgs\"
+	Dim newPath As String = String.Empty '"C:\Users\alex.fielder\OneDrive\Inventor\Designs\sapphire\Cassette Master\Exported dwgs\"
     'copied from https://forums.autodesk.com/t5/inventor-customization/ilogic-rule-to-ask-yes-or-no-for-dxf-export-when-saving-idw/td-p/3939068
 
     ' Get the DXF translator Add-In.
@@ -36,8 +36,9 @@ Sub Main()
             strIniFile = "C:\Users\alex.fielder\OneDrive\AutoCAD\Inventor dwg to AutoCAD 2013 configuration.ini"
             oOptions.Value("Export_Acad_IniFile") = strIniFile
         End If
-
-        oDataMedium.FileName = newPath & System.IO.Path.GetFileNameWithoutExtension(dwgdoc.fulldocumentname) & ".dwg"
+		newPath = System.IO.Path.GetDirectoryName(dwgdoc.FullDocumentName)
+        oDataMedium.FileName = newPath & "\" & System.IO.Path.GetFileNameWithoutExtension(dwgdoc.FullDocumentName) & "-Exported.dwg"
+		break
         Call DWGAddIn.SaveCopyAs(dwgdoc, oContext, oOptions, oDataMedium)
     Next
 	sw.Stop()
