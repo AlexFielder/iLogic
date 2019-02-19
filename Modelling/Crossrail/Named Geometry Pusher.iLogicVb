@@ -52,24 +52,30 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 			Dim parentPartDoc As PartDocument = derivedComp.Parent.Document 'derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
 			Dim parentPartDef As PartComponentDefinition = parentPartDoc.ComponentDefinition
 			Dim parentPartSurfaceBodies As SurfaceBodies = parentPartDef.SurfaceBodies
+			Dim parentSurfaceBody As SurfaceBody
 			'Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
 			'Dim surfacebodyToEdit As SurfaceBody = derivedComp.SurfaceBodies.Item(1)
 			Dim surfaceReferenceFeature As ReferenceFeature = derivedComp.SolidBodies.Item(1)
 			Dim surfacebodyToEdit As SurfaceBody = surfaceReferenceFeature.SurfaceBodies.Item(1)
+			parentSurfaceBody = surfaceReferenceFeature.ReferencedEntity
 'Break
 			If Not surfacebodyToEdit Is Nothing Then
 				'Split the listToPush into faces or edges lists
-				Dim edgesToEditList As List(Of Edge) = (From x As Object In listToPush
+				Dim edgesToCopyList As List(Of Edge) = (From x As Object In listToPush
 														Where TypeOf x Is Edge
 														Let thisEdge As Edge = x
 														Select thisEdge).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Edge).Tolist(Of Edge)
-				Dim facesToEditList As List(Of Face) = (From x As Object In listToPush
+				Dim facesToCopyList As List(Of Face) = (From x As Object In listToPush
 														Where TypeOf x Is Face
 														Let thisFace As Face = x
 														Select thisFace).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Face).Tolist(Of Face)
-'Break
-				Dim matchedPairList As List(Of MatchingGeom) = GetListOfMatchingEdges(edgesToEditList, surfacebodyToEdit.Edges)
+				
+				Dim matchedPairList As List(Of MatchingGeom) = New List(Of MatchingGeom)
+				'For Each surfaceBodyReference As SurfaceBody In parentPartSurfaceBodies
+					matchedPairList = GetListOfMatchingEdges(parentSurfaceBody.Edges, surfacebodyToEdit.Edges)
+				'Next
 				'Edges
+Break
 				If Not matchedPairList Is Nothing Then
 					For Each matchedPair As MatchingGeom In matchedPairList
 						Dim edgeToEdit As Edge = matchedPair.MatchingObj
@@ -121,8 +127,8 @@ End Sub
 ''' <param name="edgesToCheck"></param>
 ''' <param name="bodyEdges"></param>
 ''' <returns></returns>
-Function GetListOfMatchingEdges(edgesToCheck As List(Of Edge), bodyEdges As Edges) As List(Of MatchingGeom)
-	Dim combinedList As List(Of Edge) = New List(Of Edge)
+Function GetListOfMatchingEdges(edgesToCheck As Edges, bodyEdges As Edges) As List(Of MatchingGeom)
+	Dim combinedList As List(Of MatchingGeom) = New List(Of MatchingGeom)
 	For Each e2 As Edge In bodyEdges
 		For Each e As Edge In edgesToCheck
 			If (e2.Faces(1).ReferencedEntity Is E.Faces(1) And _
@@ -133,6 +139,11 @@ Function GetListOfMatchingEdges(edgesToCheck As List(Of Edge), bodyEdges As Edge
 		    End If
 		Next
 	Next
+	If Not combinedList.Count = 0 Then
+		Return combinedList
+	Else
+		Return Nothing
+	End If
 End Function
 
 ''' <summary>
@@ -165,10 +176,12 @@ End Function
 Function GetAttributeValueFromObject(ByVal attributedObject As Object, ByVal attSetName As String, ByVal attName As String) As String
     Dim existingAttSet As AttributeSet = attributedObject.AttributeSets(attSetName)
 	Dim value As String = String.Empty
-	If attName = "default" Then
-		value = (From oAtt In existingAttSet Select oAtt).FirstOrDefault().Value
-	Else
-    	value = (From oAtt In existingAttSet Where oAtt.Name = attName Select oAtt).FirstOrDefault().Value
+	If Not existingAttSet Is Nothing Then
+		If attName = "default" Then
+			value = (From oAtt In existingAttSet Select oAtt).FirstOrDefault().Value
+		Else
+	    	value = (From oAtt In existingAttSet Where oAtt.Name = attName Select oAtt).FirstOrDefault().Value
+		End If
 	End If
     If value IsNot Nothing Then
         Return value
