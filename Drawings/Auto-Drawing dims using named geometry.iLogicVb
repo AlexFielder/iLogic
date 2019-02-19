@@ -12,44 +12,22 @@ Sub Main()
     Dim TransG As TransientGeometry = ThisApplication.TransientGeometry
 'break
     Dim oGenDims As GeneralDimensions = oSht.DrawingDimensions.GeneralDimensions
-    'messagebox.show("Setup complete")
-'	Dim oObjs As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+
    	Dim datumObjs As ObjectCollection = oPart.AttributeManager.FindObjects("iLogicEntityNameSet", "iLogicEntityName","END01")
 	Dim outObjs As ObjectCollection = oPart.AttributeManager.FindObjects("iLogicEntityNameSet", "iLogicEntityName","END02") 'ThisApplication.TransientObjects.CreateObjectCollection
 
-'	Dim attribSetsEnum As AttributeSetsEnumerator = oPart.AttributeManager.FindAttributeSets("iLogicEntityNameSet")
-'	For Each attrset As AttributeSet In attribSetsEnum
-'		For Each item As Attribute In attrset
-''			Break
-'			If item.Value = "END01" Then
-'				datumObjs.Add(item)
-'			Else If item.Value = "END02" Then
-'				outObjs.Add(item)
-'			End If
-'		Next
-'	Next
-'Break
     Dim aoEdge1 As face
 
-    'datumObjs = oPart.AttributeManager.FindObjects(AttributeName="iLogicEntityName", AttributeValue="END01")
+
 'break
-'	If TypeOf (datumObjs.Item(1)) Is Face Then
-'		break
+
     	aoEdge1 = datumObjs.Item(1)
-'		Else
 		Break
-'	End If
-    'messagebox.show("Got face 1")
 
     Dim aoEdge2 As Face
 
-    'outObjs = oPart.AttributeManager.FindObjects(AttributeName="iLogicEntityName", AttributeValue="END02")
 'break
     aoEdge2 = outObjs.Item(1)
-
-    'messagebox.show("Got face 2")
-
-    'Dim oDrawingCurves as Object = Nothing
 
     Dim oDrawCurve1 As DrawingCurve
 
@@ -57,15 +35,11 @@ Sub Main()
 break
     oDrawCurve1 = oDrawingCurves.Item(1)
 
-    'messagebox.show("Got first set of drawing curves")
-
     Dim oDrawCurve2 As drawingcurve
 
     oDrawingCurves = oview.DrawingCurves(aoEdge2)
 break
     oDrawCurve2 = oDrawingCurves.Item(1)
-
-    'messagebox.show("Got second set of drawing curves")
 
     Dim oPt1 As Point2d = TransG.Createpoint2d(oView.left + (oView.Width / 4), oView.Top - (oView.Height) - 1)
 
