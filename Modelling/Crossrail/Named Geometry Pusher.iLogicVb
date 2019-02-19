@@ -56,22 +56,24 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 														Where TypeOf x.CheckObj Is Face
 														Select x).ToList()
 															
-				Dim matchedPairList As List(Of MatchingGeom) = New List(Of MatchingGeom)
-				Dim matchingResult As List(Of MatchingGeom) = New List(Of MatchingGeom)
-				matchedPairList = GetListOfMatchingEdges(parentSurfaceBody.Edges, surfacebodyToEdit.Edges)
+				Dim matchedEdgePairList As List(Of MatchingGeom) = New List(Of MatchingGeom)
+				Dim matchingEdgeResult As List(Of MatchingGeom) = New List(Of MatchingGeom)
+				matchedEdgePairList = GetListOfMatchingEdges(parentSurfaceBody.Edges, surfacebodyToEdit.Edges)
 
-				If Not matchedPairList Is Nothing Then
-					For Each matchedEdge As MatchingGeom In matchedPairList
+				
+
+				If Not matchedEdgePairList Is Nothing Then
+					For Each matchedEdge As MatchingGeom In matchedEdgePairList
 						For Each edgeToCopy As MatchingGeom In edgesToCopyList
-							If (matchedEdge.CheckObj is edgeToCopy.CheckObj) Then
-								matchingResult.Add(New MatchingGeom With {.CheckObj = matchedEdge.CheckObj, .MatchingObj = matchedEdge.MatchingObj})
+							If (matchedEdge.CheckObj Is edgeToCopy.CheckObj) Then
+								matchingEdgeResult.Add(New MatchingGeom With {.CheckObj = matchedEdge.CheckObj, .MatchingObj = matchedEdge.MatchingObj})
 							End If
 						Next
 					Next
 'Edges
 'Break
-					If matchingResult.Count > 0 Then
-						For Each matchedPair As MatchingGeom In matchingResult
+					If matchingEdgeResult.Count > 0 Then
+						For Each matchedPair As MatchingGeom In matchingEdgeResult
 							Dim edgeToEdit As Edge = matchedPair.MatchingObj
 							Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
 							If Not iLogicEntityName = String.Empty Then
@@ -83,26 +85,31 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 						Next
 					End If
 				End If
+				
+'				Dim matchedFacePairList As List(Of MatchingGeom) = New List(Of MatchingGeom)
+'				Dim matchingFaceResult As List(Of MatchingGeom) = New List(Of MatchingGeom)
+'				matchedFacePairList = GetListOfMatchingFaces(parentSurfaceBody.Faces, surfacebodyToEdit.Faces)
+				
 				'Faces - commented until we get edges working. 2019-02-19 AF
-'				For Each faceTocheck As Face In surfacebodyToEdit.Faces
-'					Dim matchedPair As MatchingGeom = (From matchface As Face In facesToEditList
-'														Where matchface.TransientKey = faceToCheck.TransientKey
-'														Select New MatchingGeom With {
-'															.CheckObj = faceToCheck,
-'															.MatchingObj = matchface }).FirstOrDefault()
-''Break
-'					If Not matchedPair Is Nothing Then
-'						Dim faceToEdit As Face = matchedPair.MatchingObj
-''Break
-'						Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
-'						If Not iLogicEntityName = String.Empty Then
-'							MessageBox.Show("iLogicEntityName" = iLogicEntityName)
-'							Dim newAttSet As AttributeSet = faceToEdit.AttributeSets.Add("iLogicEntityNameSet")
-'							Dim faceAtt As Attribute = newAttSet.Add("iLogicEntityName", ValueTypeEnum.kStringType, iLogicEntityName)
-'						End If
-'						Break
-'					End If
-'				Next
+				For Each faceTocheck As Face In surfacebodyToEdit.Faces
+					Dim matchedPair As MatchingGeom = (From matchface As Face In facesToCopyList
+														Where matchface Is faceTocheck
+														Select New MatchingGeom With {
+															.CheckObj = faceTocheck,
+															.MatchingObj = matchface }).FirstOrDefault()
+'Break
+					If Not matchedPair Is Nothing Then
+						Dim faceToEdit As Face = matchedPair.MatchingObj
+'Break
+						Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
+						If Not iLogicEntityName = String.Empty Then
+							MessageBox.Show("iLogicEntityName" = iLogicEntityName)
+							Dim newAttSet As AttributeSet = faceToEdit.AttributeSets.Add("iLogicEntityNameSet")
+							Dim faceAtt As Attribute = newAttSet.Add("iLogicEntityName", ValueTypeEnum.kStringType, iLogicEntityName)
+						End If
+						Break
+					End If
+				Next
 			End If
 			'need to add the iLogicEntityNameSet to the document so iLogic picks it up.
 '			docToEdit.AttributeSets.Add("iLogicEntityNameSet")
