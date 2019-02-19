@@ -21,7 +21,7 @@ Sub Main()
 		For Each derivedPartComp As DerivedPartComponent In DerivedCompList
 			Dim tmpDef As DerivedPartDefinition = derivedPartComp.Definition
 			Dim tmpDoc As PartDocument = derivedPartComp.ReferencedDocumentDescriptor.ReferencedDocument
-			Dim listofObjectsToPush As List(Of Object) = New List(Of Object)
+			Dim listofObjectsToPush As List(Of MatchingGeom) = New List(Of MatchingGeom)
 			listofObjectsToPush.AddRange(GetNamedGeometry(tmpDoc, "*"))
 			If listofObjectsToPush.Count > 0 Then
 '				MessageBox.Show("Count of items in the multi-body part file: " & listofObjectsToPush.Count)
@@ -41,7 +41,7 @@ End Sub
 
 Public DerivedCompList As List(Of DerivedPartComponent) = New List(Of DerivedPartComponent)
 
-Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPush As List(Of Object))
+Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPush As List(Of MatchingGeom))
 	
 	For Each derivedComp As DerivedPartComponent In DerivedCompList
 		'Dim referencedDoc As Document = derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
@@ -69,12 +69,12 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 														Where TypeOf x Is Face
 														Let thisFace As Face = x
 														Select thisFace).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Face).Tolist(Of Face)
-				
+				'matches all corresponding edges
 				Dim matchedPairList As List(Of MatchingGeom) = New List(Of MatchingGeom)
-				'For Each surfaceBodyReference As SurfaceBody In parentPartSurfaceBodies
-					matchedPairList = GetListOfMatchingEdges(parentSurfaceBody.Edges, surfacebodyToEdit.Edges)
-				'Next
-				'Edges
+				matchedPairList = GetListOfMatchingEdges(parentSurfaceBody.Edges, surfacebodyToEdit.Edges)
+				'doesn't work
+				'matchedPairList.RemoveAll(Function(x As MatchingGeom) edgesToCopyList.Contains(x.CheckObj))
+'Edges
 Break
 				If Not matchedPairList Is Nothing Then
 					For Each matchedPair As MatchingGeom In matchedPairList
@@ -205,8 +205,8 @@ End Sub
 ''' <param name="doc"></param>
 ''' <param name="name"></param>
 ''' <returns></returns>
-Public Function GetNamedGeometry(doc As Document, name As String) As List(Of Object)
-	Dim listofNamedGeom As List(Of Object) = New List(Of Object)
+Public Function GetNamedGeometry(doc As Document, name As String) As List(Of MatchingGeom)
+	Dim listofNamedGeom As List(Of MatchingGeom) = New List(Of MatchingGeom)
 	Dim attribMgr As AttributeManager = doc.AttributeManager
     Dim objsFound As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
     objsFound = attribMgr.FindObjects("iLogicEntityNameSet", "iLogicEntityName", name)
@@ -214,7 +214,7 @@ Public Function GetNamedGeometry(doc As Document, name As String) As List(Of Obj
 		'debug
 '		MessageBox.Show("Count of items found in iLogicEntityNameSet = " & objsFound.Count)
 		For i = 1 To objsFound.Count
-			listofNamedGeom.Add(objsFound.Item(i))		
+			listofNamedGeom.Add(New MatchingGeom With {.CheckObj = objsFound.Item(i), .MatchingObj = Nothing}) 'objsFound.Item(i))
 		Next i
 	End If
 	
