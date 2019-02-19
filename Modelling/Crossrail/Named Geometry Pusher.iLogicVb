@@ -49,7 +49,9 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 		Dim defToEdit As DerivedPartDefinition = derivedComp.Definition
 		'this works but gets the parent MBPart file instead!
 'Break
-			Dim docToEdit As PartDocument = derivedComp.Parent.Document 'derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
+			Dim parentPartDoc As PartDocument = derivedComp.Parent.Document 'derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
+			Dim parentPartDef As PartComponentDefinition = parentPartDoc.ComponentDefinition
+			Dim parentPartSurfaceBodies As SurfaceBodies = parentPartDef.SurfaceBodies
 			'Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
 			'Dim surfacebodyToEdit As SurfaceBody = derivedComp.SurfaceBodies.Item(1)
 			Dim surfaceReferenceFeature As ReferenceFeature = derivedComp.SolidBodies.Item(1)
