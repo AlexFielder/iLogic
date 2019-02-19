@@ -24,7 +24,7 @@ Sub Main()
 			Dim listofObjectsToPush As List(Of Object) = New List(Of Object)
 			listofObjectsToPush.AddRange(GetNamedGeometry(tmpDoc, "*"))
 			If listofObjectsToPush.Count > 0 Then
-				MessageBox.Show("Count of items in the multi-body part file: " & listofObjectsToPush.Count)
+'				MessageBox.Show("Count of items in the multi-body part file: " & listofObjectsToPush.Count)
 				PushNamedGeometryToDerivedParts(AssyDoc, listofObjectsToPush)
 			Else
 				MessageBox.Show("No Named Geometry found to push in: " & derivedPartComp.Name)
@@ -50,9 +50,11 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 		'this works but gets the parent MBPart file instead!
 'Break
 			Dim docToEdit As PartDocument = derivedComp.Parent.Document 'derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
-			Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
+			'Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
 			'Dim surfacebodyToEdit As SurfaceBody = derivedComp.SurfaceBodies.Item(1)
-'			Break
+			Dim surfaceReferenceFeature As ReferenceFeature = derivedComp.SolidBodies.Item(1)
+			Dim surfacebodyToEdit As SurfaceBody = surfaceReferenceFeature.SurfaceBodies.Item(1)
+'Break
 			If Not surfacebodyToEdit Is Nothing Then
 				'Split the listToPush into faces or edges lists
 				Dim edgesToEditList As List(Of Edge) = (From x As Object In listToPush
@@ -63,19 +65,23 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 														Where TypeOf x Is Face
 														Let thisFace As Face = x
 														Select thisFace).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Face).Tolist(Of Face)
-'				Break
+'Break
+				Dim matchedPair As List(Of MatchingGeom) = GetListOfMatchingEdges(edgesToEditList, surfacebodyToEdit.Edges)
 				'Edges
 				For Each edgeToCheck As Edge In surfacebodyToEdit.Edges
+					'matching of transient keys doesn't work because Inventor doesn't keep the same numbers.
 '					Dim edgeToEdit As Edge = edgesToEditList.Find(Function(matchEdge As Edge) matchEdge.TransientKey = edgeToCheck.TransientKey)
-					Dim matchedPair As MatchingGeom = (From matchEdge As Edge In edgesToEditList
-														Where matchEdge.TransientKey = edgeToCheck.TransientKey
-														Select New MatchingGeom With {
-															.CheckObj = edgeToCheck,
-															.MatchingObj = matchEdge }).FirstOrDefault()
+'					Dim matchedPair As MatchingGeom = (From matchEdge As Edge In edgesToEditList
+'														Where matchEdge.TransientKey = edgeToCheck.TransientKey
+'														Select New MatchingGeom With {
+'															.CheckObj = edgeToCheck,
+'															.MatchingObj = matchEdge }).FirstOrDefault()
+					
 'Break
+					
 					If Not matchedPair Is Nothing Then
 						Dim edgeToEdit As Edge = matchedPair.MatchingObj
-Break						
+'Break
 						Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
 						If Not iLogicEntityName = String.Empty Then
 							MessageBox.Show("iLogicEntityName" = iLogicEntityName)
@@ -95,7 +101,7 @@ Break
 'Break
 					If Not matchedPair Is Nothing Then
 						Dim faceToEdit As Face = matchedPair.MatchingObj
-Break						
+'Break
 						Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
 						If Not iLogicEntityName = String.Empty Then
 							MessageBox.Show("iLogicEntityName" = iLogicEntityName)
@@ -118,6 +124,40 @@ Break
 		
 '	Next
 End Sub
+
+Function GetListOfMatchingEdges(edgesToCheck As List(Of Edge), bodyEdges As List(Of Edge)) As List(Of MatchingGeom)
+	Dim combinedList As List(Of Edge) = New List(Of Edge)
+	For Each e2 As Edge In bodyEdges
+		For Each e As Edge In edgesToCheck
+			If (e2.Faces(1).ReferencedEntity Is E.Faces(1) And _
+		        e2.Faces(2).ReferencedEntity Is E.Faces(2)) Or _
+		       (e2.Faces(1).ReferencedEntity Is E.Faces(2) And _
+		        e2.Faces(2).ReferencedEntity Is E.Faces(1)) Then
+		      	combinedList.Add(New MatchingGeom With {.CheckObj = E, .MatchingObj = e2})
+		    End If
+		Next
+	Next
+End Function
+
+''' <summary>
+''' Copied from this post: https://adndevblog.typepad.com/manufacturing/2014/11/get-edge-in-derived-part-that-drives-work-point.html
+''' </summary>
+''' <param name="E"></param>
+''' <param name="sb"></param>
+Function GetEdgeInSurfaceBody(e As Edge, sb As SurfaceBody) As Edge
+  ' Go through the edges inside the iPart instance
+  ' to see which one connects the same faces
+  Dim e2 As Edge
+  For Each e2 In sb.Edges
+    If (e2.Faces(1).ReferencedEntity Is e.Faces(1) And _
+        e2.Faces(2).ReferencedEntity Is e.Faces(2)) Or _
+       (e2.Faces(1).ReferencedEntity Is e.Faces(2) And _
+        e2.Faces(2).ReferencedEntity Is e.Faces(1)) Then
+      Return e2
+      Exit Function
+    End If
+  Next
+End Function
 
 ''' <summary>
 ''' Gets a named attribute from an object
@@ -163,7 +203,7 @@ Public Function GetNamedGeometry(doc As Document, name As String) As List(Of Obj
     objsFound = attribMgr.FindObjects("iLogicEntityNameSet", "iLogicEntityName", name)
 	If Not objsFound.Count = 0 Then
 		'debug
-		MessageBox.Show("Count of items found in iLogicEntityNameSet = " & objsFound.Count)
+'		MessageBox.Show("Count of items found in iLogicEntityNameSet = " & objsFound.Count)
 		For i = 1 To objsFound.Count
 			listofNamedGeom.Add(objsFound.Item(i))		
 		Next i
@@ -188,7 +228,7 @@ Public Function GetNamedEntity(doc As Inventor.Document, name As String) As Obje
     Dim objsFound As ObjectCollection
     objsFound = attribMgr.FindObjects("iLogicEntityNameSet", "iLogicEntityName", name)
     'debug
-	MessageBox.Show("Count of items found in iLogicEntityNameSet = " & objsFound.Count)
+'	MessageBox.Show("Count of items found in iLogicEntityNameSet = " & objsFound.Count)
     If objsFound.Count > 0 Then
         Return(objsFound.Item(1))
     Else
