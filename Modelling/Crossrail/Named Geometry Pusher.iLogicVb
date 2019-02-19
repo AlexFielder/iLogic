@@ -61,24 +61,23 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 'Break
 			If Not surfacebodyToEdit Is Nothing Then
 				'Split the listToPush into faces or edges lists
-				Dim edgesToCopyList As List(Of Edge) = (From x As Object In listToPush
-														Where TypeOf x Is Edge
-														Let thisEdge As Edge = x
-														Select thisEdge).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Edge).Tolist(Of Edge)
-				Dim facesToCopyList As List(Of Face) = (From x As Object In listToPush
-														Where TypeOf x Is Face
-														Let thisFace As Face = x
-														Select thisFace).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Face).Tolist(Of Face)
+				Dim edgesToCopyList As List(Of MatchingGeom) = (From x As MatchingGeom In listToPush
+														Where TypeOf x.CheckObj Is Edge
+														Select x).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Edge).Tolist(Of Edge)
+				Dim facesToCopyList As List(Of MatchingGeom) = (From x As MatchingGeom In listToPush
+														Where TypeOf x.CheckObj Is Face
+														Select x).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Face).Tolist(Of Face)
 				'matches all corresponding edges
 				Dim matchedPairList As List(Of MatchingGeom) = New List(Of MatchingGeom)
 				Dim matchingResult As List(Of MatchingGeom) = New List(Of MatchingGeom)
 				matchedPairList = GetListOfMatchingEdges(parentSurfaceBody.Edges, surfacebodyToEdit.Edges)
+'Break
 				'doesn't work
 '				matchedPairList.RemoveAll(Function(x As MatchingGeom) not edgesToCopyList.Contains(x.CheckObj))
 				If Not matchedPairList Is Nothing Then
 					For Each matchedEdge As MatchingGeom In matchedPairList
 						For Each edgeToCopy As MatchingGeom In edgesToCopyList
-							If (matchedEdge.CheckObj = edgeToCopy.CheckObj) Then
+							If (matchedEdge.CheckObj is edgeToCopy.CheckObj) Then
 Break
 								matchingResult.Add(New MatchingGeom With {.CheckObj = matchedEdge.CheckObj, .MatchingObj = matchedEdge.MatchingObj})
 							End If
@@ -142,12 +141,14 @@ Function GetListOfMatchingEdges(edgesToCheck As Edges, bodyEdges As Edges) As Li
 	Dim combinedList As List(Of MatchingGeom) = New List(Of MatchingGeom)
 	For Each e2 As Edge In bodyEdges
 		For Each e As Edge In edgesToCheck
-			If (e2.Faces(1).ReferencedEntity Is E.Faces(1) And _
-		        e2.Faces(2).ReferencedEntity Is E.Faces(2)) Or _
-		       (e2.Faces(1).ReferencedEntity Is E.Faces(2) And _
-		        e2.Faces(2).ReferencedEntity Is E.Faces(1)) Then
-		      	combinedList.Add(New MatchingGeom With {.CheckObj = E, .MatchingObj = e2})
-		    End If
+			If (e2.Faces.Count = 2 And E.faces.count = 2) Then 'because we have a split loft which means there's one edge with only 1 face adjacent to it!?
+				If (e2.Faces(1).ReferencedEntity Is E.Faces(1) And _
+			        e2.Faces(2).ReferencedEntity Is E.Faces(2)) Or _
+			       (e2.Faces(1).ReferencedEntity Is E.Faces(2) And _
+			        e2.Faces(2).ReferencedEntity Is E.Faces(1)) Then
+			      	combinedList.Add(New MatchingGeom With {.CheckObj = E, .MatchingObj = e2})
+			    End If
+			End If
 		Next
 	Next
 	If Not combinedList.Count = 0 Then
