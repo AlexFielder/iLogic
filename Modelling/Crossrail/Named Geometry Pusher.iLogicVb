@@ -66,51 +66,39 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 														Let thisFace As Face = x
 														Select thisFace).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Face).Tolist(Of Face)
 'Break
-				Dim matchedPair As List(Of MatchingGeom) = GetListOfMatchingEdges(edgesToEditList, surfacebodyToEdit.Edges)
+				Dim matchedPairList As List(Of MatchingGeom) = GetListOfMatchingEdges(edgesToEditList, surfacebodyToEdit.Edges)
 				'Edges
-				For Each edgeToCheck As Edge In surfacebodyToEdit.Edges
-					'matching of transient keys doesn't work because Inventor doesn't keep the same numbers.
-'					Dim edgeToEdit As Edge = edgesToEditList.Find(Function(matchEdge As Edge) matchEdge.TransientKey = edgeToCheck.TransientKey)
-'					Dim matchedPair As MatchingGeom = (From matchEdge As Edge In edgesToEditList
-'														Where matchEdge.TransientKey = edgeToCheck.TransientKey
-'														Select New MatchingGeom With {
-'															.CheckObj = edgeToCheck,
-'															.MatchingObj = matchEdge }).FirstOrDefault()
-					
-'Break
-					
-					If Not matchedPair Is Nothing Then
+				If Not matchedPairList Is Nothing Then
+					For Each matchedPair As MatchingGeom In matchedPairList
 						Dim edgeToEdit As Edge = matchedPair.MatchingObj
-'Break
 						Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
 						If Not iLogicEntityName = String.Empty Then
 							MessageBox.Show("iLogicEntityName" = iLogicEntityName)
 							Dim newAttSet As AttributeSet = edgeToEdit.AttributeSets.Add("iLogicEntityNameSet")
 							Dim edgeAtt As Attribute = newAttSet.Add("iLogicEntityName", ValueTypeEnum.kStringType, iLogicEntityName)
 						End If
-						Break
-					End If
-				Next
-				'Faces
-				For Each faceTocheck As Face In surfacebodyToEdit.Faces
-					Dim matchedPair As MatchingGeom = (From matchface As Face In facesToEditList
-														Where matchface.TransientKey = faceToCheck.TransientKey
-														Select New MatchingGeom With {
-															.CheckObj = faceToCheck,
-															.MatchingObj = matchface }).FirstOrDefault()
-'Break
-					If Not matchedPair Is Nothing Then
-						Dim faceToEdit As Face = matchedPair.MatchingObj
-'Break
-						Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
-						If Not iLogicEntityName = String.Empty Then
-							MessageBox.Show("iLogicEntityName" = iLogicEntityName)
-							Dim newAttSet As AttributeSet = faceToEdit.AttributeSets.Add("iLogicEntityNameSet")
-							Dim faceAtt As Attribute = newAttSet.Add("iLogicEntityName", ValueTypeEnum.kStringType, iLogicEntityName)
-						End If
-						Break
-					End If
-				Next
+					Next 
+				End If
+				'Faces - commented until we get edges working. 2019-02-19 AF
+'				For Each faceTocheck As Face In surfacebodyToEdit.Faces
+'					Dim matchedPair As MatchingGeom = (From matchface As Face In facesToEditList
+'														Where matchface.TransientKey = faceToCheck.TransientKey
+'														Select New MatchingGeom With {
+'															.CheckObj = faceToCheck,
+'															.MatchingObj = matchface }).FirstOrDefault()
+''Break
+'					If Not matchedPair Is Nothing Then
+'						Dim faceToEdit As Face = matchedPair.MatchingObj
+''Break
+'						Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
+'						If Not iLogicEntityName = String.Empty Then
+'							MessageBox.Show("iLogicEntityName" = iLogicEntityName)
+'							Dim newAttSet As AttributeSet = faceToEdit.AttributeSets.Add("iLogicEntityNameSet")
+'							Dim faceAtt As Attribute = newAttSet.Add("iLogicEntityName", ValueTypeEnum.kStringType, iLogicEntityName)
+'						End If
+'						Break
+'					End If
+'				Next
 			End If
 			'need to add the iLogicEntityNameSet to the document so iLogic picks it up.
 '			docToEdit.AttributeSets.Add("iLogicEntityNameSet")
@@ -125,7 +113,13 @@ Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPu
 '	Next
 End Sub
 
-Function GetListOfMatchingEdges(edgesToCheck As List(Of Edge), bodyEdges As List(Of Edge)) As List(Of MatchingGeom)
+''' <summary>
+''' initial concept copied from here: https://adndevblog.typepad.com/manufacturing/2014/11/get-edge-in-derived-part-that-drives-work-point.html
+''' </summary>
+''' <param name="edgesToCheck"></param>
+''' <param name="bodyEdges"></param>
+''' <returns></returns>
+Function GetListOfMatchingEdges(edgesToCheck As List(Of Edge), bodyEdges As Edges) As List(Of MatchingGeom)
 	Dim combinedList As List(Of Edge) = New List(Of Edge)
 	For Each e2 As Edge In bodyEdges
 		For Each e As Edge In edgesToCheck
