@@ -30,10 +30,6 @@ Sub Main()
 				MessageBox.Show("No Named Geometry found to push in: " & derivedPartComp.Name)
 			End If
 		Next
-		
-		'Attempting to get the named geometry from the derived part file in each component.
-	'	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
-	'	Dim DerivedColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
 	End If
 	
 	
@@ -44,41 +40,30 @@ Public DerivedCompList As List(Of DerivedPartComponent) = New List(Of DerivedPar
 Public Sub PushNamedGeometryToDerivedParts(AssyDoc As AssemblyDocument, listToPush As List(Of MatchingGeom))
 	
 	For Each derivedComp As DerivedPartComponent In DerivedCompList
-		'Dim referencedDoc As Document = derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
-		'this next line needs to get the derived document from the allreferenceddocuments collection otherwise we're just checking the original Multi-Body Part file again.
 		Dim defToEdit As DerivedPartDefinition = derivedComp.Definition
-		'this works but gets the parent MBPart file instead!
-'Break
-			Dim parentPartDoc As PartDocument = derivedComp.Parent.Document 'derivedComp.ReferencedDocumentDescriptor.ReferencedDocument
+			Dim parentPartDoc As PartDocument = derivedComp.Parent.Document
 			Dim parentPartDef As PartComponentDefinition = parentPartDoc.ComponentDefinition
 			Dim parentPartSurfaceBodies As SurfaceBodies = parentPartDef.SurfaceBodies
 			Dim parentSurfaceBody As SurfaceBody
-			'Dim surfacebodyToEdit As SurfaceBody = docToEdit.ComponentDefinition.SurfaceBodies.Item(1)
-			'Dim surfacebodyToEdit As SurfaceBody = derivedComp.SurfaceBodies.Item(1)
 			Dim surfaceReferenceFeature As ReferenceFeature = derivedComp.SolidBodies.Item(1)
 			Dim surfacebodyToEdit As SurfaceBody = surfaceReferenceFeature.SurfaceBodies.Item(1)
 			parentSurfaceBody = surfaceReferenceFeature.ReferencedEntity
-'Break
 			If Not surfacebodyToEdit Is Nothing Then
-				'Split the listToPush into faces or edges lists
 				Dim edgesToCopyList As List(Of MatchingGeom) = (From x As MatchingGeom In listToPush
 														Where TypeOf x.CheckObj Is Edge
-														Select x).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Edge).Tolist(Of Edge)
+														Select x).ToList()
 				Dim facesToCopyList As List(Of MatchingGeom) = (From x As MatchingGeom In listToPush
 														Where TypeOf x.CheckObj Is Face
-														Select x).ToList() 'listToPush.Where(Function(x As Object) TypeOf x Is Face).Tolist(Of Face)
-				'matches all corresponding edges
+														Select x).ToList()
+															
 				Dim matchedPairList As List(Of MatchingGeom) = New List(Of MatchingGeom)
 				Dim matchingResult As List(Of MatchingGeom) = New List(Of MatchingGeom)
 				matchedPairList = GetListOfMatchingEdges(parentSurfaceBody.Edges, surfacebodyToEdit.Edges)
-'Break
-				'doesn't work
-'				matchedPairList.RemoveAll(Function(x As MatchingGeom) not edgesToCopyList.Contains(x.CheckObj))
+
 				If Not matchedPairList Is Nothing Then
 					For Each matchedEdge As MatchingGeom In matchedPairList
 						For Each edgeToCopy As MatchingGeom In edgesToCopyList
 							If (matchedEdge.CheckObj is edgeToCopy.CheckObj) Then
-Break
 								matchingResult.Add(New MatchingGeom With {.CheckObj = matchedEdge.CheckObj, .MatchingObj = matchedEdge.MatchingObj})
 							End If
 						Next
@@ -90,7 +75,8 @@ Break
 							Dim edgeToEdit As Edge = matchedPair.MatchingObj
 							Dim iLogicEntityName As String = GetAttributeValueFromObject(matchedPair.CheckObj, "iLogicEntityNameSet", "default")
 							If Not iLogicEntityName = String.Empty Then
-								MessageBox.Show("iLogicEntityName" = iLogicEntityName)
+								Logger.Debug("Adding iLogicEntityName = " & iLogicEntityName & " to " & derivedComp.Name)
+								'MessageBox.Show("iLogicEntityName = " & iLogicEntityName)
 								Dim newAttSet As AttributeSet = edgeToEdit.AttributeSets.Add("iLogicEntityNameSet")
 								Dim edgeAtt As Attribute = newAttSet.Add("iLogicEntityName", ValueTypeEnum.kStringType, iLogicEntityName)
 							End If
