@@ -1,0 +1,4 @@
+﻿Dim ofeature As Face
+
+ofeature = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartFaceFilter, "Select first feature")
+break
