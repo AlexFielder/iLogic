@@ -10,80 +10,100 @@
 
     oBody1 = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartBodyFilter, "Select first body")
     oBody2 = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartBodyFilter, "Select a body to compare")
+	
+	If oBody1 Is Nothing Or oBody2 Is Nothing Then
+		MessageBox.Show("You were supposed to select something, Exiting!", "You broke it!", MessageBoxButtons.OK)
+		Exit Sub
+	End If
+	
+	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(oDoc, "Hole Alignment Check")
+	Try
+	    Dim oFace As Face
+	    Dim oAxis As WorkAxis
 
-    Dim oFace As Face
-    Dim oAxis As WorkAxis
-
-    For Each oFace In oBody1.Faces
-
-        If oFace.SurfaceType = SurfaceTypeEnum.kCylinderSurface Then
-            oAxis = oCompdef.WorkAxes.AddFixed(oFace.Geometry.BasePoint, oFace.Geometry.AxisVector)
-
-            Dim comparedFace As Face
-            comparedFace = CompareFaces(oAxis, oBody2, oCompdef)
-
-            If comparedFace Is Nothing Then
-                oAxis.Name = oAxis.Name & "_misaligned"
-            Else
-                Dim oHoleFeature1 As HoleFeature
-                oHoleFeature1 = oFace.CreatedByFeature
-
-                Dim dia1 As Double
-                dia1 = oHoleFeature1.HoleDiameter.Value
-                dia1 = dia1 * 10 'Converting cm to mm
-
-                Dim oHoleFeature2 As HoleFeature
-                oHoleFeature2 = comparedFace.CreatedByFeature
-
-                Dim dia2 As Double
-                dia2 = oHoleFeature2.HoleDiameter.Value
-                dia2 = dia2 * 10 'Converting cm to mm
-
-                If Math.Round(dia1, 4) = Math.Round(dia2, 4) Then
-                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Default")
-                ElseIf Math.Round(dia1, 4) >= Math.Round(dia2, 4) And Math.Round(dia1, 4) <= Math.Round(dia2, 4) + 0.5 Then
-                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Special Type")
-                Else
-                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => Not OK")
-                End If
-
-            End If
-
-        End If
-
-    Next
-
-    Dim oPane As BrowserPane
-    oPane = oDoc.BrowserPanes.ActivePane
-
-    Dim alignedNodes As ObjectCollection
-    alignedNodes = ThisApplication.TransientObjects.CreateObjectCollection
-
-    Dim misAlignedNodes As ObjectCollection
-    misAlignedNodes = ThisApplication.TransientObjects.CreateObjectCollection
-
-    For i = 4 To oCompdef.WorkAxes.Count
-        oAxis = oCompdef.WorkAxes.Item(i)
-        Dim misaligned As Boolean = oAxis.Name.EndsWith("misaligned")
+	    For Each oFace In oBody1.Faces
 		
-        Dim oNode As BrowserNode
+	        If oFace.SurfaceType = SurfaceTypeEnum.kCylinderSurface Then
+	            oAxis = oCompdef.WorkAxes.AddFixed(oFace.Geometry.BasePoint, oFace.Geometry.AxisVector)
 
-        If misaligned = True Then
-            oNode = oPane.GetBrowserNodeFromObject(oAxis)
-            misAlignedNodes.Add(oNode)
-        Else
-            oNode = oPane.GetBrowserNodeFromObject(oAxis)
-            alignedNodes.Add(oNode)
-        End If
+	            Dim comparedFace As Face
+	            comparedFace = CompareFaces(oAxis, oBody2, oCompdef)
 
-    Next
+	            If comparedFace Is Nothing Then
+	                oAxis.Name = oAxis.Name & "_misaligned"
+	            Else
+	                Dim oHoleFeature1 As HoleFeature
+					Dim oHoleFeature2 As HoleFeature
+					Dim dia1 As Double
+					Dim dia2 As Double
+					
+					If TypeOf oFace.CreatedByFeature Is HoleFeature Then
+	                	oHoleFeature1 = oFace.CreatedByFeature
+		                dia1 = oHoleFeature1.HoleDiameter.Value
+		                dia1 = dia1 * 10 'Converting cm to mm
+					Else
+						Debug.Print(oFace.CreatedByFeature.Type.ToString())
+					End If
+					
+					If oHoleFeature1 Is Nothing Then Continue For
+	                
+					If TypeOf comparedFace.CreatedByFeature Is HoleFeature Then ' there's nothing to compare
+	                	oHoleFeature2 = comparedFace.CreatedByFeature
+		                dia2 = oHoleFeature2.HoleDiameter.Value
+		                dia2 = dia2 * 10 'Converting cm to mm
 
-    Dim alignedAxes As BrowserFolder
-    alignedAxes = oPane.AddBrowserFolder("Aligned Axes", alignedNodes)
+		                If Math.Round(dia1, 4) = Math.Round(dia2, 4) Then
+		                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Default")
+		                ElseIf Math.Round(dia1, 4) >= Math.Round(dia2, 4) And Math.Round(dia1, 4) <= Math.Round(dia2, 4) + 0.5 Then
+		                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Special Type")
+		                Else
+		                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => Not OK")
+		                End If
+					Else
+						Debug.Print(oFace.CreatedByFeature.Type.ToString())
+					End If
 
-    Dim misAlignedAxes As BrowserFolder
-    misAlignedAxes = oPane.AddBrowserFolder("MisAligned Axes", misAlignedNodes)
+	            End If
+	        End If
 
+	    Next
+
+	    Dim oPane As BrowserPane
+	    oPane = oDoc.BrowserPanes.ActivePane
+
+	    Dim alignedNodes As ObjectCollection
+	    alignedNodes = ThisApplication.TransientObjects.CreateObjectCollection
+
+	    Dim misAlignedNodes As ObjectCollection
+	    misAlignedNodes = ThisApplication.TransientObjects.CreateObjectCollection
+
+	    For i = 4 To oCompdef.WorkAxes.Count
+	        oAxis = oCompdef.WorkAxes.Item(i)
+	        Dim misaligned As Boolean = oAxis.Name.EndsWith("misaligned")
+			
+	        Dim oNode As BrowserNode
+
+	        If misaligned = True Then
+	            oNode = oPane.GetBrowserNodeFromObject(oAxis)
+	            misAlignedNodes.Add(oNode)
+	        Else
+	            oNode = oPane.GetBrowserNodeFromObject(oAxis)
+	            alignedNodes.Add(oNode)
+	        End If
+
+	    Next
+
+	    Dim alignedAxes As BrowserFolder
+	    alignedAxes = oPane.AddBrowserFolder("Aligned Axes", alignedNodes)
+
+	    Dim misAlignedAxes As BrowserFolder
+	    misAlignedAxes = oPane.AddBrowserFolder("MisAligned Axes", misAlignedNodes)
+	Catch ex As Exception
+		MessageBox.Show("There was an error!" & vbCrLf & ex.Message, "Danger Will Robinson")
+		trans.Abort
+	Finally
+		trans.End()
+	End Try
 End Sub
 
 Public Function CompareFaces(ByVal oAxis1 As WorkAxis, ByVal oBody As SurfaceBody, ByVal compDef As AssemblyComponentDefinition) As Face
