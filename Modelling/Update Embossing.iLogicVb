@@ -1,0 +1,2 @@
+﻿Parameter("Emboss") = iProperties.Value("Project", "Part Number")
+iLogicVb.UpdateWhenDone = True
