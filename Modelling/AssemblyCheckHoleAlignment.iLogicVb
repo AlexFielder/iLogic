@@ -23,57 +23,9 @@ Sub Main()
 	Try
 	    Dim oFace As Face
 	    Dim oAxis As WorkAxis
-
-	    For Each oFace In oBody1.Faces
 		
-	        If oFace.SurfaceType = SurfaceTypeEnum.kCylinderSurface Then
-	            oAxis = oCompdef.WorkAxes.AddFixed(oFace.Geometry.BasePoint, oFace.Geometry.AxisVector)
-
-	            Dim comparedFace As Face
-	            comparedFace = CompareFaces(oAxis, oBody2, oCompdef)
-
-	            If comparedFace Is Nothing Then
-					'set oface color to red here
-	                oAxis.Name = oAxis.Name & "_misaligned"
-	            Else
-	                Dim oHoleFeature1 As HoleFeature
-					Dim oHoleFeature2 As HoleFeature
-					Dim dia1 As Double
-					Dim dia2 As Double
-					
-					If TypeOf oFace.CreatedByFeature Is HoleFeature Then
-	                	oHoleFeature1 = oFace.CreatedByFeature
-		                dia1 = oHoleFeature1.HoleDiameter.Value
-		                dia1 = dia1 * 10 'Converting cm to mm
-					Else
-						Debug.Print(oFace.CreatedByFeature.Type.ToString())
-					End If
-					
-					If oHoleFeature1 Is Nothing Then Continue For
-	                
-					If TypeOf comparedFace.CreatedByFeature Is HoleFeature Then ' there's nothing to compare
-	                	oHoleFeature2 = comparedFace.CreatedByFeature
-		                dia2 = oHoleFeature2.HoleDiameter.Value
-		                dia2 = dia2 * 10 'Converting cm to mm
-
-		                If Math.Round(dia1, 4) = Math.Round(dia2, 4) Then
-							'set face color = green
-		                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Default")
-		                ElseIf Math.Round(dia1, 4) >= Math.Round(dia2, 4) And Math.Round(dia1, 4) <= Math.Round(dia2, 4) + 0.5 Then
-							'set face color = orange
-		                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Special Type")
-		                Else
-							'set face color = red
-		                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => Not OK")
-		                End If
-					Else
-						Debug.Print(oFace.CreatedByFeature.Type.ToString())
-					End If
-
-	            End If
-	        End If
-
-	    Next
+		CheckBodyFaces(oCompdef, oBody1)
+	    
 
 	    Dim Doc As Document = ThisDoc.Document
 		Dim oPane As BrowserPane
@@ -132,6 +84,60 @@ Sub Main()
 	End Try
 End Sub
 
+Sub CheckBodyFaces(ByVal oCompDef As AssemblyComponentDefinition, ByVal oBody1 As SurfaceBody)
+	Dim oAxis As WorkAxis
+	For Each oFace As Face In oBody1.Faces
+        If oFace.SurfaceType = SurfaceTypeEnum.kCylinderSurface Then
+            oAxis = oCompDef.WorkAxes.AddFixed(oFace.Geometry.BasePoint, oFace.Geometry.AxisVector)
+
+            Dim comparedFace As Face
+            comparedFace = CompareFaces(oAxis, oBody2, oCompDef)
+
+            If comparedFace Is Nothing Then
+				'set oface color to red here
+                oAxis.Name = oAxis.Name & "_misaligned"
+            Else
+                Dim oHoleFeature1 As HoleFeature
+				Dim oHoleFeature2 As HoleFeature
+				Dim dia1 As Double
+				Dim dia2 As Double
+				
+				If TypeOf oFace.CreatedByFeature Is HoleFeature Then
+                	oHoleFeature1 = oFace.CreatedByFeature
+	                dia1 = oHoleFeature1.HoleDiameter.Value
+	                dia1 = dia1 * 10 'Converting cm to mm
+				Else
+					Debug.Print(oFace.CreatedByFeature.Type.ToString())
+				End If
+				
+				If oHoleFeature1 Is Nothing Then Continue For
+                
+				If TypeOf comparedFace.CreatedByFeature Is HoleFeature Then ' there's nothing to compare
+                	oHoleFeature2 = comparedFace.CreatedByFeature
+	                dia2 = oHoleFeature2.HoleDiameter.Value
+	                dia2 = dia2 * 10 'Converting cm to mm
+
+	                If Math.Round(dia1, 4) = Math.Round(dia2, 4) Then
+						'set face color = green
+	                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Default")
+	                ElseIf Math.Round(dia1, 4) >= Math.Round(dia2, 4) And Math.Round(dia1, 4) <= Math.Round(dia2, 4) + 0.5 Then
+						'set face color = orange
+	                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Special Type")
+	                Else
+						'set face color = red
+	                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => Not OK")
+	                End If
+				Else
+					Debug.Print(oFace.CreatedByFeature.Type.ToString())
+				End If
+
+            End If
+        End If
+    Next
+End Sub
+
+Public transObjs As TransientObjects = Nothing
+
 Sub CheckForAndDeleteExistingFolders(ByVal Compdef As AssemblyComponentDefinition)
 		Dim oDoc As Document = ThisDoc.Document
 		Dim oPane As BrowserPane
@@ -162,7 +168,6 @@ Sub CheckForAndDeleteExistingFolders(ByVal Compdef As AssemblyComponentDefinitio
 															Select folder).FirstOrDefault()
 			If Not alignedAxesFolder Is Nothing Then
 				For Each onode As BrowserNode In alignedAxesFolder.BrowserNode.BrowserNodes
-					Break
 					If TypeOf onode.NativeObject Is WorkAxis Then
 						Dim deleteAxis As WorkAxis = onode.NativeObject
 						deleteAxis.Delete
@@ -190,4 +195,25 @@ Public Function CompareFaces(ByVal oAxis1 As WorkAxis, ByVal oBody As SurfaceBod
         End If
     Next
     Return Nothing
+End Function
+
+''' <summary>
+''' Does what it says on the tin
+''' </summary>
+''' <param name="colourname"></param>
+''' <returns></returns>
+Public Function GetColourFromString(ByVal colourname As String) As Color
+	colourname = colourname.ToLower()
+	Select Case colourname
+		Case "black"
+			Return transObjs.CreateColor(255, 255, 255)
+		Case "red"
+			Return transObjs.CreateColor(255, 0, 0)
+		Case "green"
+			Return transObjs.CreateColor(0, 255, 0)
+		Case "orange"
+			Return transObjs.CreateColor(255, 165, 0)
+		Case "blue"
+			Return transObjs.CreateColor(0, 0, 255)
+	End Select
 End Function
