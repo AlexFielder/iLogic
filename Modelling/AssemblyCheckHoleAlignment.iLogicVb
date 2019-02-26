@@ -1,4 +1,5 @@
-﻿Sub Main()
+﻿imports System.Linq
+Sub Main()
     Dim oDoc As AssemblyDocument
     oDoc = ThisApplication.ActiveDocument
 
@@ -7,7 +8,9 @@
 
     Dim oBody1 As SurfaceBody
     Dim oBody2 As SurfaceBody
-
+	
+	CheckForAndDeleteExistingFolders(oCompdef)
+	
     oBody1 = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartBodyFilter, "Select first body")
     oBody2 = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartBodyFilter, "Select a body to compare")
 	
@@ -68,8 +71,11 @@
 
 	    Next
 
-	    Dim oPane As BrowserPane
-	    oPane = oDoc.BrowserPanes.ActivePane
+	    Dim Doc As Document = ThisDoc.Document
+		Dim oPane As BrowserPane
+	    oPane = Doc.BrowserPanes("Model")
+		
+		Dim topNode As BrowserNode = oPane.TopNode
 
 	    Dim alignedNodes As ObjectCollection
 	    alignedNodes = ThisApplication.TransientObjects.CreateObjectCollection
@@ -93,17 +99,78 @@
 
 	    Next
 
-	    Dim alignedAxes As BrowserFolder
-	    alignedAxes = oPane.AddBrowserFolder("Aligned Axes", alignedNodes)
+	    Dim alignedAxes As BrowserFolder = (From folder As BrowserFolder In topNode.BrowserFolders
+																	Where folder.name = "Aligned Axes"
+																	Select folder).FirstOrDefault()
+		If alignedAxes Is Nothing Then
+	    	alignedAxes = oPane.AddBrowserFolder("Aligned Axes", alignedNodes)
+		Else
+			For Each node As BrowserNode In alignedNodes
+				alignedAxes.Add(node)
+			Next
+		End If
 
-	    Dim misAlignedAxes As BrowserFolder
-	    misAlignedAxes = oPane.AddBrowserFolder("MisAligned Axes", misAlignedNodes)
+	    Dim misAlignedAxes As BrowserFolder = (From folder As BrowserFolder In topNode.BrowserFolders
+																	Where folder.name = "MisAligned Axes"
+																	Select folder).FirstOrDefault()
+		If misAlignedAxes Is Nothing Then
+	    	misAlignedAxes = oPane.AddBrowserFolder("MisAligned Axes", misAlignedNodes)
+		Else
+			For Each node As BrowserNode In misAlignedNodes
+				misAlignedAxes.Add(node)
+			Next
+		End If
 	Catch ex As Exception
 		MessageBox.Show("There was an error!" & vbCrLf & ex.Message, "Danger Will Robinson")
 		trans.Abort
 	Finally
 		trans.End()
 	End Try
+End Sub
+
+Sub CheckForAndDeleteExistingFolders(ByVal Compdef As AssemblyComponentDefinition)
+		Dim oDoc As Document = ThisDoc.Document
+		Dim oPane As BrowserPane
+	    oPane = oDoc.BrowserPanes("Model")
+		Dim topNode As BrowserNode = oPane.TopNode
+		
+		Dim deleteExistingAxesAndFolders As Boolean = False
+'		If Not topNode.BrowserFolders.Count = 0 Then
+'			If Not topNode.BrowserFolders("MisAligned Axes") Is Nothing Or Not topNode.BrowserFolders("Aligned Axes") Is Nothing Then
+				If MessageBox.Show("Delete any existing folders/alignment axes?", "reset alignment", MessageBoxButtons.YesNo) = DialogResult.Yes Then
+					Dim misAlignedAxesFolder As BrowserFolder = (From folder As BrowserFolder In topNode.BrowserFolders
+																	Where folder.name = "MisAligned Axes"
+																	Select folder).FirstOrDefault()
+					
+					If Not misAlignedAxesFolder Is Nothing Then
+						misAlignedAxesFolder.Delete
+					End If
+					
+					Dim misaligned As List(Of WorkAxis) = (From axis As WorkAxis In Compdef.workaxes
+															Where axis.name.endswith("misaligned")
+															Select axis).tolist()
+					If Not misaligned Is Nothing Then
+						For Each axis As WorkAxis In misaligned
+							axis.Delete()
+						Next
+					End If
+					
+				    Dim alignedAxesFolder As BrowserFolder = (From folder As BrowserFolder In topNode.BrowserFolders
+																	Where folder.name = "Aligned Axes"
+																	Select folder).FirstOrDefault()
+					If Not alignedAxesFolder Is Nothing Then
+						For Each onode As BrowserNode In alignedAxesFolder.BrowserNode.BrowserNodes
+							Break
+							If TypeOf onode.NativeObject Is WorkAxis Then
+								Dim deleteAxis As WorkAxis = onode.NativeObject
+								deleteAxis.Delete
+							End If
+						Next
+						alignedAxesFolder.Delete
+					End If
+'				End If
+'			End If
+		End If
 End Sub
 
 Public Function CompareFaces(ByVal oAxis1 As WorkAxis, ByVal oBody As SurfaceBody, ByVal compDef As AssemblyComponentDefinition) As Face

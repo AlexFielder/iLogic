@@ -1,32 +1,75 @@
 ﻿imports System.Linq
 Sub Main()
+	Dim CutFeatureName As String = "DemoAssemblyCutFeature"
 	If TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
 		Dim AssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
 		Dim AssyDef As AssemblyComponentDefinition = AssyDoc.ComponentDefinition
-		
-		Dim cutSketch As PlanarSketch = (From sk As PlanarSketch In AssyDef.Sketches
-											Where sk.name.contains("cut")
-											Select sk).FirstOrDefault()
-		If Not cutSketch Is Nothing Then
-			Dim cutProfile As Profile = cutSketch.Profiles.AddForSolid
-			Dim extrudeDef As ExtrudeDefinition = AssyDef.Features.ExtrudeFeatures.CreateExtrudeDefinition(cutProfile, PartFeatureOperationEnum.kCutOperation)
-			Dim cutPlane1 As WorkPlane = (From wp As WorkPlane In AssyDef.WorkPlanes
-											Where wp.name.contains("1")
-											Select wp).FirstOrDefault()
-			Dim cutPlane2 As WorkPlane = (From wp As WorkPlane In AssyDef.WorkPlanes
-											Where wp.name.contains("2")
-											Select wp).FirstOrDefault()
-			If Not cutPlane1 Is Nothing And Not cutPlane2 Is Nothing Then
-				extrudeDef.SetFromToExtent(cutPlane1, True, cutPlane2, True)
-			Else
-				MessageBox.Show("couldn't find workplanes containing 1 & 2 in their names")
-			End If
+		If Parameter("TotalWidth") >= 1500 Then
+			DeleteCutFeature(AssyDef, CutFeatureName)
+			MessageBox.Show("No cut required")
 		Else
-			MessageBox.Show("We couldn't find the right sketch! Exiting.")
-			Exit Sub
+			If Parameter("FinalPanel") = "003" Then
+				'check if 003 is inserted
+				For Each occ As ComponentOccurrence In AssyDef.Occurrences
+					Logger.Debug(occ.Name)
+					If occ.Name.Contains("004") Then
+						Component.Replace(occ.Name, "CutMe003.ipt", True)
+					End If
+				Next
+			Else
+				For Each occ As ComponentOccurrence In AssyDef.Occurrences
+					Logger.Debug(occ.Name)
+					If occ.Name.Contains("003") Then
+						Component.Replace(occ.Name, "CutMe004.ipt", True)
+					End If
+				Next
+			End If
+			DeleteCutFeature(AssyDef, CutFeatureName)
+			CreateAssemblyCut(AssyDef, CutFeatureName)
 		End If
 	Else
-		MessageBox.Show("NOt using an Assembly, Exiting!")
+		MessageBox.Show("Not using an Assembly, Exiting!")
+		Exit Sub
+	End If
+	iLogicVb.UpdateWhenDone = True
+End Sub
+
+Sub DeleteCutFeature(ByVal AssyDef As AssemblyComponentDefinition, FeatureName As String)
+	Dim FeatureToDelete As ExtrudeFeature = (From extFeat As ExtrudeFeature In AssyDef.features.extrudefeatures
+												Where extFeat.Name = FeatureName
+												Select extFeat).FirstOrDefault()
+	If Not FeatureToDelete Is Nothing Then
+		FeatureToDelete.Delete(True, False)
+		Logger.Debug("Deleted: " & FeatureName)
+	End If
+End Sub
+
+Sub CreateAssemblyCut(ByVal AssyDef As AssemblyComponentDefinition, FeatureName As String)
+	Dim cutSketch As PlanarSketch = (From sk As PlanarSketch In AssyDef.Sketches
+										Where sk.name.tolower.contains("cut")
+										Select sk).FirstOrDefault()
+	If Not cutSketch Is Nothing Then
+		Dim cutProfile As Profile = cutSketch.Profiles.AddForSolid
+		Dim extrudeDef As ExtrudeDefinition = AssyDef.Features.ExtrudeFeatures.CreateExtrudeDefinition(cutProfile, PartFeatureOperationEnum.kCutOperation)
+		Dim cutPlane1 As WorkPlane = (From wp As WorkPlane In AssyDef.WorkPlanes
+										Where wp.name.contains("1")
+										Select wp).FirstOrDefault()
+		Dim cutPlane2 As WorkPlane = (From wp As WorkPlane In AssyDef.WorkPlanes
+										Where wp.name.contains("2")
+										Select wp).FirstOrDefault()
+		If Not cutPlane1 Is Nothing And Not cutPlane2 Is Nothing Then
+			extrudeDef.SetFromToExtent(cutPlane1, True, cutPlane2, True) ' the true statements here might adversely affect things?
+			Dim extrudeCut As ExtrudeFeature = AssyDef.Features.ExtrudeFeatures.Add(extrudeDef)
+			For Each occ As ComponentOccurrence In AssyDef.Occurrences
+				extrudeCut.AddParticipant(occ)
+			Next
+			extrudeCut.Name = FeatureName
+			Logger.Debug("Created: " & FeatureName)
+		Else
+			MessageBox.Show("couldn't find workplanes containing 1 & 2 in their names")
+		End If
+	Else
+		MessageBox.Show("We couldn't find the right sketch! Exiting.")
 		Exit Sub
 	End If
 End Sub
