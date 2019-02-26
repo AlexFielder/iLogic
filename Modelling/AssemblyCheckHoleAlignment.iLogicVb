@@ -1,6 +1,8 @@
 ﻿Option explicit On
 
 Imports System.Linq
+Imports System.Collections.Generic
+Imports Inventor
 Sub Main()
 	iLogicVb.UpdateWhenDone = True
 	transObjs = ThisApplication.TransientObjects
@@ -35,11 +37,15 @@ Sub Main()
 		
 		Dim topNode As BrowserNode = oPane.TopNode
 
+		
+		
 	    Dim alignedNodes As List(Of WorkAxis) = New list(Of WorkAxis) 'ObjectCollection
 '	    alignedNodes = ThisApplication.TransientObjects.CreateObjectCollection
 
 	    Dim misAlignedNodes As List(Of WorkAxis) = New list(Of WorkAxis) 'ObjectCollection
 '	    misAlignedNodes = ThisApplication.TransientObjects.CreateObjectCollection
+
+		SplitNodeLists(oPane, newAxes, alignedNodes, misAlignedNodes)
 
 	    For Each oAxis As WorkAxis In newAxes
 	        Dim misaligned As Boolean = oAxis.Name.EndsWith("misaligned")
@@ -106,15 +112,19 @@ Function CheckBodyFaces(ByVal oCompDef As AssemblyComponentDefinition, ByVal oBo
 	                If Math.Round(dia1, 4) = Math.Round(dia2, 4) Then
 						'set face color = green
 	                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Default")
+						oAxis.name = oAxis.Name & "_aligned_green"
 	                ElseIf Math.Round(dia1, 4) >= Math.Round(dia2, 4) And Math.Round(dia1, 4) <= Math.Round(dia2, 4) + 0.5 Then
 						'set face color = orange
 	                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => OK - Special Type")
+						oAxis.name = oAxis.Name & "_aligned_amber"
 	                Else
 						'set face color = red
 	                    Debug.Print("Hole diameter of plate 1 = " & dia1 & " compared with Hole diameter of plate 2 = " & dia2 & " => Not OK")
+						oAxis.name = oAxis.Name & "_aligned_red"
 	                End If
 				Else
 					Debug.Print(oFace.CreatedByFeature.Type.ToString())
+					oAxis.name = oAxis.Name & "_aligned_unknown"
 				End If
             End If
 			axisList.Add(oAxis)
@@ -123,6 +133,22 @@ Function CheckBodyFaces(ByVal oCompDef As AssemblyComponentDefinition, ByVal oBo
 	
 	Return axisList
 End Function
+
+Sub SplitNodeLists(ByVal oPane As BrowserNode, ByVal newAxes As List(Of Inventor.Axis), ByRef alignedNodes As List(Of Inventor.axis), ByRef misAlignedNodes As List(Of Inventor.axis))
+	For Each oAxis As WorkAxis In newAxes
+        Dim misaligned As Boolean = oAxis.Name.EndsWith("misaligned")
+		
+        Dim oNode As BrowserNode = oPane.GetBrowserNodeFromObject(oAxis)
+		Dim nodeDef As NativeBrowserNodeDefinition = oNode.BrowserNodeDefinition
+		
+		
+        If misaligned = True Then
+            misAlignedNodes.Add(oAxis)
+        Else
+			alignedNodes.Add(oAxis)
+        End If
+    Next
+End Sub
 
 ''' <summary>
 ''' 
@@ -143,16 +169,16 @@ Sub AddNewAxesToBrowserFolders(ByVal alignedNodesList As List(Of WorkAxis), ByVa
 			alignedNodes.Add(oPane.GetBrowserNodeFromObject(axis))
 		Next
     	alignedAxes = oPane.AddBrowserFolder("Aligned Axes", alignedNodes)
-	Else
-		Dim lastAlignedAxisNode As BrowserNode = alignedAxes.BrowserNode.BrowserNodes(alignedAxes.BrowserNode.BrowserNodes.Count)
-		'add existing browsernodes to the new collection because the Inventor API is retarded on this.
-		For Each node As BrowserNode In alignedAxes.BrowserNode.BrowserNodes
-			alignedNodes.Add(node)
-		Next
-		'before deleting and recreating the BrowserFolder object
-		alignedAxes.Delete
-Break
-		Dim newAlignedAxes As BrowserFolder = oPane.AddBrowserFolder("Aligned Axes", alignedNodes)
+'	Else
+'		Dim lastAlignedAxisNode As BrowserNode = alignedAxes.BrowserNode.BrowserNodes(alignedAxes.BrowserNode.BrowserNodes.Count)
+'		'add existing browsernodes to the new collection because the Inventor API is retarded on this.
+'		For Each node As BrowserNode In alignedAxes.BrowserNode.BrowserNodes
+'			alignedNodes.Add(node)
+'		Next
+'		'before deleting and recreating the BrowserFolder object
+'		alignedAxes.Delete
+'Break
+'		Dim newAlignedAxes As BrowserFolder = oPane.AddBrowserFolder("Aligned Axes", alignedNodes)
 	End If
 
     Dim misAlignedAxes As BrowserFolder = (From folder As BrowserFolder In topNode.BrowserFolders
@@ -164,14 +190,14 @@ Break
 		Next
 	If misAlignedAxes Is Nothing Then
     	misAlignedAxes = oPane.AddBrowserFolder("MisAligned Axes", misAlignedNodes)
-	Else
-		'add existing browsernodes to the new collection because the Inventor API is retarded on this.
-		For Each node As BrowserNode In misAlignedAxes.BrowserNode.BrowserNodes
-			misAlignedNodes.Add(node)
-		Next
-		misAlignedAxes.Delete
-Break
-		Dim newMisAlignedAxes As BrowserFolder = oPane.AddBrowserFolder("MisAligned Axes", misAlignedNodes)
+'	Else
+'		'add existing browsernodes to the new collection because the Inventor API is retarded on this.
+'		For Each node As BrowserNode In misAlignedAxes.BrowserNode.BrowserNodes
+'			misAlignedNodes.Add(node)
+'		Next
+'		misAlignedAxes.Delete
+'Break
+'		Dim newMisAlignedAxes As BrowserFolder = oPane.AddBrowserFolder("MisAligned Axes", misAlignedNodes)
 	End If
 End Sub
 
