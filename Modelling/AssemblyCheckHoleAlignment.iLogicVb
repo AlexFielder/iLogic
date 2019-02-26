@@ -1,5 +1,6 @@
 ﻿imports System.Linq
 Sub Main()
+	iLogicVb.UpdateWhenDone = True
     Dim oDoc As AssemblyDocument
     oDoc = ThisApplication.ActiveDocument
 
@@ -20,12 +21,9 @@ Sub Main()
 	End If
 	
 	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(oDoc, "Hole Alignment Check")
-	Try
+'	Try
 	    Dim oFace As Face
-	    Dim oAxis As WorkAxis
-		
-		CheckBodyFaces(oCompdef, oBody1)
-	    
+		Dim newAxes As List(Of WorkAxis) = CheckBodyFaces(oCompdef, oBody1, oBody2)
 
 	    Dim Doc As Document = ThisDoc.Document
 		Dim oPane As BrowserPane
@@ -39,57 +37,41 @@ Sub Main()
 	    Dim misAlignedNodes As ObjectCollection
 	    misAlignedNodes = ThisApplication.TransientObjects.CreateObjectCollection
 
-	    For i = 4 To oCompdef.WorkAxes.Count
-	        oAxis = oCompdef.WorkAxes.Item(i)
+	    For Each oAxis As WorkAxis In newAxes
 	        Dim misaligned As Boolean = oAxis.Name.EndsWith("misaligned")
 			
-	        Dim oNode As BrowserNode
-
+	        Dim oNode As BrowserNode = oPane.GetBrowserNodeFromObject(oAxis)
+			Dim nodeDef As NativeBrowserNodeDefinition = oNode.BrowserNodeDefinition
+			
+			
 	        If misaligned = True Then
-	            oNode = oPane.GetBrowserNodeFromObject(oAxis)
-	            misAlignedNodes.Add(oNode)
+	            	misAlignedNodes.Add(oNode)
 	        Else
-	            oNode = oPane.GetBrowserNodeFromObject(oAxis)
-	            alignedNodes.Add(oNode)
+					alignedNodes.Add(oNode)
 	        End If
-
 	    Next
-
-	    Dim alignedAxes As BrowserFolder = (From folder As BrowserFolder In topNode.BrowserFolders
-																	Where folder.name = "Aligned Axes"
-																	Select folder).FirstOrDefault()
-		If alignedAxes Is Nothing Then
-	    	alignedAxes = oPane.AddBrowserFolder("Aligned Axes", alignedNodes)
-		Else
-			For Each node As BrowserNode In alignedNodes
-				alignedAxes.Add(node)
-			Next
-		End If
-
-	    Dim misAlignedAxes As BrowserFolder = (From folder As BrowserFolder In topNode.BrowserFolders
-																	Where folder.name = "MisAligned Axes"
-																	Select folder).FirstOrDefault()
-		If misAlignedAxes Is Nothing Then
-	    	misAlignedAxes = oPane.AddBrowserFolder("MisAligned Axes", misAlignedNodes)
-		Else
-			For Each node As BrowserNode In misAlignedNodes
-				misAlignedAxes.Add(node)
-			Next
-		End If
-	Catch ex As Exception
-		MessageBox.Show("There was an error!" & vbCrLf & ex.Message, "Danger Will Robinson")
-		trans.Abort
-	Finally
+		
+		AddNewAxesToBrowserFolders(alignedNodes, misAlignedNodes, oPane, topNode)
+		'works but takes time
+'		oDoc.Rebuild()
+		oDoc.Update()
+		'does nothing
+	    oPane.Refresh()
+'	Catch ex As Exception
+'		MessageBox.Show("There was an error!" & vbCrLf & ex.Message, "Danger Will Robinson")
+'		trans.Abort
+'		Exit Sub
+'	Finally
 		trans.End()
-	End Try
+'	End Try
 End Sub
 
-Sub CheckBodyFaces(ByVal oCompDef As AssemblyComponentDefinition, ByVal oBody1 As SurfaceBody)
+Function CheckBodyFaces(ByVal oCompDef As AssemblyComponentDefinition, ByVal oBody1 As SurfaceBody, ByVal oBody2 As SurfaceBody) As List(Of WorkAxis)
+	Dim axisList As List(Of WorkAxis) = New List(Of WorkAxis)
 	Dim oAxis As WorkAxis
 	For Each oFace As Face In oBody1.Faces
         If oFace.SurfaceType = SurfaceTypeEnum.kCylinderSurface Then
             oAxis = oCompDef.WorkAxes.AddFixed(oFace.Geometry.BasePoint, oFace.Geometry.AxisVector)
-
             Dim comparedFace As Face
             comparedFace = CompareFaces(oAxis, oBody2, oCompDef)
 
@@ -130,13 +112,49 @@ Sub CheckBodyFaces(ByVal oCompDef As AssemblyComponentDefinition, ByVal oBody1 A
 				Else
 					Debug.Print(oFace.CreatedByFeature.Type.ToString())
 				End If
-
             End If
+			axisList.Add(oAxis)
         End If
     Next
+	
+	Return axisList
+End Function
+
+''' <summary>
+''' 
+''' </summary>
+''' <param name="alignedNodes"></param>
+''' <param name="misAlignedNodes"></param>
+''' <param name="oPane"></param>
+''' <param name="topNode"></param>
+Sub AddNewAxesToBrowserFolders(ByVal alignedNodes As ObjectCollection, ByVal misAlignedNodes As ObjectCollection, 
+								ByVal oPane As BrowserPane, ByVal topNode As BrowserNode)
+	Dim alignedAxes As BrowserFolder = (From folder As BrowserFolder In topNode.BrowserFolders
+																	Where folder.name = "Aligned Axes"
+																	Select folder).FirstOrDefault()
+break
+	If alignedAxes Is Nothing Then
+    	alignedAxes = oPane.AddBrowserFolder("Aligned Axes", alignedNodes)
+	Else
+		For Each node As BrowserNode In alignedNodes
+			alignedAxes.Add(node)
+		Next
+	End If
+
+    Dim misAlignedAxes As BrowserFolder = (From folder As BrowserFolder In topNode.BrowserFolders
+																Where folder.name = "MisAligned Axes"
+																Select folder).FirstOrDefault()
+	If misAlignedAxes Is Nothing Then
+    	misAlignedAxes = oPane.AddBrowserFolder("MisAligned Axes", misAlignedNodes)
+	Else
+		For Each node As BrowserNode In misAlignedNodes
+			misAlignedAxes.Add(node)
+		Next
+	End If
 End Sub
 
 Public transObjs As TransientObjects = Nothing
+Public transGeom As TransientGeometry = Nothing
 
 Sub CheckForAndDeleteExistingFolders(ByVal Compdef As AssemblyComponentDefinition)
 		Dim oDoc As Document = ThisDoc.Document
@@ -149,7 +167,6 @@ Sub CheckForAndDeleteExistingFolders(ByVal Compdef As AssemblyComponentDefinitio
 			Dim misAlignedAxesFolder As BrowserFolder = (From folder As BrowserFolder In topNode.BrowserFolders
 															Where folder.name = "MisAligned Axes"
 															Select folder).FirstOrDefault()
-			
 			If Not misAlignedAxesFolder Is Nothing Then
 				misAlignedAxesFolder.Delete
 			End If
