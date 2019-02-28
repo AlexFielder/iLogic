@@ -1,11 +1,45 @@
-﻿Sub main()
-	Dim ofeature As Face = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartFaceFilter, "Select first feature")
-	
-	Dim referenceKeyManager As ReferenceKeyManager = ThisDoc.Document.ReferenceKeyManager
-	Dim ReferenceKey = New Byte() {}
-	If Not ofeature Is Nothing Then
-		ofeature.CreatedByFeature.GetReferenceKey(ReferenceKey)
-		Dim ReferenceKey2 As Byte() = ReferenceKey
-		MessageBox.Show(referenceKeyManager.KeyToString(ReferenceKey2) & vbTab)
-	End If
+﻿imports System.Text
+Sub main()
+	Dim oObj As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAllEntitiesFilter, "Select a Face, Edge or Vertex")
+	MessageBox.Show(GetFeaturesString(oObj))
 End Sub
+
+Function GetFeaturesString(ByVal entity As Object) As String
+    Select Case True 'CadObjectUtil.GetObjectType(entity)
+        Case TypeOf entity Is Face
+            Dim ReferenceKey As Byte() = New Byte() {}
+			Dim selectedFace As Face = entity
+            selectedFace.CreatedByFeature.GetReferenceKey(ReferenceKey)
+            Dim referenceKeyManager As ReferenceKeyManager = ThisDoc.Document.ReferenceKeyManager
+            Dim ReferenceKey2 As Byte() = ReferenceKey
+            Return referenceKeyManager.KeyToString(ReferenceKey2) & vbTab
+        Case TypeOf entity Is Edge
+            Return GetFeaturesString((CType(entity, Edge)).Faces)
+        Case TypeOf entity Is Vertex
+            Return GetFeaturesString((CType(entity, Vertex)).Faces)
+        Case Else
+            Return String.Empty
+    End Select
+End Function
+
+Function GetFeaturesString(ByVal faces As Faces) As String
+    Dim hashSet As HashSet(Of String) = New HashSet(Of String)()
+    Dim ReferenceKey As Byte() = New Byte(-1) {}
+
+    For Each face As Face In faces
+        Face.CreatedByFeature.GetReferenceKey(ReferenceKey)
+        Dim hashSet2 As HashSet(Of String) = hashSet
+        Dim referenceKeyManager As ReferenceKeyManager = ThisDoc.Document.ReferenceKeyManager
+        Dim ReferenceKey2 As Byte() = ReferenceKey
+        hashSet2.Add(referenceKeyManager.KeyToString(ReferenceKey2))
+    Next
+
+    Dim stringBuilder As StringBuilder = New StringBuilder()
+
+    For Each item As String In hashSet
+        stringBuilder.Append(item)
+        stringBuilder.Append(vbTab)
+    Next
+
+    Return stringBuilder.ToString()
+End Function
