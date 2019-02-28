@@ -8,46 +8,4 @@
 		Dim ReferenceKey2 As Byte() = ReferenceKey
 		MessageBox.Show(referenceKeyManager.KeyToString(ReferenceKey2) & vbTab)
 	End If
-'	Dim iLogicAddin As IiLogicAutomation = GetiLogicAddin(ThisApplication)
-'	If Not iLogicAddin Is Nothing Then
-'		Dim namedEnts As NamedEntities = iLogicAddin.GetNamedEntities(ThisDoc.Document)
-'		Dim nvm As NameValueMap
-'		For i = 1 To namedEnts.Entities.Count
-'			Logger.Debug(namedEnts.Entities.Name(i))
-'		Next
-'Break
-'		For Each namedEnt As Object In namedEnts.Entities
-'			Logger.Debug(TypeName(namedEnt))
-'			If TypeOf namedEnt Is NameValueMap Then
-'				nvm = namedEnt
-'				For i = 1 To nvm.count
-'					Logger.Debug(nvm.name(i))
-'				Next
-'			End If
-'		Next
-'	End If
 End Sub
-
-''' <summary>
-''' Copied from here: https://github.com/MegaJerk/iLogicCodeInjector/blob/master/Code%20Injector%20Project/Code%20Injector/Code_Injector.vb#L370
-''' </summary>
-''' <param name="oApplication"></param>
-''' <returns></returns>
-Function GetiLogicAddin(ByVal oApplication As Inventor.Application) As IiLogicAutomation
-        Dim addIns As ApplicationAddIns
-        addIns = oApplication.ApplicationAddIns
-
-        Dim addIn As ApplicationAddIn
-        On Error GoTo NotFound
-        addIn = oApplication.ApplicationAddIns.ItemById("{3bdd8d79-2179-4b11-8a5a-257b1c0263ac}")
-
-        If (addIn Is Nothing) Then
-            Return Nothing
-            Exit Function
-        End If
-
-        addIn.Activate()
-        GetiLogicAddin = addIn.Automation
-        Exit Function
-NotFound:
-    End Function
