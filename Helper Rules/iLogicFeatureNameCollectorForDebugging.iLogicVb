@@ -1,4 +1,9 @@
 ﻿imports System.Text
+Imports iLogic
+Imports Inventor
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
 Sub main()
 	Dim oObj As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAllEntitiesFilter, "Select a Face, Edge or Vertex")
 	MessageBox.Show(GetFeaturesString(oObj))
@@ -43,3 +48,385 @@ Function GetFeaturesString(ByVal faces As Faces) As String
 
     Return stringBuilder.ToString()
 End Function
+
+Class NamedEntityGraphics
+    Private Const NamedEntityGraphicsID As String = "NamedEntityGraphicsID"
+    Private ReadOnly m_partDoc As PartDocument
+    Private ReadOnly m_app As Inventor.Application
+    Private ReadOnly m_pickedNode As GraphicsNode
+    Private Shared Counter As Integer = 100
+    Private Const ColorId As Integer = 10
+
+    Public Property RemovedBySketchEnv As Boolean
+        Get
+            Return (CType(m_partDoc.GraphicsDataSetsCollection("NamedEntityGraphicsID").get_ItemById(10), GraphicsColorSet)).get_Color(1).Opacity = 0.0
+        End Get
+        Set(ByVal value As Boolean)
+            Dim obj As GraphicsColorSet = CType(m_partDoc.GraphicsDataSetsCollection("NamedEntityGraphicsID").get_ItemById(10), GraphicsColorSet)
+            Dim Color As Color = obj.get_Color(1)
+            Color.Opacity = (If((Not value), 1, 0))
+            obj.set_Color(1, Color)
+        End Set
+    End Property
+
+    Public Sub New(ByVal doc As PartDocument, ByVal app As Inventor.Application, ByVal pickedNode As GraphicsNode)
+        m_partDoc = doc
+        m_app = app
+        m_pickedNode = pickedNode
+    End Sub
+
+    Public Function HasGraphics() As Boolean
+        Return m_partDoc.ComponentDefinition.ClientGraphicsCollection("NamedEntityGraphicsID").Count <> 0
+    End Function
+
+    Public Sub SetVisible(ByVal visibility As Boolean)
+        m_partDoc.ComponentDefinition.ClientGraphicsCollection("NamedEntityGraphicsID").Visible = (If(visibility, GraphicsVisibilityEnum.kAllGraphicsVisible, GraphicsVisibilityEnum.kNoGraphicsVisible))
+        m_app.ActiveView.Update()
+    End Sub
+
+    Public Function Update(ByVal oldName As String, ByVal newName As String, ByVal entityObject As Object) As GraphicsNode
+        Dim GraphicsDataSets As GraphicsDataSets = Nothing
+        Dim ClientGraphics As ClientGraphics = Nothing
+        Dim GraphicsColorSet As GraphicsColorSet = Nothing
+        Dim ComponentDefinition As PartComponentDefinition = m_partDoc.ComponentDefinition
+
+        Try
+            GraphicsDataSets = m_partDoc.GraphicsDataSetsCollection("NamedEntityGraphicsID")
+            ClientGraphics = ComponentDefinition.ClientGraphicsCollection("NamedEntityGraphicsID")
+        Catch __unusedException1__ As Exception
+            GraphicsDataSets = m_partDoc.GraphicsDataSetsCollection.Add("NamedEntityGraphicsID")
+            ClientGraphics = ComponentDefinition.ClientGraphicsCollection.Add("NamedEntityGraphicsID")
+            ClientGraphics.Selectable = GraphicsSelectabilityEnum.kAllGraphicsSelectable
+            GraphicsColorSet = GraphicsDataSets.CreateColorSet(10)
+            GraphicsColorSet.Add(1, 0, 0, 0)
+        End Try
+
+        If oldName.Length <> 0 Then
+            Dim GraphicsNode As GraphicsNode = FindGraphicsNode(oldName, ClientGraphics)
+
+            If GraphicsNode IsNot Nothing Then
+                GraphicsNode.DisplayName = newName
+
+                If True Then
+
+                    For Each item As GraphicsPrimitive In GraphicsNode
+                        Dim TextGraphics As TextGraphics = TryCast(item, TextGraphics)
+
+                        If TextGraphics IsNot Nothing Then
+                            TextGraphics.Text = newName
+                            Return GraphicsNode
+                        End If
+                    Next
+
+                    Return GraphicsNode
+                End If
+            End If
+        End If
+
+        Dim graphicsNode2 As GraphicsNode = ClientGraphics.AddNode(Counter)
+        graphicsNode2.DisplayName = newName
+        graphicsNode2.Selectable = True
+        'Dim objectType As ObjectTypeEnum = CadObjectUtil.GetObjectType(entityObject)
+        Dim point As Point = Nothing
+        Dim array As Double() = Nothing
+
+        Select Case True 'objectType
+            Case TypeOf entityObject Is Face
+                Dim face As Face = CType(entityObject, Face)
+                Dim MinPoint As Double() = New Double(1) {}
+                Dim MaxPoint As Double() = New Double(1) {}
+                Dim evaluator As SurfaceEvaluator = face.Evaluator
+                evaluator.ParamRangeRect.GetBoxData(MinPoint, MaxPoint)
+                Dim num As Double = MaxPoint(0) - MinPoint(0)
+                Dim num2 As Double = MaxPoint(1) - MinPoint(1)
+
+                If face.SurfaceType = SurfaceTypeEnum.kPlaneSurface Then
+                    MinPoint(0) += num / 2.0
+                    MinPoint(1) += num2 / 2.0
+
+                    If evaluator.get_IsParamOnFace(MinPoint) Then
+                        Dim Points As Double() = New Double(2) {}
+                        evaluator.GetPointAtParam(MinPoint, Points)
+                        point = m_app.TransientGeometry.CreatePoint(Points(0), Points(1), Points(2))
+                    Else
+                        point = face.PointOnFace
+                    End If
+
+                    Exit Select
+                End If
+
+                Dim num3 As Double = If((MinPoint(0) < 0.0), 0.3, (-0.3))
+                MinPoint(0) += (If((num > 1.5), num3, (num * 0.45)))
+                MinPoint(1) += num2 * 0.45
+
+                If evaluator.get_IsParamOnFace(MinPoint) Then
+                    Dim Points2 As Double() = New Double(2) {}
+                    evaluator.GetPointAtParam(MinPoint, Points2)
+                    point = m_app.TransientGeometry.CreatePoint(Points2(0), Points2(1), Points2(2))
+                    MinPoint(0) += (If((num > 1.5), num3, (num * 0.45)))
+                    array = New Double(2) {Points2(0), Points2(1), Points2(2)}
+                    evaluator.GetPointAtParam(MinPoint, Points2)
+
+                    For i As Integer = 0 To array.Length - 1
+                        array(i) -= Points2(i)
+                    Next
+                Else
+                    point = face.PointOnFace
+                End If
+
+                Exit Select
+            Case TypeOf entityObject Is Edge 'ObjectTypeEnum.kEdgeObject
+                point = (CType(entityObject, Edge)).PointOnEdge
+            Case TypeOf entityObject Is Vertex 'ObjectTypeEnum.kVertexObject
+                point = (CType(entityObject, Vertex)).Point
+        End Select
+
+        Dim normalVector As Tuple(Of Vector, Double) = GetNormalVector(objectType, entityObject, point, array)
+        Dim vector As Vector = normalVector.Item1.Copy()
+        vector.Normalize()
+        Dim num4 As Double = 0.0058 * normalVector.Item2
+        vector.ScaleBy(num4 * 4.0)
+        Dim point2 As point = point.Copy()
+        point2.TranslateBy(vector)
+        Dim surfaces As SurfaceBody = m_app.TransientBRep.CreateSolidCylinderCone(point2, point, num4, num4, 0.0, Type.Missing)
+        Dim Coords As Double() = New Double(2) {}
+        point.GetPointData(Coords)
+        Dim list As List(Of Double) = New List(Of Double)(6)
+        list.AddRange(Coords)
+        point.TranslateBy(normalVector.Item1)
+        point.GetPointData(Coords)
+        list.AddRange(Coords)
+        Dim textGraphics2 As TextGraphics = graphicsNode2.AddTextGraphics()
+        textGraphics2.Text = newName
+        textGraphics2.Bold = True
+        textGraphics2.Anchor = point
+        textGraphics2.VerticalAlignment = VerticalTextAlignmentEnum.kAlignTextLower
+        textGraphics2.HorizontalAlignment = HorizontalTextAlignmentEnum.kAlignTextCenter
+        textGraphics2.BurnThrough = False
+        textGraphics2.PutTextColor(0, Byte.MaxValue, 0)
+        textGraphics2.FontSize = 22.0
+        textGraphics2.Font = "Tahoma"
+        Dim graphicsCoordinateSet As GraphicsCoordinateSet = graphicsDataSets.CreateCoordinateSet(Math.Min(System.Threading.Interlocked.Increment(Counter), Counter - 1))
+        Dim graphicsCoordinateSet2 As graphicsCoordinateSet = graphicsCoordinateSet
+        Dim Coordinates As Double() = list.ToArray()
+        graphicsCoordinateSet2.PutCoordinates(Coordinates)
+        graphicsNode2.AddLineGraphics().CoordinateSet = graphicsCoordinateSet
+        Dim surfaceGraphics As SurfaceGraphics = graphicsNode2.AddSurfaceGraphics(surfaces)
+
+        If graphicsColorSet Is Nothing Then
+            graphicsColorSet = CType(graphicsDataSets.get_ItemById(10), graphicsColorSet)
+        End If
+
+        surfaceGraphics.Color = graphicsColorSet.get_Color(1)
+        Return graphicsNode2
+    End Function
+
+    Public Function Delete() As HashSet(Of String)
+        Dim hashSet As HashSet(Of String) = New HashSet(Of String)()
+        Dim clientGraphics As ClientGraphics = m_partDoc.ComponentDefinition.ClientGraphicsCollection("NamedEntityGraphicsID")
+        Dim graphicsDataSets As GraphicsDataSets = m_partDoc.GraphicsDataSetsCollection("NamedEntityGraphicsID")
+
+        For Each item As GraphicsNode In clientGraphics
+            hashSet.Add(item.DisplayName)
+            graphicsDataSets.get_ItemById(item.Id).Delete()
+            item.Delete()
+        Next
+
+        Return hashSet
+    End Function
+
+    Public Function Delete(ByVal entityName As String) As Boolean
+        Dim graphicsDataSets As GraphicsDataSets
+        Dim graphicsNode As GraphicsNode = FindGraphicsNode(entityName, graphicsDataSets)
+
+        If graphicsNode IsNot Nothing Then
+            graphicsDataSets.get_ItemById(graphicsNode.Id).Delete()
+            graphicsNode.Delete()
+            Return True
+        End If
+
+        Return False
+    End Function
+
+    Public Function IsLabelNodeAvailable(ByVal entityName As String) As Boolean
+        Dim graphicsDataSets As GraphicsDataSets
+        Return FindGraphicsNode(entityName, graphicsDataSets) IsNot Nothing
+    End Function
+
+    Public Function FindGraphicsNode(ByVal entityName As String, ByRef graphicsDataSets As GraphicsDataSets) As GraphicsNode
+        Dim clientGraphics As ClientGraphics = Nothing
+
+        Try
+            graphicsDataSets = m_partDoc.GraphicsDataSetsCollection("NamedEntityGraphicsID")
+            clientGraphics = m_partDoc.ComponentDefinition.ClientGraphicsCollection("NamedEntityGraphicsID")
+        Catch __unusedException1__ As Exception
+            graphicsDataSets = Nothing
+            Return Nothing
+        End Try
+
+        Dim graphicsNode As GraphicsNode = m_pickedNode
+
+        If graphicsNode Is Nothing OrElse graphicsNode.DisplayName <> entityName Then
+            graphicsNode = FindGraphicsNode(entityName, clientGraphics)
+        End If
+
+        Return graphicsNode
+    End Function
+
+    Private Function FindGraphicsNode(ByVal entityName As String, ByVal clientGraphics As ClientGraphics) As GraphicsNode
+        For Each clientGraphic As GraphicsNode In clientGraphics
+
+            If clientGraphic.DisplayName = entityName Then
+                Return clientGraphic
+            End If
+        Next
+
+        Return Nothing
+    End Function
+
+    Private Function GetNormalVector(ByVal objectType As ObjectTypeEnum, ByVal entityObject As Object, ByVal pickedPoint As Point, ByVal faceDirection As Double()) As Tuple(Of Vector, Double)
+        Dim surfaceBody As SurfaceBody = Nothing
+        Dim array As Double() = New Double(2) {}
+
+        Select Case objectType
+            Case ObjectTypeEnum.kFaceObject
+                Dim face3 As Face = CType(entityObject, Face)
+                array = GetFaceNormal(face3, pickedPoint)
+                surfaceBody = face3.SurfaceBody
+                Exit Select
+            Case ObjectTypeEnum.kEdgeObject
+
+                For Each face4 As Face In (CType(entityObject, Edge)).Faces
+                    Dim faceNormal2 As Double() = GetFaceNormal(face4, pickedPoint)
+                    AddVec(array, faceNormal2)
+
+                    If surfaceBody Is Nothing Then
+                        surfaceBody = face4.SurfaceBody
+                    End If
+                Next
+
+            Case ObjectTypeEnum.kVertexObject
+
+                For Each face5 As Face In (CType(entityObject, Vertex)).Faces
+                    Dim faceNormal As Double() = GetFaceNormal(face5, pickedPoint)
+                    AddVec(array, faceNormal)
+
+                    If surfaceBody Is Nothing Then
+                        surfaceBody = face5.SurfaceBody
+                    End If
+                Next
+        End Select
+
+        Dim vector As Vector = m_app.TransientGeometry.CreateVector(array(0), array(1), array(2))
+        vector.Normalize()
+        Dim item As Double = AddDeviation(vector, pickedPoint, surfaceBody, faceDirection)
+        Return New Tuple(Of vector, Double)(vector, item)
+    End Function
+
+    Private Function GetFaceNormal(ByVal face As Face, ByVal pickedPoint As Point) As Double()
+        Dim Coords As Double() = New Double(2) {}
+        pickedPoint.GetPointData(Coords)
+        Dim evaluator As SurfaceEvaluator = face.Evaluator
+        Dim Normals As Double() = New Double(2) {}
+        evaluator.GetNormalAtPoint(Coords, Normals)
+        Return Normals
+    End Function
+
+    Private Sub AddVec(ByVal vec1 As Double(), ByVal vec2 As Double())
+        vec1(0) += vec2(0)
+        vec1(1) += vec2(1)
+        vec1(2) += vec2(2)
+    End Sub
+
+    Private Function AddDeviation(ByVal vector As Vector, ByVal pickedPoint As Point, ByVal surfaceBody As SurfaceBody, ByVal faceDirection As Double()) As Double
+        Dim Coords As Double() = New Double(2) {}
+        vector.GetVectorData(Coords)
+
+        If faceDirection IsNot Nothing Then
+            vector.PutVectorData(faceDirection)
+            vector.Normalize()
+            vector.GetVectorData(faceDirection)
+        End If
+
+        Dim array As Double() = New Double(2) {}
+        Dim isSolid As Boolean = surfaceBody.IsSolid
+        Dim Coords2 As Double() = Nothing
+
+        If isSolid Then
+            Coords2 = New Double(2) {}
+            pickedPoint.GetPointData(Coords2)
+        End If
+
+        Dim rangeBox As Box = surfaceBody.RangeBox
+        Dim num As Double = rangeBox.MaxPoint.DistanceTo(rangeBox.MinPoint)
+        Dim num2 As Double = num * (If((faceDirection Is Nothing), 0.25, 0.18))
+        Dim point As Point = pickedPoint.Copy()
+        Dim flag As Boolean = False
+
+        Do
+
+            For i As Integer = 0 To array.Length - 1
+                array(i) = (If((faceDirection Is Nothing), (Coords(i) * num2), ((Coords(i) + faceDirection(i)) * num2)))
+            Next
+
+            If faceDirection Is Nothing Then
+                Dim num3 As Double = (From x In array Select Math.Abs(x)).Max()
+
+                If num3 = Math.Abs(array(1)) Then
+                    array(0) += num3 * 0.5 * CDbl((If((Not (array(0) < 0.0)), 1, (-1))))
+                Else
+                    array(1) += num3 * 0.5 * CDbl((If((Not (array(1) < 0.0)), 1, (-1))))
+                End If
+            End If
+
+            If isSolid Then
+                Dim solidPoint As Double() = New Double(2) {Coords2(0) + array(0), Coords2(1) + array(1), Coords2(2) + array(2)}
+
+                If faceDirection Is Nothing Then
+                    flag = (surfaceBody.get_IsPointInside(solidPoint, UseBox:=False) <> ContainmentEnum.kOutsideContainment)
+                Else
+                    point.PutPointData(solidPoint)
+                    flag = rangeBox.Contains(point)
+
+                    If flag Then
+
+                        For j As Integer = 0 To array.Length - 1
+                            array(j) = 0.0 - array(j)
+                            solidPoint(j) = Coords2(j) + array(j)
+                        Next
+
+                        point.PutPointData(solidPoint)
+                        flag = rangeBox.Contains(Point)
+                    End If
+                End If
+            End If
+
+                        ''' Cannot convert ExpressionStatementSyntax, System.ArgumentOutOfRangeException: Exception of type 'System.ArgumentOutOfRangeException' was thrown.
+''' Parameter name: op
+''' Actual value was MultiplyAssignmentStatement.
+'''    at ICSharpCode.CodeConverter.Util.VBUtil.GetExpressionOperatorTokenKind(SyntaxKind op)
+'''    at ICSharpCode.CodeConverter.VB.NodesVisitor.MakeAssignmentStatement(AssignmentExpressionSyntax node)
+'''    at ICSharpCode.CodeConverter.VB.NodesVisitor.VisitAssignmentExpression(AssignmentExpressionSyntax node)
+'''    at Microsoft.CodeAnalysis.CSharp.Syntax.AssignmentExpressionSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
+'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.Visit(SyntaxNode node)
+'''    at ICSharpCode.CodeConverter.VB.CommentConvertingNodesVisitor.DefaultVisit(SyntaxNode node)
+'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitAssignmentExpression(AssignmentExpressionSyntax node)
+'''    at Microsoft.CodeAnalysis.CSharp.Syntax.AssignmentExpressionSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
+'''    at ICSharpCode.CodeConverter.VB.MethodBodyVisitor.ConvertSingleExpression(ExpressionSyntax node)
+'''    at ICSharpCode.CodeConverter.VB.MethodBodyVisitor.VisitExpressionStatement(ExpressionStatementSyntax node)
+'''    at Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionStatementSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
+'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.Visit(SyntaxNode node)
+'''    at ICSharpCode.CodeConverter.VB.CommentConvertingMethodBodyVisitor.ConvertWithTrivia(SyntaxNode node)
+'''    at ICSharpCode.CodeConverter.VB.CommentConvertingMethodBodyVisitor.DefaultVisit(SyntaxNode node)
+''' 
+''' Input: 
+''' 			num2 *= 1.5;
+
+''' 
+        Loop While flag
+
+        Dim Coords3 As Double() = array
+        vector.PutVectorData(Coords3)
+        Return num
+    End Function
+End Class
