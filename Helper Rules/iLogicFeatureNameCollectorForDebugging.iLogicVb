@@ -1,21 +1,31 @@
 ﻿Sub main()
-	Dim iLogicAddin As IiLogicAutomation = GetiLogicAddin(ThisApplication)
-	If Not iLogicAddin Is Nothing Then
-		Dim namedEnts As NamedEntities = iLogicAddin.GetNamedEntities(ThisDoc.Document)
-		Dim nvm As NameValueMap
-		For i = 1 To namedEnts.Entities.Count
-			Logger.Debug(namedEnts.Entities.Name(i))
-		Next
-		For Each namedEnt As Object In namedEnts.Entities
-			Logger.Debug(TypeName(namedEnt))
-			If TypeOf namedEnt Is NameValueMap Then
-				nvm = namedEnt
-				For i = 1 To nvm.count
-					Logger.Debug(nvm.name(i))
-				Next
-			End If
-		Next
+	Dim ofeature As Face = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartFaceFilter, "Select first feature")
+	
+	Dim referenceKeyManager As ReferenceKeyManager = ThisDoc.Document.ReferenceKeyManager
+	Dim ReferenceKey = New Byte() {}
+	If Not ofeature Is Nothing Then
+		ofeature.CreatedByFeature.GetReferenceKey(ReferenceKey)
+		Dim ReferenceKey2 As Byte() = ReferenceKey
+		MessageBox.Show(referenceKeyManager.KeyToString(ReferenceKey2) & vbTab)
 	End If
+'	Dim iLogicAddin As IiLogicAutomation = GetiLogicAddin(ThisApplication)
+'	If Not iLogicAddin Is Nothing Then
+'		Dim namedEnts As NamedEntities = iLogicAddin.GetNamedEntities(ThisDoc.Document)
+'		Dim nvm As NameValueMap
+'		For i = 1 To namedEnts.Entities.Count
+'			Logger.Debug(namedEnts.Entities.Name(i))
+'		Next
+'Break
+'		For Each namedEnt As Object In namedEnts.Entities
+'			Logger.Debug(TypeName(namedEnt))
+'			If TypeOf namedEnt Is NameValueMap Then
+'				nvm = namedEnt
+'				For i = 1 To nvm.count
+'					Logger.Debug(nvm.name(i))
+'				Next
+'			End If
+'		Next
+'	End If
 End Sub
 
 ''' <summary>

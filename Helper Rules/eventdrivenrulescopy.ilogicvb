@@ -1,0 +1,192 @@
+﻿Imports System.Collections.Generic
+
+Sub Main
+    CopyEventsToDocuments(ThisDoc.Document)
+End Sub
+
+Private Const m_ourGuid As String = "{2C540830-0723-455E-A8E2-891722EB4C3E}"
+Private savedEnabled As Boolean
+
+Public Sub CopyEventsToDocuments(ByVal sourceDoc As Document)
+	Dim sourcePropSet As PropertySet = GetEventRulesPropertySet(sourceDoc)
+	If (Not VerifyRulesPropertySet(sourcePropSet)) Then
+		MessageBox.Show("The event-driven rules in this document include internal rules." + vbNewLine + _
+		 "These cannot be copied.  Please choose a different source document.", "iLogic")
+		Return
+	End If
+	If (sourcePropSet Is Nothing OrElse sourcePropSet.Count = 0) Then
+		Dim res As DialogResult = MessageBox.Show("This document has no event-driven rules." + vbNewLine + _
+		"If you continue, any event-driven rules in the destination documents will be deleted." + vbNewLine + _
+		"OK to continue?", "iLogic", MessageBoxButtons.OKCancel, MessageBoxIcon.Question)
+		If (res <> DialogResult.OK) Then Return
+	End If
+
+	Dim destinationFileNames As List(Of String) = GetDestinationFileNames(IO.Path.GetDirectoryName(sourceDoc.FullFileName), sourceDoc.DocumentType)
+	If (destinationFileNames.Count = 0) Then Return
+	savedEnabled = iLogicVb.Automation.RulesOnEventsEnabled
+	iLogicVb.Automation.RulesOnEventsEnabled = False
+	Try
+		CopyEventsToAllDocuments(sourcePropSet, sourceDoc, destinationFileNames)
+	Finally
+		iLogicVb.Automation.RulesOnEventsEnabled = savedEnabled
+	End Try
+End Sub
+
+Function GetEventRulesPropertySet(ByVal sourceDoc As Document) As PropertySet
+	Try
+		Return sourceDoc.PropertySets(m_ourGuid)
+	Catch ex As Exception
+		Return Nothing
+	End Try
+End Function
+
+Function VerifyRulesPropertySet(ByVal propSet As PropertySet) As Boolean
+	If (propSet Is Nothing) Then Return True
+	' See if any rules are internal instead of external.  We can't copy those.
+	For Each prop As Inventor.Property In propSet
+		Dim strValue As String = prop.Value.ToString
+		If (Not strValue.StartsWith("file://")) Then Return False
+	Next
+	Return True
+End Function
+
+Function GetDestinationFileNames(ByVal initialDirectory As String, ByVal documentType As DocumentTypeEnum) As List(Of String)
+	Dim selectAllRecursively As Boolean = False
+	Using dlg As New OpenFileDialog
+		dlg.Title = "Select Destination "
+		If (documentType = DocumentTypeEnum.kPartDocumentObject) Then
+			dlg.Title += "Parts"
+			dlg.Filter = "Part Files (*.ipt)|*.ipt"
+		ElseIf (documentType = DocumentTypeEnum.kAssemblyDocumentObject) Then
+			dlg.Title += "Assemblies"
+			dlg.Filter = "Assembly Files (*.iam)|*.iam"
+		ElseIf (documentType = DocumentTypeEnum.kDrawingDocumentObject) Then
+			dlg.Title += "Drawings"
+			dlg.Filter = "Drawing Files (*.idw;*.dwg)|*.idw;*.dwg"
+		End If
+		dlg.InitialDirectory = initialDirectory
+		If (Not selectAllRecursively) Then dlg.Multiselect = True
+		Dim res As DialogResult = dlg.ShowDialog()
+		If (res = DialogResult.OK) Then
+			If (Not selectAllRecursively) Then
+				Return New List(Of String)(dlg.FileNames)
+			Else
+				Return AllDocumentsInDirectory(IO.Path.GetDirectoryName(dlg.FileName), documentType)
+			End If
+		End If
+	End Using
+	Return New List(Of String)
+End Function
+
+Sub CopyEventsToAllDocuments(ByVal sourcePropSet As PropertySet, ByVal sourceDoc As Document, ByVal destinationFileNames As List(Of String))
+	For Each fileName As String In destinationFileNames
+		If (String.Equals(sourceDoc.FullFileName, fileName, StringComparison.OrdinalIgnoreCase)) Then Continue For
+		'Debug.Print(" Copying to filename: " & fileName)
+		CopyEventsToDocument(sourcePropSet, fileName)
+	Next
+End Sub
+
+Sub CopyEventsToDocument(ByVal sourcePropSet As PropertySet, ByVal fileName As String)
+	Dim doc As Document = FindOpenDocument(fileName)
+	Dim openedHere As Boolean = False
+	If (doc Is Nothing) Then
+		doc = ThisApplication.Documents.Open(fileName, True)
+		openedHere = True
+	End If
+	CopyEventsPropertySetToDocument(sourcePropSet, doc)
+	iLogicVb.Automation.RulesOnEventsEnabled = savedEnabled
+	Try
+		doc.Save()
+	Finally
+		iLogicVb.Automation.RulesOnEventsEnabled = False
+	End Try
+	If (openedHere) Then
+		doc.Close(True)
+	End If
+End Sub
+
+Sub CopyEventsPropertySetToDocument(ByVal sourcePropSet As PropertySet, ByVal doc As Document)
+	' If an event-driven rules property set already exists, delete it.
+	Dim oldPropSet As PropertySet = GetEventRulesPropertySet(doc)
+	If (oldPropSet IsNot Nothing) Then
+		oldPropSet.Delete()
+	End If
+	If (sourcePropSet Is Nothing OrElse sourcePropSet.Count = 0) Then Return
+	Dim destPropSet As PropertySet = doc.PropertySets.Add("_iLogicEventsRules", m_ourGuid)
+	For Each prop As Inventor.Property In sourcePropSet
+		destPropSet.Add(prop.Value, prop.Name, prop.PropId)
+	Next
+	EnsureDocumentInterest(doc)
+End Sub
+
+
+Const iLogicId As String = "{3bdd8d79-2179-4b11-8a5a-257b1c0263ac}"
+
+Sub EnsureDocumentInterest(ByVal doc As Document)
+	If (ThisApplication.SoftwareVersion.Major < 15) Then Return ' Inventor 2010 or before
+	If (DocumentHasiLogicInterest(doc)) Then Return
+	Dim dataVersion As Integer = 20090512
+	Dim newInterest As DocumentInterest = doc.DocumentInterests.Add(iLogicId, "iLogic", DocumentInterestTypeEnum.kInterested, dataVersion, Nothing)
+End Sub
+
+Function DocumentHasiLogicInterest(ByVal doc As Document) As Boolean
+	Dim interest As DocumentInterest = FindDocumentInterest(doc, iLogicId)
+	If (interest IsNot Nothing) Then
+		If (interest.InterestType = DocumentInterestTypeEnum.kInterested) Then
+			Return True
+		End If
+		interest.Delete()
+	End If
+	Return False
+End Function
+
+Function FindDocumentInterest(ByVal doc As Document, ByVal clientId As String) As DocumentInterest
+	For Each interest As DocumentInterest In doc.DocumentInterests
+		If (String.Equals(interest.ClientId, clientId, StringComparison.OrdinalIgnoreCase)) Then
+			Return interest
+		End If
+	Next
+	Return Nothing
+End Function
+
+Function FindOpenDocument(ByVal fileName As String) As Document
+	For Each doc As Document In ThisApplication.Documents
+		If (String.Equals(doc.FullFileName, fileName, StringComparison.OrdinalIgnoreCase)) Then
+			Return doc
+		End If
+	Next
+	Return Nothing
+End Function
+
+Function AllDocumentsInDirectory(ByVal directoryName As String, ByVal documentType As DocumentTypeEnum) As List(Of String)
+	Dim fileNames As New List(Of String)
+	Dim dirInfo As New IO.DirectoryInfo(directoryName)
+	AddDocumentsInDirectory(dirInfo, documentType, fileNames)
+	Return fileNames
+End Function
+
+Sub AddDocumentsInDirectory(ByVal dirInfo As IO.DirectoryInfo, ByVal documentType As DocumentTypeEnum, ByVal fileNames As List(Of String))
+	Dim searchPattern As String = "*.ipt"
+	Select Case documentType
+		Case DocumentTypeEnum.kAssemblyDocumentObject
+			searchPattern = "*.iam"
+		Case DocumentTypeEnum.kDrawingDocumentObject
+			searchPattern = "*.idw"
+	End Select
+	For Each file As IO.FileInfo In dirInfo.GetFiles(searchPattern)
+	    If (file.IsReadOnly)  Then Continue For
+		fileNames.Add(file.FullName)
+	Next
+	If (documentType = DocumentTypeEnum.kDrawingDocumentObject) Then
+		For Each file As IO.FileInfo In dirInfo.GetFiles("*.dwg")
+  	        If (file.IsReadOnly)  Then Continue For
+			If (ThisApplication.FileManager.IsInventorDWG(file.FullName)) Then
+				fileNames.Add(file.FullName)
+			End If
+		Next
+	End If
+	For Each subDir As IO.DirectoryInfo In dirInfo.GetDirectories
+		If (String.Equals(subDir.Name, "OldVersions")) Then Continue For
+		AddDocumentsInDirectory(subDir, documentType, fileNames)
+	Next
+End Sub
