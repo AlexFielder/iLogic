@@ -19,7 +19,17 @@ Imports System.Globalization
 Imports System.Windows.Forms
 Sub main()
 	Dim oObj As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAllEntitiesFilter, "Select a Face, Edge or Vertex")
-	MessageBox.Show(GetFeaturesString(oObj))
+	If Not oObj Is Nothing Then
+		Dim defaultResponseFromType As String = TypeName(oObj) & "Geom001"
+		Dim newAttributeName As String = InputBox("What name for the geometry?", "Naming day", defaultResponseFromType)
+'		MessageBox.Show(GetFeaturesString(oObj))
+	End If
+	
+'	Dim addNamed As AddEditNameEntityCommand = New AddEditNameEntityCommand()
+'	addNamed.CommandDisplayName = "Add Named Geometry"
+'	addNamed.CommandId = "AddNamedGeometry"
+'	addNamed.Execute()
+
 	
 End Sub
 
