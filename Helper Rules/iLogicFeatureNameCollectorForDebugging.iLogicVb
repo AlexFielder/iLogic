@@ -16,7 +16,7 @@ Imports System.Resources
 Imports iLogic
 Imports iLogic.Commands
 Imports iLogic.EntityNameStorage
-'Imports iLogic.My.Resources
+Imports iLogic.My.Resources
 Imports System.Globalization
 'Imports System.Windows.Forms
 Sub main()
