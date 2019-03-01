@@ -1,9 +1,11 @@
-﻿AddReference "C:\Program Files\Autodesk\Inventor 2019\Bin\Autodesk.iLogic.dll"
+﻿'Option infer On
+
+AddReference "C:\Program Files\Autodesk\Inventor 2019\Bin\Autodesk.iLogic.dll"
 AddReference "C:\Program Files\Autodesk\Inventor 2019\Bin\Autodesk.iLogic.Core.dll"
 AddReference "C:\Program Files\Autodesk\Inventor 2019\Bin\Autodesk.iLogic.CommonUI.dll"
 
 Imports System.Text
-Imports AI = Autodesk.iLogic
+'Imports AI = Autodesk.iLogic
 Imports AIC = Autodesk.iLogic.Core
 Imports Autodesk.InventorAddins.Common
 Imports Inventor
@@ -14,14 +16,18 @@ Imports System.Resources
 Imports iLogic
 Imports iLogic.Commands
 Imports iLogic.EntityNameStorage
-Imports iLogic.My.Resources
+'Imports iLogic.My.Resources
 Imports System.Globalization
-Imports System.Windows.Forms
+'Imports System.Windows.Forms
 Sub main()
 	Dim oObj As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAllEntitiesFilter, "Select a Face, Edge or Vertex")
 	If Not oObj Is Nothing Then
 		Dim defaultResponseFromType As String = TypeName(oObj) & "Geom001"
 		Dim newAttributeName As String = InputBox("What name for the geometry?", "Naming day", defaultResponseFromType)
+		Dim entSetBase As EntityNaming = New EntityNaming(New EntityNameListAttributeSet(ThisDoc.Document), oObj)
+Break
+'		If Not entSetBase.
+'		If Not iLogic.EntityNameStorage.EntityAttributeSetBase
 '		MessageBox.Show(GetFeaturesString(oObj))
 	End If
 	
@@ -626,7 +632,7 @@ Class EntityNameListAttributeSet
     End Property
 
     Public Sub New(ByVal doc As Document, ByVal Optional app As Inventor.Application = Nothing, ByVal Optional pickedNode As GraphicsNode = Nothing)
-        MyBase.New(doc)
+        MyBase.New(app, doc)
         m_app = app
         m_pickedNode = pickedNode
     End Sub
@@ -1346,6 +1352,97 @@ Class EntityNameListAttributeSet
         Return stringBuilder.ToString()
     End Function
 End Class
+
+Public Class EntityAttributeSetBase
+    Public Enum CreateAtt
+        No
+        [New]
+        NewTransient
+    End Enum
+
+    Protected Const EntitySetName As String = "iLogicEntityNameSet"
+    Protected Const EntitySetNameTransient As String = "iLogicEntityNameSetTransient"
+    Protected ReadOnly m_doc As Document
+	Protected thisapplication As Inventor.Application
+    Protected m_transactionName As String = Titles.iLogic
+    Protected m_usedNames As HashSet(Of String)
+
+    Public ReadOnly Property Document As Document
+        Get
+            Return m_doc
+        End Get
+    End Property
+
+    Public Sub New(ByVal app As Inventor.Application, ByVal doc As Document)
+        m_doc = doc
+		thisapplication = app
+    End Sub
+
+    Public Overridable Function GetEntityName(ByVal entityObject As Object) As String
+        Return String.Empty
+    End Function
+
+    Public Overridable Function GetEntity(ByVal name As String) As Object
+        Return Nothing
+    End Function
+
+    Public Overridable Function ContainsName(ByVal name As String) As Boolean
+        Return m_usedNames.Contains(name)
+    End Function
+
+    Public Sub SetTransactionName(ByVal transactionName As String)
+        m_transactionName = transactionName
+    End Sub
+
+    Public Function GetAttribute(ByVal attSets As AttributeSets, ByVal attSetName As String, ByVal attName As String, ByVal Optional Opt As CreateAtt = CreateAtt.No, ByVal Optional newValue As Object = Nothing, ByVal Optional valType As ValueTypeEnum = ValueTypeEnum.kStringType) As Inventor.Attribute
+        Dim AttributeSet As AttributeSet
+
+        If attSets.get_NameIsUsed(attSetName) Then
+            AttributeSet = attSets(attSetName)
+        Else
+
+            Select Case [option]
+                Case CreateAtt.[New]
+                    AttributeSet = attSets.Add(attSetName)
+                Case CreateAtt.NewTransient
+                    AttributeSet = attSets.AddTransient(attSetName)
+                Case Else
+                    Return Nothing
+            End Select
+        End If
+
+        Dim result As Inventor.Attribute = Nothing
+
+        If AttributeSet.get_NameIsUsed(attName) Then
+            result = attributeSet(attName)
+        ElseIf [option] <> 0 Then
+            AttributeSet.Add(attName, valType, newValue)
+        End If
+
+        Return result
+    End Function
+
+    Function StartTxn() As Transaction
+        Dim TransactionManager As TransactionManager = thisapplication.TransactionManager
+        Dim Transaction As Transaction = Nothing
+
+'        If Not TransactionUtil.InIdentifiedTransaction(TransactionManager) Then
+            Transaction = TransactionManager.StartTransaction(CType(m_doc, _Document), m_transactionName)
+'            iLogicCentral.Instance.TransactionIds.Add(Transaction.Id)
+'        End If
+
+        Return Transaction
+    End Function
+
+    Protected Sub OnCatchTxnError(ByVal Trans As Transaction)
+		If Not Trans Is Nothing Then Trans.Abort()
+    End Sub
+
+    Protected Sub OnEndTxn(ByVal Trans As Transaction)
+        If Not Trans Is Nothing Then Trans.End()
+    End Sub
+End Class
+
 
 Class EntityNaming
     Private ReadOnly m_selectedObjectType As ObjectTypeEnum
