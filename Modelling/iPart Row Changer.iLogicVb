@@ -1,0 +1,24 @@
+﻿
+'for debugging:
+MessageBox.Show("parameter changed: " & Parameter("iPartSizeChange").ToString())
+If TypeOf ThisDoc.Document Is PartDocument Then
+	Dim odoc As PartDocument = ThisDoc.Document
+	Dim oTop As BrowserNode = odoc.BrowserPanes("Model").TopNode
+	Dim def As PartComponentDefinition = odoc.ComponentDefinition
+
+	If Not def.iPartFactory Is Nothing Then
+		Dim factory As iPartFactory = def.iPartFactory
+		Dim desiredActiveRow As iPartTableRow = Nothing
+		For Each row As iPartTableRow In factory.TableRows
+			If row.MemberName.Contains(Parameter("iPartSizeChange"))
+				desiredActiveRow = Row
+				Logger.Debug(desiredActiveRow.Membername)
+			End If
+		Next
+		If Not desiredActiveRow Is Nothing Then
+			oTop.BrowserNodes("Table").BrowserNodes.Item(desiredActiveRow.Item(1).Row).DoSelect
+			Dim oCommand As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("PartComputeiPartRowCtxCmd")
+            oCommand.Execute
+		End If
+	End If
+End If

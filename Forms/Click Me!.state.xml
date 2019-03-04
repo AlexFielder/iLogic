@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FormStatePersist xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Size>
+    <Width>0</Width>
+    <Height>0</Height>
+  </Size>
+  <Location>
+    <X>0</X>
+    <Y>0</Y>
+  </Location>
+  <SplitterLocations />
+  <GroupExpansionStateList />
+  <TabGroupSelectedPageList />
+</FormStatePersist>

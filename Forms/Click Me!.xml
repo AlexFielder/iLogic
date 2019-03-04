@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FormSpecification xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>Click Me!</Name>
+  <Guid>5ebaba98-6475-4676-b37d-e8a64fe5444c</Guid>
+  <Items>
+    <UiElementSpec xsi:type="iLogicRuleControlSpec">
+      <Name>get current relevant iPart occurrences:</Name>
+      <Guid>87aa6951-ed50-4c8e-b981-13cb936ebc2d</Guid>
+      <Image>
+        <BitmapByteArray />
+      </Image>
+      <TextVisible>true</TextVisible>
+      <RuleName>get current relevant iParts</RuleName>
+      <RuleButtonBehavior>RunRule</RuleButtonBehavior>
+    </UiElementSpec>
+    <UiElementSpec xsi:type="MultiValueTextParameterControlSpec">
+      <Name>Current Relevant Occurrences:</Name>
+      <Guid>b7d55e1b-3819-4188-b030-c3fe1842e568</Guid>
+      <ToolTip />
+      <ParameterName>CurrentRelevantOccurrences</ParameterName>
+      <EditControlType>ComboBox</EditControlType>
+      <AllowCustomValues>false</AllowCustomValues>
+      <MinimumItemsToShow>2</MinimumItemsToShow>
+      <RadioGroupColumnCount>1</RadioGroupColumnCount>
+    </UiElementSpec>
+    <UiElementSpec xsi:type="MultiValueNumericParameterControlSpec">
+      <Name>Occurrence To Replace Selected With:</Name>
+      <Guid>e9469e0d-98d6-4287-9637-d180a4c53f5f</Guid>
+      <ToolTip />
+      <ParameterName>iPartToReplace</ParameterName>
+      <EditControlType>ComboBox</EditControlType>
+      <AllowCustomValues>false</AllowCustomValues>
+      <MinimumItemsToShow>2</MinimumItemsToShow>
+      <RadioGroupColumnCount>1</RadioGroupColumnCount>
+    </UiElementSpec>
+    <UiElementSpec xsi:type="iLogicRuleControlSpec">
+      <Name>replace iParts</Name>
+      <Guid>513d98d5-c15b-4078-98ac-53726be46f44</Guid>
+      <Image>
+        <BitmapByteArray />
+      </Image>
+      <TextVisible>true</TextVisible>
+      <RuleName>replace iParts</RuleName>
+      <RuleButtonBehavior>RunRule</RuleButtonBehavior>
+    </UiElementSpec>
+  </Items>
+  <StyleAndSkinName>
+    <StyleName>Default</StyleName>
+  </StyleAndSkinName>
+  <AllowCustomization>true</AllowCustomization>
+  <PredefinedButtons>None</PredefinedButtons>
+  <Modal>false</Modal>
+</FormSpecification>

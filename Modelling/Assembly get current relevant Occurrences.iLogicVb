@@ -1,0 +1,35 @@
+﻿Sub main()
+	GetCurrentRelevantOccurences()
+End Sub
+
+Sub GetCurrentRelevantOccurences()
+	If TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
+		Dim AssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
+		Dim assyDef As AssemblyComponentDefinition = AssyDoc.ComponentDefinition
+		
+		Dim occurrenceList As List(Of String) = New List(Of String)
+		Dim allowedList As List(Of String) = ListOfAllowedOccurrences
+		For Each allowedOcc As String In allowedList
+			Dim DocTocheck As Document = ThisApplication.Documents.ItemByName(IO.Path.GetDirectoryName(AssyDoc.FullDocumentName) & "\" & allowedOcc)
+			If Not DocTocheck Is Nothing Then
+				For Each compOcc As ComponentOccurrence In assyDef.Occurrences.AllReferencedOccurrences(DocTocheck)
+					Dim tmpDoc As PartDocument = compOcc.Definition.Document
+					If Not tmpDoc Is Nothing Then
+						occurrenceList.Add(compOcc.Name)
+					End If
+				Next
+			End If
+		Next
+		occurrenceList.Sort()
+		MultiValue.List("CurrentRelevantOccurrences").Clear
+		MultiValue.List("CurrentRelevantOccurrences") = occurrenceList
+	End If
+End Sub
+
+Function ListOfAllowedOccurrences() As List(Of String)
+	Dim tmpList As List(Of String) = New List(Of String)
+	tmpList.Add("1000.ipt")
+	tmpList.Add("1500.ipt")
+	tmpList.Add("2000.ipt")
+	Return tmpList
+End Function
