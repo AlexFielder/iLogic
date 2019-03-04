@@ -1,0 +1,229 @@
+<?xml version="1.0"?>
+<root xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://tempuri.org/iLogicRules.xsd">
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\CT_iLogic_demo\X1 CT\lv1_ct_plt.ipt" Name="ct_plt" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>file_name=ThisDoc.FileName(False) 'without extension
+ct_set_name = Left(file_name, 3)
+'GoExcel.Open("tank_data.xls", "CT")
+
+icircum_dia=GoExcel.CellValue("tank_data.xls", "CT", ct_set_name &amp; "_ct_circum_dia")
+iwid=GoExcel.CellValue(ct_set_name &amp; "_ct_plate_wid")
+
+iid=GoExcel.CellValue(ct_set_name &amp; "_ct_plate_hole_dia")
+
+ithk=GoExcel.CellValue(ct_set_name &amp; "_ct_plate_thk")
+
+rod_dia=GoExcel.CellValue(ct_set_name &amp; "_ct_rod_dia")
+
+If rod_dia=0.5 Then
+	imount_hole_dia=5/8
+Else
+	imount_hole_dia=3/4
+End If
+
+GoExcel.close
+iLogicVb.UpdateWhenDone = True
+
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\CT_iLogic_demo\X1 CT\lv1_ct_pb.ipt" Name="ct_pb" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>file_name=ThisDoc.FileName(False) 'without extension
+ct_set_name = Left(file_name,3)
+'GoExcel.Open("tank_data.xls", "CT")
+
+icircum_dia=GoExcel.CellValue("tank_data.xls", "CT",ct_set_name &amp; "_ct_circum_dia")
+iwid=GoExcel.CellValue(ct_set_name &amp; "_ct_plate_wid")
+iid=GoExcel.CellValue(ct_set_name &amp; "_ct_insul_hole_dia")
+
+rod_dia=GoExcel.CellValue(ct_set_name &amp; "_ct_rod_dia")
+
+If rod_dia=0.5 Then
+	imount_hole_dia=1.25
+Else
+	imount_hole_dia=1.375
+End If
+
+GoExcel.close
+iLogicVb.UpdateWhenDone = True
+
+
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\CT_iLogic_demo\X1 CT\lv1_ct4.ipt" Name="ct_part" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>file_name=ThisDoc.FileName(False) 'without extension
+
+ct_set_name = Left(file_name,3)
+
+'GoExcel.Open("tank_data.xls", "CT")
+
+ict_id = GoExcel.CellValue("tank_data.xls", "CT",ct_set_name &amp; "_ct_4_in_dia")
+ict_od=GoExcel.CellValue(ct_set_name &amp; "_ct_4_out_dia")
+ict_ht=GoExcel.CellValue(ct_set_name &amp; "_ct_4_ht")
+
+iround1=(ict_od-ict_id)/4
+iround2=ict_ht/2
+
+'iround=Min(iround1, iround2)
+
+If Min(iround1, iround2)&gt;1 Then
+iround=1
+Else
+iround=Min(iround1, iround2)*4/5
+End If
+
+GoExcel.close
+iLogicVb.UpdateWhenDone = True
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\CT_iLogic_demo\X1 CT\lv1_ct3.ipt" Name="ct_part" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>file_name=ThisDoc.FileName(False) 'without extension
+
+ct_set_name = Left(file_name,3)
+
+'GoExcel.Open("tank_data.xls", "CT")
+
+ict_id = GoExcel.CellValue("tank_data.xls", "CT",ct_set_name &amp; "_ct_3_in_dia")
+ict_od=GoExcel.CellValue(ct_set_name &amp; "_ct_3_out_dia")
+ict_ht=GoExcel.CellValue(ct_set_name &amp; "_ct_3_ht")
+
+iround1=(ict_od-ict_id)/4
+iround2=ict_ht/2
+
+'iround=Min(iround1, iround2)
+
+If Min(iround1, iround2)&gt;1 Then
+iround=1
+Else
+iround=Min(iround1, iround2)*4/5
+End If
+
+GoExcel.close
+iLogicVb.UpdateWhenDone = True
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\CT_iLogic_demo\X1 CT\lv1_ct2.ipt" Name="ct_part" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>file_name=ThisDoc.FileName(False) 'without extension
+
+ct_set_name = Left(file_name,3)
+
+'GoExcel.Open("tank_data.xls", "CT")
+
+ict_id = GoExcel.CellValue("tank_data.xls", "CT",ct_set_name &amp; "_ct_2_in_dia")
+ict_od=GoExcel.CellValue(ct_set_name &amp; "_ct_2_out_dia")
+ict_ht=GoExcel.CellValue(ct_set_name &amp; "_ct_2_ht")
+
+iround1=(ict_od-ict_id)/4
+iround2=ict_ht/2
+
+'iround=Min(iround1, iround2)
+
+If Min(iround1, iround2)&gt;1 Then
+iround=1
+Else
+iround=Min(iround1, iround2)*4/5
+End If
+
+GoExcel.close
+iLogicVb.UpdateWhenDone = True
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\CT_iLogic_demo\X1 CT\lv1_ct1.ipt" Name="ct_part" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>file_name=ThisDoc.FileName(False) 'without extension
+
+ct_set_name = Left(file_name,3)
+
+'GoExcel.Open("tank_data.xls", "CT")
+
+ict_id = GoExcel.CellValue("tank_data.xls", "CT",ct_set_name &amp; "_ct_1_in_dia")
+ict_od=GoExcel.CellValue(ct_set_name &amp; "_ct_1_out_dia")
+ict_ht=GoExcel.CellValue(ct_set_name &amp; "_ct_1_ht")
+
+iround1=(ict_od-ict_id)/4
+iround2=ict_ht/2
+
+'iround=Min(iround1, iround2)
+
+If Min(iround1, iround2)&gt;1 Then
+iround=1
+Else
+iround=Min(iround1, iround2)*4/5
+End If
+
+GoExcel.close
+iLogicVb.UpdateWhenDone = True
+
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\CT_iLogic_demo\X1 CT\lv1_ct_rod_assy.iam" Name="rod_asm_rule" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>'Try
+
+file_name=ThisDoc.FileName(False) 'without extension
+ct_set_name = Left(file_name,3)
+'GoExcel.Open("tank_data.xls", "CT")
+
+'iwash_ofst=GoExcel.CellValue("tank_data.xls", "CT", "lv2_ct_sleeve_lgth")+1/4
+iwash_ofst = GoExcel.CellValue("tank_data.xls", "CT",ct_set_name &amp; "_ct_sleeve_lgth") + _
+GoExcel.CellValue(ct_set_name &amp; "_ct_plate_thk")
+
+GoExcel.close
+iLogicVb.UpdateWhenDone = True
+
+'Catch ex As exception
+'MsgBox("There is error in iLogic rule of &lt;" &amp; ThisDoc.FileName(True) &amp; "&gt;",0,"Error Message") 'with extension 
+'End Try
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\CT_iLogic_demo\X1 CT\lv1_ct_rod.ipt" Name="rod_part" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>'Try
+
+file_name=ThisDoc.FileName(False) 'without extension
+ct_set_name = Left(file_name,3)
+'GoExcel.Open("tank_data.xls", "CT")
+
+irod_lgth=GoExcel.CellValue("tank_data.xls", "CT",ct_set_name &amp; "_ct_rod_lgth")
+irod_dia=GoExcel.CellValue(ct_set_name &amp; "_ct_rod_dia")
+
+'itie_rod_dia=GoExcel.CellValue("cc_data.xls", "Sheet1", "tie_rod_dia")
+'itie_rod_lgth=GoExcel.CellValue("cc_data.xls", "Sheet1", "tie_rod_lgth")
+
+Select Case irod_dia
+
+Case 0.5
+Feature.ThreadDesignation("Thread1") = "1/2-13 UNC"
+
+Case 0.625
+Feature.ThreadDesignation("Thread1") = "5/8-11 UNC"
+
+Case Else
+
+End Select
+
+GoExcel.close
+iLogicVb.UpdateWhenDone = True
+
+'Catch ex As exception
+'MsgBox("There is error in iLogic rule of &lt;" &amp; ThisDoc.FileName(True) &amp; "&gt;",0,"Error Message") 'with extension 
+'End Try
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\CT_iLogic_demo\X1 CT\lv1_ct_sleeve.ipt" Name="sleeve_part" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>file_name=ThisDoc.FileName(False) 'without extension
+ct_set_name = Left(file_name,3)
+'GoExcel.Open("tank_data.xls", "CT")
+
+isleeve_lgth = GoExcel.CellValue("tank_data.xls", "CT",ct_set_name &amp; "_ct_sleeve_lgth")
+
+rod_dia=GoExcel.CellValue(ct_set_name &amp; "_ct_rod_dia")
+
+If rod_dia=0.5 Then
+	isleeve_od=1.25
+Else
+	isleeve_od=1.375
+End If
+
+GoExcel.close
+iLogicVb.UpdateWhenDone = True
+
+
+</Text>
+  </Rule>
+</root>

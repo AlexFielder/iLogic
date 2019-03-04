@@ -1,0 +1,554 @@
+<?xml version="1.0"?>
+<root xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://tempuri.org/iLogicRules.xsd">
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Sheet Trigger" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If Sheet_size = "" Then
+trigger = iTrigger0
+End If
+
+iLogicVb.RunExternalRule("Title Block.iLogicVb")
+iLogicVb.RunExternalRule("Border.iLogicVb")
+iLogicVb.RunExternalRule("Sheet Size.iLogicVb")</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Approval Trigger" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If Approved_by = "" Then
+trigger = iTrigger1
+End If
+
+If checked = "" Then
+trigger = iTrigger1
+End If
+
+If drawn_by = "" Then
+trigger = iTrigger1
+End If
+
+
+
+
+iLogicVb.RunExternalRule("Approved By.iLogicVb")
+iLogicVb.RunExternalRule("Approved By box.iLogicVb")
+iLogicVb.RunExternalRule("Date.iLogicVb")
+
+iLogicVb.RunExternalRule("Checked By.iLogicVb")
+iLogicVb.RunExternalRule("Checked By Rev.iLogicVb")
+
+iLogicVb.RunExternalRule("Drawn By.iLogicVb")
+iLogicVb.RunExternalRule("Drawn By Rev.iLogicVb")</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Fab Tol" IsActive="true" Silentoperation="true">
+    <Text>
+
+
+Machin  = False
+Bend_Stiffener = False
+Rigid_Riser = False
+Roto_Mould = False
+Straps = False
+Duraguard = False
+No_Tolerance = False
+
+Dim oIDW As DrawingDocument = ThisDoc.Document
+Dim oSheet As Sheet = oIDW.ActiveSheet
+Dim oSymDef As SketchedSymbolDefinition
+
+If fab = True Then
+
+oSymDef = oIDW.SketchedSymbolDefinitions.Item("TOLERANCE Table - Fab")
+	
+						
+Dim oPosition1 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(54.35,5.775)
+
+Dim oPosition2 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(13,5.775)
+
+				
+
+If Sheet_size = "A1" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition1)
+
+
+ElseIf Sheet_size = "A3" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition2)
+
+
+	
+End If
+End If
+
+iLogicVb.RunRule ("Delete Tol")
+
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Delete Tol" IsActive="true" Silentoperation="true">
+    <Text>
+
+
+
+
+If fab = False And Machin = False And Bend_Stiffener = False And  Duraguard = False And Rigid_Riser = False And Roto_Mould = False And Straps = False And No_Tolerance = False Then
+
+
+iLogicVb.RunExternalRule("Delete Sketched Symbol.iLogicVb")
+
+
+End If</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Machin Tol" IsActive="true" Silentoperation="true">
+    <Text>
+fab  = False
+Bend_Stiffener = False
+Rigid_Riser = False
+Roto_Mould = False
+Straps = False
+Duraguard = False
+No_Tolerance = False
+
+
+Dim oIDW As DrawingDocument = ThisDoc.Document
+Dim oSheet As Sheet = oIDW.ActiveSheet
+Dim oSymDef As SketchedSymbolDefinition
+
+
+If Machin = True Then
+
+oSymDef = oIDW.SketchedSymbolDefinitions.Item("TOLERANCE Table - Machining")
+	
+						
+Dim oPosition1 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(54.35,5.775)
+
+Dim oPosition2 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(13,5.775)
+
+				
+
+If Sheet_size = "A1" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition1)
+
+
+ElseIf Sheet_size = "A3" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition2)
+	
+End If
+	
+End If
+
+
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Bend Stiffener Tol" IsActive="true" Silentoperation="true">
+    <Text>
+Machin  = False
+fab = False
+Rigid_Riser = False
+Roto_Mould = False
+Straps = False
+Duraguard = False
+No_Tolerance = False
+
+Dim oIDW As DrawingDocument = ThisDoc.Document
+Dim oSheet As Sheet = oIDW.ActiveSheet
+Dim oSymDef As SketchedSymbolDefinition
+
+
+If Bend_Stiffener = True Then
+
+oSymDef = oIDW.SketchedSymbolDefinitions.Item("TOLERANCE Table - Bend Stiffener")
+	
+						
+Dim oPosition1 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(54.35,5.775)
+
+Dim oPosition2 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(13,5.775)
+
+				
+
+If Sheet_size = "A1" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition1)
+
+
+ElseIf Sheet_size = "A3" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition2)
+
+End If
+	
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Fab Trigger" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If fab = True Then 
+iLogicVb.RunRule("Fab Tol")  
+
+End If
+
+
+iLogicVb.RunExternalRule("Delete Sketched Symbol.iLogicVb")</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Machin Trigger" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If Machin = True Then 
+iLogicVb.RunRule("Machin Tol")  
+
+End If
+
+iLogicVb.RunExternalRule("Delete Sketched Symbol.iLogicVb")</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Bend Stiffener Trigger" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If Bend_Stiffener = True Then 
+iLogicVb.RunRule("Bend Stiffener Tol")  
+
+End If
+
+iLogicVb.RunExternalRule("Delete Sketched Symbol.iLogicVb")
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Show Form" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+trigger = iTrigger2
+
+iLogicForm.Show("DRAWING SHEET SETUP")
+
+
+InventorVb.DocumentUpdate()
+
+ThisApplication.ActiveView.Fit</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Rigid Riser Tol" IsActive="true" Silentoperation="true">
+    <Text>
+fab  = False
+Bend_Stiffener = False
+Machin = False
+Roto_Mould = False
+Straps = False
+Duraguard = False
+No_Tolerance = False
+
+Dim oIDW As DrawingDocument = ThisDoc.Document
+Dim oSheet As Sheet = oIDW.ActiveSheet
+Dim oSymDef As SketchedSymbolDefinition
+
+
+If Rigid_Riser = True Then
+
+oSymDef = oIDW.SketchedSymbolDefinitions.Item("TOLERANCE Table - Rigid Riser")
+	
+						
+Dim oPosition1 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(54.35,5.775)
+
+Dim oPosition2 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(13,5.775)
+
+				
+
+If Sheet_size = "A1" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition1)
+
+
+ElseIf Sheet_size = "A3" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition2)
+	
+End If
+	
+End If</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Rigid Riser Trigger" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If Rigid_Riser = True Then 
+iLogicVb.RunRule("Rigid Riser Tol")  
+
+End If
+
+
+iLogicVb.RunExternalRule("Delete Sketched Symbol.iLogicVb")
+
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Roto Mould Tol" IsActive="true" Silentoperation="true">
+    <Text>
+fab  = False
+Bend_Stiffener = False
+Machin = False
+Rigid_Riser = False
+Straps = False
+Duraguard = False
+No_Tolerance = False
+
+Dim oIDW As DrawingDocument = ThisDoc.Document
+Dim oSheet As Sheet = oIDW.ActiveSheet
+Dim oSymDef As SketchedSymbolDefinition
+
+
+If Roto_Mould = True Then
+
+oSymDef = oIDW.SketchedSymbolDefinitions.Item("TOLERANCE Table - Roto Mould")
+	
+						
+Dim oPosition1 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(54.35,5.775)
+
+Dim oPosition2 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(13,5.775)
+
+				
+
+If Sheet_size = "A1" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition1)
+
+
+ElseIf Sheet_size = "A3" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition2)
+	
+End If
+	
+End If</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Roto Mould Trigger" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If Roto_Mould = True Then 
+iLogicVb.RunRule("Roto Mould Tol")  
+
+End If
+
+
+iLogicVb.RunExternalRule("Delete Sketched Symbol.iLogicVb")</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Straps Tol" IsActive="true" Silentoperation="true">
+    <Text>
+fab  = False
+Bend_Stiffener = False
+Machin = False
+Rigid_Riser = False
+Roto_Mould = False
+Duraguard = False
+No_Tolerance = False
+
+Dim oIDW As DrawingDocument = ThisDoc.Document
+Dim oSheet As Sheet = oIDW.ActiveSheet
+Dim oSymDef As SketchedSymbolDefinition
+
+
+If Straps = True Then
+
+oSymDef = oIDW.SketchedSymbolDefinitions.Item("TOLERANCE Table - Straps")
+	
+						
+Dim oPosition1 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(54.35,5.775)
+
+Dim oPosition2 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(13,5.775)
+
+				
+
+If Sheet_size = "A1" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition1)
+
+
+ElseIf Sheet_size = "A3" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition2)
+	
+End If
+	
+End If</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Straps Trigger" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If Straps = True Then 
+iLogicVb.RunRule("Straps Tol")  
+
+End If
+
+
+iLogicVb.RunExternalRule("Delete Sketched Symbol.iLogicVb")</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="No Tolerance Tol" IsActive="true" Silentoperation="true">
+    <Text>
+fab  = False
+Bend_Stiffener = False
+Machin = False
+Rigid_Riser = False
+Roto_Mould = False
+Duraguard = False
+Straps = False
+
+Dim oIDW As DrawingDocument = ThisDoc.Document
+Dim oSheet As Sheet = oIDW.ActiveSheet
+Dim oSymDef As SketchedSymbolDefinition
+
+
+If No_Tolerance = True Then
+
+oSymDef = oIDW.SketchedSymbolDefinitions.Item("TOLERANCE Table - No Tolerance")
+	
+						
+Dim oPosition1 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(54.35,5.775)
+
+Dim oPosition2 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(13,5.775)
+
+				
+
+If Sheet_size = "A1" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition1)
+
+
+ElseIf Sheet_size = "A3" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition2)
+	
+End If
+	
+End If
+
+
+
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="No Tolerance Trigger" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If No_Tolerance = True Then 
+iLogicVb.RunRule("No Tolerance Tol")  
+
+End If
+
+
+iLogicVb.RunExternalRule("Delete Sketched Symbol.iLogicVb")</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Duraguard Tol" IsActive="true" Silentoperation="true">
+    <Text>
+fab  = False
+Bend_Stiffener = False
+Machin = False
+Rigid_Riser = False
+Roto_Mould = False
+No_Tolerance = False
+Straps = False
+
+Dim oIDW As DrawingDocument = ThisDoc.Document
+Dim oSheet As Sheet = oIDW.ActiveSheet
+Dim oSymDef As SketchedSymbolDefinition
+
+
+If Duraguard = True Then
+
+oSymDef = oIDW.SketchedSymbolDefinitions.Item("TOLERANCE Table - Duraguard")
+	
+						
+Dim oPosition1 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(54.35,5.775)
+
+Dim oPosition2 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(13,5.775)
+
+				
+
+If Sheet_size = "A1" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition1)
+
+
+ElseIf Sheet_size = "A3" Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition2)
+	
+End If
+	
+End If
+
+
+
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Duraguard Trigger" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If Duraguard = True Then 
+iLogicVb.RunRule("Duraguard Tol")  
+
+End If
+
+
+iLogicVb.RunExternalRule("Delete Sketched Symbol.iLogicVb")</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Title and Scale" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>iProperties.Value( "Custom","scale") = SCALE
+iLogicVb.UpdateWhenDone = True
+
+iProperties.Value( "Custom","Client_Name") = Client
+iLogicVb.UpdateWhenDone = True
+
+iProperties.Value( "Custom","Client_Project") = Client_Project
+iLogicVb.UpdateWhenDone = True
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Enquiry" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If Enquiry = True Then iProperties.Value( "Custom","Setdate") = Parameter("datetest")
+
+If Enquiry = False Then iProperties.Value( "Custom","Setdate") = "-"
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Part Marking" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>Dim oIDW As DrawingDocument = ThisDoc.Document
+Dim oSheet As Sheet = oIDW.ActiveSheet
+Dim oSymDef As SketchedSymbolDefinition
+
+
+
+oSymDef = oIDW.SketchedSymbolDefinitions.Item("PART MARKING")
+    
+		   
+					   
+Dim oPosition1 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(67.425,6.205)
+
+Dim oPosition2 As Point2d = ThisApplication.TransientGeometry.CreatePoint2d(25.325,6.205)
+
+                
+
+If Sheet_size = "A1" And Part = True Then
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition1)
+
+
+ElseIf Sheet_size = "A3" And Part = True Then
+
+oSymbol = oSheet.SketchedSymbols.Add(oSymDef, oPosition2)
+
+
+    
+End If
+
+
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Delete Part Marking" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If Enquiry = True Then
+
+iLogicVb.RunExternalRule("Delete Part Marking.iLogicVb")
+
+End If
+
+
+
+
+
+
+If Part = False Then
+
+iLogicVb.RunExternalRule("Delete Part Marking.iLogicVb")
+
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\Balmoral Drawing Template Rev 03.idw" Name="Part Marking Section Data" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>iProperties.Value( "Custom","Rev") = Rev
+
+
+iProperties.Value( "Custom","Section 4") = Section_4
+
+
+iProperties.Value( "Custom","Section 5") = Section_5
+
+Dim oSymbol As SketchedSymbol
+        
+Dim oDrawingDoc As Inventor.DrawingDocument: oDrawingDoc = ThisApplication.ActiveDocument
+Dim SheetNumber As Integer
+    
+Dim oTitleBlock As TitleBlock
+
+
+oSymbolName1 = "PART MARKING"
+
+
+For Each oSymbol In oDrawingDoc.ActiveSheet.SketchedSymbols
+
+
+
+If oSymbol.Name = oSymbolName1  Then oSymbol.Delete
+
+Next
+
+
+
+</Text>
+  </Rule>
+</root>

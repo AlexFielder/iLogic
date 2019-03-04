@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<root xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://tempuri.org/iLogicRules.xsd">
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\6025-201.ipt" Name="Standard Anchor Inserts" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If anchor_insert = 10 Then anchor_insert_a = 15
+If anchor_insert = 12 Then anchor_insert_a = 20
+If anchor_insert = 16 Then anchor_insert_a = 25
+If anchor_insert = 20 Then anchor_insert_a = 30
+If anchor_insert = 24 Then anchor_insert_a = 35
+
+If anchor_insert = 10 Then anchor_insert_b = 90
+If anchor_insert = 12 Then anchor_insert_b = 110
+If anchor_insert = 16 Then anchor_insert_b = 150
+If anchor_insert = 20 Then anchor_insert_b = 170
+If anchor_insert = 24 Then anchor_insert_b = 200
+
+If anchor_insert = 10 Then anchor_insert_d = 25
+If anchor_insert = 12 Then anchor_insert_d = 30
+If anchor_insert = 16 Then anchor_insert_d = 38
+If anchor_insert = 20 Then anchor_insert_d = 50
+If anchor_insert = 24 Then anchor_insert_d = 60
+
+If anchor_insert = 10 Then anchor_insert_e = 30
+If anchor_insert = 12 Then anchor_insert_e = 35
+If anchor_insert = 16 Then anchor_insert_e = 45
+If anchor_insert = 20 Then anchor_insert_e = 55
+If anchor_insert = 24 Then anchor_insert_e = 65
+
+If anchor_insert = 10 Then anchor_insert_f = 4
+If anchor_insert = 12 Then anchor_insert_f = 5
+If anchor_insert = 16 Then anchor_insert_f = 5
+If anchor_insert = 20 Then anchor_insert_f = 5
+If anchor_insert = 24 Then anchor_insert_f = 5
+
+If anchor_insert = 10 Then anchor_insert_g = 40
+If anchor_insert = 12 Then anchor_insert_g = 50
+If anchor_insert = 16 Then anchor_insert_g = 60
+If anchor_insert = 20 Then anchor_insert_g = 75
+If anchor_insert = 24 Then anchor_insert_g = 95
+
+If anchor_insert = 10 Then anchor_insert_h = 4
+If anchor_insert = 12 Then anchor_insert_h = 5
+If anchor_insert = 16 Then anchor_insert_h = 5
+If anchor_insert = 20 Then anchor_insert_h = 6
+If anchor_insert = 24 Then anchor_insert_h = 6
+
+If anchor_insert = 10 Then anchor_insert_j = 5
+If anchor_insert = 12 Then anchor_insert_j = 5
+If anchor_insert = 16 Then anchor_insert_j = 5
+If anchor_insert = 20 Then anchor_insert_j = 10
+If anchor_insert = 24 Then anchor_insert_j = 10
+
+If anchor_insert = 10 Then anchor_insert_k = 3
+If anchor_insert = 12 Then anchor_insert_k = 4
+If anchor_insert = 16 Then anchor_insert_k = 4
+If anchor_insert = 20 Then anchor_insert_k = 5
+If anchor_insert = 24 Then anchor_insert_k = 5</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\6025-201.ipt" Name="Anchor Insert Thread Pitch" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If anchor_insert = 10 Then
+	Feature.ThreadDesignation("Anchor Insert Tapped Hole") = "M10x1"
+	ElseIf anchor_insert = 12 Then
+	Feature.ThreadDesignation("Anchor Insert Tapped Hole") = "M12x1"
+
+	ElseIf anchor_insert = 16 Then
+	Feature.ThreadDesignation("Anchor Insert Tapped Hole") = "M16x1"
+
+	ElseIf anchor_insert = 20 Then
+	Feature.ThreadDesignation("Anchor Insert Tapped Hole") = "M20x1"
+	
+	ElseIf anchor_insert = 24 Then
+	Feature.ThreadDesignation("Anchor Insert Tapped Hole") = "M24x1"
+	
+	Else
+	MessageBox.Show("This geometry is outside the standard insert range. Please select the correct size.", "Anchor Insert Tapped Hole" ,MessageBoxButtons.OK)
+	End If</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\6025-201.ipt" Name="Show Form" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>iLogicForm.Show("STANDARD ANCHOR TYPE INSERTS")</Text>
+  </Rule>
+</root>

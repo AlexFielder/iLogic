@@ -1,0 +1,915 @@
+<?xml version="1.0"?>
+<root xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://tempuri.org/iLogicRules.xsd">
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\20 &amp; 40 standard &amp; high cube.iam" Name="ConfigureBasedOnAssy" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+
+If assy = 40 Then
+Component.IsActive("front end assembly:1") = True
+Component.IsActive("40highcube&amp;standardrearassy:2") = False
+Component.IsActive("40base assembly:1") =  True
+Component.IsActive("baseassembly final:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):2") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):3") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):2") = False
+
+plane = 12192
+roof = 11 
+totalpattern = 40
+assy = 40
+Component.IsActive("front end assy:1") =  False
+ElseIf assy = 401 Then
+Component.IsActive("front end assembly:1") = False
+Component.IsActive("40highcube&amp;standardrearassy:2") = True
+Component.IsActive("40base assembly:1") =  True
+Component.IsActive("baseassembly final:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):2") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):3") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):2") = False
+plane = 12192
+roof = 11 
+totalpattern = 40
+Component.IsActive("front end assy:1") =  False
+assy = 401
+ElseIf assy = 402 Then
+Component.IsActive("front end assembly:1") = True
+Component.IsActive("40highcube&amp;standardrearassy:2") = False
+Component.IsActive("40base assembly:1") = True
+Component.IsActive("baseassembly final:1") = False 
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):2") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):3") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):1") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):2") = True
+plane = 12192
+roof = 11 
+totalpattern = 202
+assy = 402
+Component.IsActive("front end assy:1") = False
+ElseIf assy = 201 Then
+Component.IsActive("front end assembly:1") = False
+Component.IsActive("40highcube&amp;standardrearassy:2") = False
+Component.IsActive("40base assembly:1") = False
+Component.IsActive("baseassembly final:1") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):1") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S)1:1") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):2") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):3") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):2") = False
+plane = 6058
+roof = 5 
+totalpattern = 201
+Component.IsActive("front end assy:1") = True
+assy = 201
+
+ElseIf assy = 202 Then
+Component.IsActive("front end assembly:1") = False
+Component.IsActive("40highcube&amp;standardrearassy:2") = True
+Component.IsActive("40base assembly:1") = False
+Component.IsActive("baseassembly final:1") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS):1") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS)1:1") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):2") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):3") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):2") = False
+plane = 6058
+roof = 5 
+totalpattern = 202
+Component.IsActive("front end assy:1") = False
+assy = 202
+ElseIf assy = 20 Then
+Component.IsActive("front end assembly:1") = False
+Component.IsActive("40highcube&amp;standardrearassy:2") = False
+Component.IsActive("40base assembly:1") = False
+Component.IsActive("baseassembly final:1") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S):1") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S)1:1") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):2") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):3") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):2") = False
+plane = 6058
+roof = 5 
+totalpattern = 20
+Component.IsActive("front end assy:1") = True
+assy = 20
+ElseIf assy = 402 Then
+Component.IsActive("front end assembly:1") = False
+Component.IsActive("40highcube&amp;standardrearassy:2") = True
+Component.IsActive("40base assembly:1") =  True
+Component.IsActive("baseassembly final:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 03FE20C -02S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS):1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - DDT - 10000SS)1:1") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):2") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L45G1S):3") = False
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):1") = True
+Component.IsActive("SIDE WALL ASSEMBLY -  (DRG NO - 087L42G1S):2") = True
+plane = 12192
+roof = 11 
+totalpattern = 40
+End If
+iLogicVb.UpdateWhenDone = True
+
+iLogicVb.RunRule("40side wall assembly:1", "rule0")
+'iLogicVb.RunRule("40side wall assembly:1", "rule0")
+'iLogicVb.RunRule("40side wall assembly:1", "rule0")
+iLogicVb.UpdateWhenDone = True
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("40side wall assembly:1", "totalpattern") = Parameter("totalpattern")
+iLogicVb.UpdateWhenDone = True
+'&lt;LinkParameters:Section:End&gt; [Date: 10/17/2016 10:38:44 AM]
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("front end assy:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 11:58:48 AM]
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("40highcube&amp;standardrearassy:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 12:00:24 PM]
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("Side panel333:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 5:57:56 PM]
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 6:09:21 PM]
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("Top side rail:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 6:15:41 PM]
+
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("front end assembly:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/27/2016 11:49:42 AM]
+'iLogicVb.UpdateWhenDone = True</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\20 &amp; 40 standard &amp; high cube.iam" Name="ShowForm" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>iLogicForm.Show("Container Configurator")
+
+
+
+
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\20 &amp; 40 standard &amp; high cube.iam" Name="SetAssyBasedOnFormSelection" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>Logger.Debug(Assembly_Type &amp; " " &amp; assy)
+If Assembly_type = "20 Standard" Then
+assy = 20
+ElseIf Assembly_type = "20 HiCube" Then
+assy = 201
+ElseIf Assembly_type = "20 Standard Double Door" Then
+assy = 202
+ElseIf Assembly_type = "40 Standard" Then
+assy = 402
+ElseIf Assembly_type = "40 HiCube" Then
+assy = 40
+ElseIf Assembly_type = "40 HiCube Double Door" Then
+assy = 401
+End If
+
+'iLogicVb.UpdateWhenDone = True
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\45Rear corner post.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>Logger.Debug(assy)
+If assy = 20 Then
+extrulength = 2355
+pitch1 = 123.5
+pitch2 = 700
+
+ElseIf assy = 202 Then
+extrulength = 2355
+pitch1 = 123.5
+pitch2 = 700
+ElseIf assy = 402 Then
+extrulength = 2355
+pitch1 = 123.5
+pitch2 = 700
+ElseIf assy = 201 Then
+extrulength = 2355 '2660
+pitch1 = 126
+pitch2 = 800
+ElseIf assy = 40 Then
+extrulength = 2660
+pitch1 = 126
+pitch2 = 800
+ElseIf assy = 401 Then
+extrulength = 2660
+pitch1 = 126
+pitch2 = 800
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\45 Rear corner post inner.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>logger.Debug(assy &amp; " " &amp; extrulength)
+If assy = 20 Then
+extrulength = 2355
+
+ElseIf assy = 402 Then
+extrulength = 2355
+ElseIf assy = 202 Then
+extrulength = 2355
+
+ElseIf assy = 201 Then
+extrulength = 2355 '2660
+
+ElseIf assy = 40 Then
+extrulength = 2660
+
+ElseIf assy = 401 Then
+extrulength = 2660
+
+
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\locking device.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 20 Then
+extrulength1= 1959
+
+ElseIf assy = 201 Then
+extrulength1= 2264
+
+ElseIf assy = 202 Then
+extrulength1= 1959
+
+ElseIf assy = 40 Then
+extrulength1= 2264
+
+ElseIf assy = 401 Then
+extrulength1= 2264
+ElseIf assy = 402 Then
+extrulength1= 1959
+
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\45door frame hollowsection.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 20 Then
+extrulength = 2254
+
+ElseIf assy = 202 Then
+extrulength = 2254
+
+ElseIf assy = 402 Then
+extrulength = 2254
+
+ElseIf assy = 201 Then
+extrulength = 2559
+
+ElseIf assy = 40 Then
+extrulength = 2559
+
+ElseIf assy = 401 Then
+extrulength = 2559
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\doorgasket2.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 20 Then
+extrulength = 2254
+ElseIf assy = 402 Then
+extrulength = 2254
+ElseIf assy = 202 Then
+extrulength = 2254
+ElseIf assy = 201 Then
+extrulength = 2559
+ElseIf assy = 40 Then
+extrulength = 2559
+ElseIf assy = 401 Then
+extrulength = 2559
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\corner post assy.iam" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 20 Then
+extrulength = 2355
+
+ElseIf  assy = 402 Then
+extrulength = 2355
+
+ElseIf  assy = 202 Then
+extrulength = 2355
+
+ElseIf  assy = 201 Then
+extrulength = 2660
+
+ElseIf  assy = 40 Then
+extrulength = 2660
+
+ElseIf  assy = 401 Then
+extrulength = 2660
+
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\Top side rail.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 20 Then
+extrulength = 5702
+
+ElseIf assy = 201 Then
+extrulength =5702
+
+ElseIf assy = 40 Then
+extrulength = 11836
+
+ElseIf assy = 401 Then
+extrulength = 11836
+
+ElseIf assy = 402 Then
+extrulength = 11836
+
+ElseIf assy = 202 Then
+extrulength =5702
+
+
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\front end assy.iam" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 20 Then
+bottomcornerfitting = 2591
+extrulength = 2304
+extlength = 2355
+assy = 20 
+
+ElseIf assy = 201 Then
+bottomcornerfitting = 2896
+extrulength = 2609
+extlength = 2660
+assy = 201
+
+
+iLogicVb.UpdateWhenDone = True
+
+End If
+
+iLogicVb.UpdateWhenDone = True
+iLogicVb.RunRule("front panel:1", "rule0")
+iLogicVb.RunRule("front corner post:1", "rule0")
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("front corner post:1", "assy") = Parameter("assy")
+Parameter("front corner post:1", "extlength") = Parameter("extlength")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 4:48:38 PM]
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("front panel:1", "assy") = Parameter("assy")
+Parameter("front panel:1", "extrulength") = Parameter("extrulength")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 4:50:24 PM]
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\front corner post.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 20 Then
+
+extlength = 2355
+
+ElseIf assy = 201 Then
+
+extlength = 2660
+
+End If
+iLogicVb.UpdateWhenDone = True</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\front panel.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If assy = 20 Then
+extrulength = 2304
+ElseIf assy = 201 Then
+extrulength = 2609
+
+
+End If</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\Bottom side rail.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If totassy = 20 Then
+extrulength = 5702
+ElseIf  totassy = 40 Then
+extrulength = 11836
+
+End If
+iLogicVb.UpdateWhenDone = True</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\40highcube&amp;standardrearassy.iam" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 20Then
+extrulength = 2355
+hingepattern = 700
+extrulength = 2355
+
+ElseIf assy = 202Then
+extrulength = 2355
+hingepattern = 700
+extrulength = 2355
+ElseIf assy = 402Then
+extrulength = 2355
+hingepattern = 700
+extrulength = 2355
+ElseIf assy = 201Then
+extrulength = 2660
+hingepattern = 800
+extrulength = 2660
+
+ElseIf assy = 40Then
+extrulength = 2660
+hingepattern = 800
+extrulength = 2660
+
+ElseIf assy = 401Then
+extrulength = 2660
+hingepattern = 800
+extrulength = 2660
+
+End If
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+
+iLogicVb.UpdateWhenDone = True
+'&lt;LinkParameters:Section:End&gt; [Date: 10/15/2016 3:21:12 PM]
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("doorgasketwithpanelassy:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/15/2016 3:27:52 PM]
+
+
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("45Rear corner post:1", "assy") = Parameter("assy")
+Parameter("45Rear corner post:1", "extrulength") = Parameter("extrulength")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 5:43:19 PM]
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("45 Rear corner post inner:1", "assy") = Parameter("assy")
+Parameter("45 Rear corner post inner:1", "extrulength") = Parameter("extrulength")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 5:44:31 PM]
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("corner post assy:1", "assy") = Parameter("assy")
+Parameter("corner post assy:1", "extrulength") = Parameter("extrulength")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 5:47:21 PM]
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\doorgasketwithpanelassy.iam" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>pattern1 = "2090"' deleted parameter
+
+
+If assy = 20 Then
+assy=20
+extrulength = 2254
+doorrail = 2104
+pattern1 = 2040
+Component.IsActive("45highcubecontainerdoorpanel (2):2") = False
+Component.IsActive("45highcubecontainerdoorpanel (2):1") = False
+Component.IsActive("45Door panel:1") = True
+Component.IsActive("45Door panel:2") = True
+
+
+ElseIf assy = 202 Then
+assy=202
+extrulength = 2254
+doorrail = 2104
+pattern1 = 2040
+Component.IsActive("45highcubecontainerdoorpanel (2):2") = False
+Component.IsActive("45highcubecontainerdoorpanel (2):1") = False
+Component.IsActive("45Door panel:1") = True
+Component.IsActive("45Door panel:2") = True
+ElseIf assy = 402 Then
+assy=402
+extrulength = 2254
+doorrail = 2104
+pattern1 = 2040
+Component.IsActive("45highcubecontainerdoorpanel (2):2") = False
+Component.IsActive("45highcubecontainerdoorpanel (2):1") = False
+Component.IsActive("45Door panel:1") = True
+Component.IsActive("45Door panel:2") = True
+
+
+ElseIf assy = 201 Then
+assy=201
+extrulength = 2559
+doorrail = 2409
+Component.IsActive("45highcubecontainerdoorpanel (2):2") = True
+Component.IsActive("45highcubecontainerdoorpanel (2):1") = True
+Component.IsActive("45Door panel:1") = False
+Component.IsActive("45Door panel:2") = False
+
+ElseIf assy = 40 Then
+assy=40
+extrulength = 2559
+doorrail = 2409
+Component.IsActive("45highcubecontainerdoorpanel (2):2") = True
+Component.IsActive("45highcubecontainerdoorpanel (2):1") = True
+Component.IsActive("45Door panel:1") = False
+Component.IsActive("45Door panel:2") = False
+
+ElseIf assy = 401 Then
+assy=401
+extrulength = 2559
+doorrail = 2409
+Component.IsActive("45highcubecontainerdoorpanel (2):2") = True
+Component.IsActive("45highcubecontainerdoorpanel (2):1") = True
+Component.IsActive("45Door panel:1") = False
+Component.IsActive("45Door panel:2") = False
+End If
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+
+iLogicVb.UpdateWhenDone = True
+'&lt;LinkParameters:Section:End&gt; [Date: 10/15/2016 2:38:14 PM]
+
+
+
+
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("door holder assembly high cube:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 10:53:17 AM]
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 11:23:39 AM]
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("door holder assembly high cube mirror:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 11:29:48 AM]
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("45door frame hollowsection:1", "extrulength") = Parameter("extrulength")
+Parameter("45door frame hollowsection:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 5:38:26 PM]
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("doorgasket2:1", "extrulength") = Parameter("extrulength")
+Parameter("doorgasket2:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 5:39:02 PM]
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\door holder assembly high cube mirror.iam" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If assy = 20 Then
+extrulength1 = 1959
+pattern1 = 2090
+Component.IsActive("Washer GB/T 93-1987 M12:12") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = False
+Component.IsActive("Washer GB/T 93-1987 M12:11") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = False
+Component.IsActive("45doorholdersmall:2") = False
+
+ElseIf assy = 402 Then
+extrulength1 = 1959
+pattern1 = 2090
+Component.IsActive("Washer GB/T 93-1987 M12:12") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = False
+Component.IsActive("Washer GB/T 93-1987 M12:11") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = False
+Component.IsActive("45doorholdersmall:2") = False
+
+ElseIf assy = 202 Then
+extrulength1 = 1959
+pattern1 = 2090
+Component.IsActive("Washer GB/T 93-1987 M12:12") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = False
+Component.IsActive("Washer GB/T 93-1987 M12:11") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = False
+Component.IsActive("45doorholdersmall:2") = False
+
+ElseIf assy = 201 Then
+extrulength1 = 2264
+pattern1 = 2404
+Component.IsActive("Washer GB/T 93-1987 M12:12") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = True
+Component.IsActive("Washer GB/T 93-1987 M12:11") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = True
+Component.IsActive("45doorholdersmall:2") = True
+ElseIf assy = 40 Then
+extrulength1 = 2264
+pattern1 = 2404
+Component.IsActive("Washer GB/T 93-1987 M12:12") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = True
+Component.IsActive("Washer GB/T 93-1987 M12:11") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = True
+Component.IsActive("45doorholdersmall:2") = True
+ElseIf assy = 401 Then
+extrulength1 = 2264
+pattern1 = 2404
+Component.IsActive("Washer GB/T 93-1987 M12:12") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = True
+Component.IsActive("Washer GB/T 93-1987 M12:11") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = True
+Component.IsActive("45doorholdersmall:2") = True
+
+
+End If
+
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+
+iLogicVb.UpdateWhenDone = True
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 10:44:12 AM]
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("locking device:1", "extrulength1") = Parameter("extrulength1")
+Parameter("locking device:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 5:36:28 PM]
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\door holder assembly high cube.iam" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 20 Then
+extrulength1 = 1959
+pattern1 = 2090
+Component.IsActive("Washer GB/T 93-1987 M12:12") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = False
+Component.IsActive("Washer GB/T 93-1987 M12:11") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = False
+Component.IsActive("45doorholdersmall:2") = False
+
+
+ElseIf assy = 202 Then
+extrulength1 = 1959
+pattern1 = 2090
+Component.IsActive("Washer GB/T 93-1987 M12:12") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = False
+Component.IsActive("Washer GB/T 93-1987 M12:11") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = False
+Component.IsActive("45doorholdersmall:2") = False
+
+ElseIf assy = 201 Then
+extrulength1 = 2264
+pattern1 = 2404
+Component.IsActive("Washer GB/T 93-1987 M12:12") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = True
+Component.IsActive("Washer GB/T 93-1987 M12:11") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = True
+Component.IsActive("45doorholdersmall:2") = True
+ElseIf assy = 40 Then
+extrulength1 = 2264
+pattern1 = 2404
+Component.IsActive("Washer GB/T 93-1987 M12:12") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = True
+Component.IsActive("Washer GB/T 93-1987 M12:11") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = True
+Component.IsActive("45doorholdersmall:2") = True
+ElseIf assy = 401 Then
+extrulength1 = 2264
+pattern1 = 2404
+Component.IsActive("Washer GB/T 93-1987 M12:12") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = True
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = True
+Component.IsActive("Washer GB/T 93-1987 M12:11") = True
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = True
+Component.IsActive("45doorholdersmall:2") = True
+
+
+ElseIf assy = 402 Then
+extrulength1 = 1959
+pattern1 = 2090
+Component.IsActive("Washer GB/T 93-1987 M12:12") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:12") = False
+Component.IsActive("Nut GB/T 6170-2000 M10:11") = False
+Component.IsActive("Washer GB/T 93-1987 M12:11") = False
+Component.IsActive("Bolt GB/T 5783-2000 M10 x 20:11") = False
+Component.IsActive("45doorholdersmall:2") = False
+End If
+
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+
+iLogicVb.UpdateWhenDone = True
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 10:44:12 AM]
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("locking device:1", "extrulength1") = Parameter("extrulength1")
+Parameter("locking device:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 5:36:28 PM]
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\Side panel333.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+
+If assy = 201 Then
+Feature.IsActive("rectangular pattern17") = False
+Feature.IsActive("rectangular pattern18") = False
+extrulength = 2637
+ElseIf assy = 20 Then
+Feature.IsActive("rectangular pattern17") = False
+Feature.IsActive("rectangular pattern18") = False
+extrulength = 2332
+ElseIf assy = 40 Then
+Feature.IsActive("rectangular pattern17") = True
+Feature.IsActive("rectangular pattern18") = True
+extrulength =2637
+ElseIf assy = 401 Then
+Feature.IsActive("rectangular pattern17") = True
+Feature.IsActive("rectangular pattern18") = True
+extrulength =2637
+iLogicVb.UpdateWhenDone = True
+ElseIf assy = 202 Then
+Feature.IsActive("rectangular pattern17") = False
+Feature.IsActive("rectangular pattern18") = False
+extrulength = 2332
+ElseIf assy = 402 Then
+Feature.IsActive("rectangular pattern17") = True
+Feature.IsActive("rectangular pattern18") = True
+extrulength =2332
+
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\45side wall assembly.iam" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 20 Then
+extrulength = 5702
+assy = 20
+iLogicVb.UpdateWhenDone = True
+ElseIf assy = 40 Then
+extrulength = 11836
+assy = 40
+iLogicVb.UpdateWhenDone = True
+ElseIf assy = 201 Then
+extrulength = 5702
+assy = 201
+ElseIf assy = 401 Then
+extrulength = 11836
+assy = 401
+iLogicVb.UpdateWhenDone = True
+iLogicVb.UpdateWhenDone = True
+ElseIf assy = 202 Then
+extrulength = 5702
+assy = 202
+End If
+
+
+
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+
+iLogicVb.UpdateWhenDone = True
+'&lt;LinkParameters:Section:End&gt; [Date: 10/17/2016 10:05:33 AM]
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("Side panel333:1", "assy") = Parameter("assy")
+Parameter("Side panel333:1", "extrulength") = Parameter("extrulength")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 5:52:16 PM]
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("Top side rail:1", "assy") = Parameter("assy")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/26/2016 5:54:18 PM]
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\front end assembly.iam" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 40 Then
+extrulength = 2278
+totassy = 2355
+extrulength1 = 2355
+lashingrod = 1025.5
+ElseIf assy = 402 Then
+extrulength = 2608
+totassy = 2660
+extrulength1 = 2660
+lashingrod = 1178
+End If
+
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+
+iLogicVb.UpdateWhenDone = True
+'&lt;LinkParameters:Section:End&gt; [Date: 10/12/2016 10:38:01 AM]
+
+
+
+
+
+
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("corner post assy:1", "assy") = Parameter("assy")
+Parameter("corner post assy:1", "extrulength") = Parameter("extrulength")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/27/2016 10:58:48 AM]
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("40front panel:1", "assy") = Parameter("assy")
+Parameter("40front panel:1", "extrulength") = Parameter("extrulength")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/27/2016 11:01:20 AM]
+
+
+'&lt;LinkParameters:Section:Start&gt; This code section was generated by LinkParameters Add-In (Do NOT modify)
+Parameter("40front corner post:1", "assy") = Parameter("assy")
+Parameter("40front corner post:1", "extrulength1") = Parameter("extrulength1")
+'&lt;LinkParameters:Section:End&gt; [Date: 10/27/2016 11:15:29 AM]
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\40front corner post.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 40 Then
+extrulength1 =2660
+
+ElseIf assy = 402 Then
+extrulength1 =2355
+
+
+
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Pentalver\iLogic Library\40front panel.ipt" Name="Rule0" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+If assy = 40 Then
+extrulength= 2583
+
+
+ElseIf assy = 402 Then
+extrulength= 2278
+
+
+
+End If
+</Text>
+  </Rule>
+</root>

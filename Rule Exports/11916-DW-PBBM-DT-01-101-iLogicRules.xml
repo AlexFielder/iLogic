@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<root xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://tempuri.org/iLogicRules.xsd">
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\11916-DW-PBBM-DT-01-101.ipt" Name="sweep" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text> 'Set a reference to the active part document
+    Dim oDoc As PartDocument
+    oDoc = ThisApplication.ActiveDocument
+    
+    Dim oDef As PartComponentDefinition
+    oDef = oDoc.ComponentDefinition
+    
+    Dim opath As Path
+    opath = oDef.Features.SweepFeatures.Item("TheSweep").Path
+    
+    Dim TotalLength As Double
+    TotalLength = 0
+    
+    Dim oCurve As Object
+    Dim i As Integer
+
+    For i = 1 To opath.Count
+        oCurve = opath.Item(i).Curve
+        
+        Dim oCurveEval As CurveEvaluator
+        oCurveEval = oCurve.Evaluator
+        
+        Dim MinParam As Double
+        Dim MaxParam As Double
+        Dim length As Double
+        
+        Call oCurveEval.GetParamExtents(MinParam, MaxParam)
+        Call oCurveEval.GetLengthAtParam(MinParam, MaxParam, length)
+        
+        TotalLength = TotalLength + length
+    Next i
+
+    Dim oparams As Parameters
+    Dim oparam As Parameter
+    oparams = oDoc.ComponentDefinition.Parameters
+    Dim exists As Boolean
+    exists = False
+
+    'Find out if parameter exists
+    For Each oparam In oparams
+    If oparam.Name = "Sweeplength" Then exists = True
+    Next oparam
+
+    'Change the value if the parameter exists otherwise add the parameter
+    If exists Then
+        oparams.Item("Sweeplength").Value = TotalLength
+    Else
+        oparams.UserParameters.AddByValue( "Sweeplength", TotalLength, 11266)
+    End If
+    oDoc.Update</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\11916-DW-PBBM-DT-01-101.ipt" Name="Run Form" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>iLogicForm.Show("Plough Bridle Module")</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\11916-DW-PBBM-DT-01-101.ipt" Name="Rule2" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>iLogicVb.RunRule("Run Form")
+</Text>
+  </Rule>
+</root>

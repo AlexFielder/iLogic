@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+<root xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://tempuri.org/iLogicRules.xsd">
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="pipe_OD_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>pipe_OD=Floor(nom_pipe_OD)
+'pipe_OD=floor(nom_pipe_OD - lower_pipe_OD_tol)</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="spigot_thickness_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>spigot_thickness=max_spigot_thickness- ((pipe_OD+2*max_spigot_thickness) Mod 5)/2</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="base_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>base=Floor(base_ratio*strake)</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="strake_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>strake=Floor(strake_ratio*VIV_OD)</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="base_fillet_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>base_fillet=Floor(strake*base_fillet_ratio)</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="tip_fillet_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If strake*tip_fillet_ratio&gt;2 Then
+	tip_fillet=Floor(strake*tip_fillet_ratio)
+Else
+	tip_fillet=2
+End If</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="underneath_tip_fillet_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If strake*underneath_tip_fillet_ratio&gt;1 Then
+	underneath_tip_fillet=Floor(strake*underneath_tip_fillet_ratio)
+Else
+	underneath_tip_fillet=1
+End If
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="socket_sub" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If (delta_theta/2) &gt; ( 40 deg) Then
+	alpha=120 deg - delta_theta/2 - coverage_tol/2
+	alpha_dash=delta_theta/2+coverage_tol/2
+	If ( 120 deg - delta_theta / 2 - h_female_socket_angle - coverage_tol ) &gt; (120 deg * 0.3) Then
+		beta= (60 deg*0.3)
+	ElseIf( 120 deg - delta_theta / 2 - h_female_socket_angle - coverage_tol ) &lt; (120 deg * 0.15) Then
+		beta= (60 deg*0.15)
+	Else
+		beta=( 120 deg - delta_theta / 2 - h_female_socket_angle - coverage_tol ) 
+	End If
+		beta_dash=beta + coverage_tol
+Else
+	alpha=60 deg+delta_theta/2
+	alpha_dash=alpha
+	If 	(120 deg - coverage_tol/2- alpha)&lt; (60 deg *0.5) Then
+		beta=120 deg-coverage_tol/2-alpha
+	Else
+		beta= (60 deg * 0.5)
+	End If
+	beta_dash=beta+coverage_tol
+End If</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="coverage_tol_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>coverage_tol=ceiling(360 deg / pipe_OD * lower_pipe_OD_tol / 3)</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="length_tol_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>length_tol=ceiling(( end_offset2 + end_offset1 ) * 0.1)
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="RC_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>RC=Floor(length/(n_rib+1))-thickness</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="strap_recess_clearance_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>strap_recess_clearance = 441' deleted parameter
+
+strap_recess_clearance = 441' deleted parameter
+
+strap_recess_clearance = 441' deleted parameter
+
+strap_recess_clearance = 441' deleted parameter
+
+strap_recess_clearance = 441' deleted parameter
+
+strap_recess_clearance = 441' deleted parameter
+
+strap_recess_clearance = 441' deleted parameter
+
+strap_recess_clearance = 441' deleted parameter
+
+strap_recess_clearance = 441' deleted parameter
+
+strap_recess_clearance=Floor(( length - strap_recess_width * 3 ul ) / 3 ul)</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="rib_clearance_to_strap_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+rib_clearance_to_strap=Round(strap_recess_clearance/8*3/10)*10
+rib_clearance_to_strap2=rib_clearance_to_strap
+rib_clearance_to_strap3=rib_clearance_to_strap
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="rib_unsuppressing_sub" Silentoperation="true">
+    <Text>Feature.IsActive("CoilRib1") = True
+Feature.IsActive("CoilRib2") = True
+Feature.IsActive("CoilRib3") = True
+Feature.IsActive("CoilRib4") = True
+Feature.IsActive("CoilRib5") = True
+Feature.IsActive("CoilRib6") = True
+Feature.IsActive("CoilRibRecess") = True
+Feature.IsActive("CoilRibRecess2") = True
+Feature.IsActive("Move Face2") = True
+Feature.IsActive("Move Face3") = True
+Feature.IsActive("Move Face4") = True
+Feature.IsActive("Move Face5") = True
+Feature.IsActive("Move Face6") = True
+Feature.IsActive("Move Face7") = True
+Feature.IsActive("Move Face8") = True
+Feature.IsActive("Move Face9") = True
+Feature.IsActive("Move Face10") = True
+Feature.IsActive("Move Face11") = True
+Feature.IsActive("Move Face12") = True
+Feature.IsActive("Move Face13") = True
+Feature.IsActive("Rib_Fillet1") = True
+Feature.IsActive("Rib_Fillet2") = True
+Feature.IsActive("Rib_Fillet3") = True
+
+</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="rib_suppressing_sub" Silentoperation="true">
+    <Text>Feature.IsActive("CoilRib1") = False
+Feature.IsActive("CoilRib2") = False
+Feature.IsActive("CoilRib3") = False
+Feature.IsActive("CoilRib4") = False
+Feature.IsActive("CoilRib5") = False
+Feature.IsActive("CoilRib6") = False
+Feature.IsActive("CoilRibRecess") = False
+Feature.IsActive("CoilRibRecess2") = False
+Feature.IsActive("Move Face2") = False
+Feature.IsActive("Move Face3") = False
+Feature.IsActive("Move Face4") = False
+Feature.IsActive("Move Face5") = False
+Feature.IsActive("Move Face6") = False
+Feature.IsActive("Move Face7") = False
+Feature.IsActive("Move Face8") = False
+Feature.IsActive("Move Face9") = False
+Feature.IsActive("Move Face10") = False
+Feature.IsActive("Move Face11") = False
+Feature.IsActive("Move Face12") = False
+Feature.IsActive("Move Face13") = False
+Feature.IsActive("Rib_Fillet1") = False
+Feature.IsActive("Rib_Fillet2") = False
+Feature.IsActive("Rib_Fillet3") = False</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="fillet_unsuppressing_sub" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>Feature.IsActive("Spigot_Fillet1") = True
+Feature.IsActive("Spigot_Fillet2") = True
+Feature.IsActive("End_Strake_Fillet1") = True
+Feature.IsActive("Strap_Recess_Fillet1") = True
+Feature.IsActive("Strap_Recess_Fillet2")=True
+Feature.IsActive("Bridge_Fillet") = True
+Feature.IsActive("End_Strake_Fillet2") = True
+Feature.IsActive("Side_Fillet") = True</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="fillet_suppressing_sub" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>Feature.IsActive("Spigot_Fillet1") = False
+Feature.IsActive("Spigot_Fillet2") = False
+Feature.IsActive("End_Strake_Fillet1") = False
+Feature.IsActive("Strap_Recess_Fillet1") = False
+Feature.IsActive("Strap_Recess_Fillet2")= False
+Feature.IsActive("Bridge_Fillet") = False
+Feature.IsActive("End_Strake_Fillet2") = False
+Feature.IsActive("Side_Fillet") = False</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="defer_update_suppressing_sub" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>ThisApplication.AssemblyOptions.DeferUpdate = False
+Parameter.UpdateAfterChange = True</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="defer_update_unsuppressing_sub" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>ThisApplication.AssemblyOptions.DeferUpdate = True
+Parameter.UpdateAfterChange = False</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="document_update_sub" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>iLogicVb.UpdateWhenDone=True
+InventorVb.DocumentUpdate(True)
+iLogicVb.RunRule("pipe_OD_sub")
+iLogicVb.RunRule("spigot_thickness_sub")
+iLogicVb.RunRule("strake_sub")
+iLogicVb.RunRule("base_sub")
+iLogicVb.RunRule("base_fillet_sub")
+iLogicVb.RunRule("tip_fillet_sub")
+iLogicVb.RunRule("underneath_tip_fillet_sub")
+iLogicVb.RunRule("coverage_tol_sub")
+iLogicVb.RunRule("strap_recess_clearance_sub")
+iLogicVb.RunRule("RC_sub")
+iLogicVb.RunRule("rib_clearance_to_strap_sub")
+iLogicVb.RunRule("q_sub")
+iLogicVb.RunRule("my_volume_sub")
+iLogicVb.UpdateWhenDone=False
+InventorVb.DocumentUpdate(True)</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="q_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>
+
+q_DT=ceiling((total_length-2*strap_offset)/(length-(2*strap_offset)))*3
+q_GA=ceiling((total_length-2*strap_offset)/(length-(2*strap_offset)))
+q_band=ceiling((total_length-2*strap_offset)/(length-(2*strap_offset)))*3+1</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="my_volume_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>my_volume=iProperties.Volume</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\alex.fielder\OneDrive\Inventor\Designs\Balmoral\00025-DW-VIV-DT-01-001.ipt" Name="warning_sub" IsActive="true" FireDependentImmediately="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If length&lt;(pitch/3*0.6) Then
+	warning="Model is not valid."
+ElseIf length&gt;=(pitch/3*0.6) And length&lt;(pitch/3*0.9) Then
+	warning="Model may not be valid."
+Else
+	warning="Model should be valid."
+End If
+</Text>
+  </Rule>
+</root>
