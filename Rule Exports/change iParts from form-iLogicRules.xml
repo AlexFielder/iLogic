@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<root xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://tempuri.org/iLogicRules.xsd">
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\iLogic to change iParts help needed\change iParts from form.iam" Name="get current relevant iParts" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>Sub main()
+	GetCurrentRelevantOccurences()
+End Sub
+
+Sub GetCurrentRelevantOccurences()
+	If TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
+		Dim AssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
+		Dim assyDef As AssemblyComponentDefinition = AssyDoc.ComponentDefinition
+		
+		Dim occurrenceList As List(Of String) = New List(Of String)
+		Dim allowedList As List(Of String) = ListOfAllowedOccurrences
+		For Each allowedOcc As String In allowedList
+			Dim DocTocheck As Document = ThisApplication.Documents.ItemByName(IO.Path.GetDirectoryName(AssyDoc.FullDocumentName) &amp; "\" &amp; allowedOcc)
+			If Not DocTocheck Is Nothing Then
+				For Each compOcc As ComponentOccurrence In assyDef.Occurrences.AllReferencedOccurrences(DocTocheck)
+					Dim tmpDoc As PartDocument = compOcc.Definition.Document
+					If Not tmpDoc Is Nothing Then
+						occurrenceList.Add(compOcc.Name)
+					End If
+				Next
+			End If
+		Next
+		occurrenceList.Sort()
+		MultiValue.List("CurrentRelevantOccurrences").Clear
+		MultiValue.List("CurrentRelevantOccurrences") = occurrenceList
+	End If
+End Sub
+
+Function ListOfAllowedOccurrences() As List(Of String)
+	Dim tmpList As List(Of String) = New List(Of String)
+	tmpList.Add("1000.ipt")
+	tmpList.Add("1500.ipt")
+	tmpList.Add("2000.ipt")
+	Return tmpList
+End Function</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\iLogic to change iParts help needed\change iParts from form.iam" Name="replace iParts" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>Sub main()
+	Component.Replace(Parameter("CurrentRelevantOccurrences"), ReplacingComponent(iPartToReplace &amp; ".ipt"), False)
+	iLogicVb.RunRule("get current relevant iParts")
+
+End Sub
+
+Function ReplacingComponent(ReplacementComp As String) As String
+	Logger.Debug("replacing: " &amp; Parameter("CurrentRelevantOccurrences") &amp; " With: " &amp; Parameter("iPartToReplace") &amp; ".ipt")
+	Return iPartToReplace &amp; ".ipt"
+End Function</Text>
+  </Rule>
+  <Rule ParentFileName="C:\Users\Alex.Fielder\OneDrive\Inventor\Designs\Forums\Inventor Customization\iLogic to change iParts help needed.ipt" Name="changeActiveRowInPart" IsActive="true" AutomaticOnParameterChange="true" Silentoperation="true">
+    <Text>If TypeOf ThisDoc.Document Is PartDocument Then
+	Dim odoc As PartDocument = ThisDoc.Document
+	Dim oTop As BrowserNode = odoc.BrowserPanes("Model").TopNode
+	Dim def As PartComponentDefinition = odoc.ComponentDefinition
+
+	If Not def.iPartFactory Is Nothing Then
+		Dim factory As iPartFactory = def.iPartFactory
+		Dim desiredActiveRow As iPartTableRow = Nothing
+		For Each row As iPartTableRow In factory.TableRows
+			If Row.MemberName.Contains(Parameter("iPartSizeChange"))
+				desiredActiveRow = Row
+				Logger.Debug("parameter changed: " &amp; desiredActiveRow.Membername)
+			End If
+		Next
+		If Not desiredActiveRow Is Nothing Then
+			oTop.BrowserNodes("Table").BrowserNodes.Item(desiredActiveRow.Item(1).Row).DoSelect
+			Dim oCommand As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("PartComputeiPartRowCtxCmd")
+            oCommand.Execute
+		End If
+	End If
+End If</Text>
+  </Rule>
+</root>
