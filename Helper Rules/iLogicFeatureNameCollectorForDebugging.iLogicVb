@@ -3,34 +3,32 @@ Imports AII = Autodesk.iLogic.Interfaces
 Sub main()
 	Dim oObj As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAllEntitiesFilter, "Select a Face, Edge or Vertex")
 	If Not oObj Is Nothing Then
+		namedEnts = ThisDoc.NamedEntities
 		Dim geomInt As Integer = 1
+		Dim newAttributeName As String = GetDefaultResponseFromType(oObj, geomInt)
+		
+		newAttributeName = InputBox("What name for the geometry?", "Naming day", GetDefaultResponseFromType(oObj, geomInt))
 Break
-'		Dim defaultResponseFromType As String = String.Empty
-'		Select Case TypeName(oObj)
-'			Case "Vertex"
-'				defaultResponseFromType = TypeName(oObj) & geomInt.ToString("0")
-'			Case Else
-'				defaultResponseFromType = TypeName(oObj) & "Geom" & geomInt.ToString("000")
-'		End Select
-		Dim newAttributeName As String = InputBox("What name for the geometry?", "Naming day", GetDefaultResponseFromType(oObj, geomInt))
-
-		Dim namedEnts As AII.NamedEntities = ThisDoc.NamedEntities
-		Do While namedEnts.NameExists(newAttributeName)
-			If Not namedEnts.NameExists(newAttributeName) Then
-				namedEnts.SetName(oObj, newAttributeName)
-			Else
-				'do something else
-				geomInt += 1
-				newAttributeName = GetDefaultResponseFromType(oObj, geomInt)
-				If Not namedEnts.NameExists(newAttributeName) Then
-					namedEnts.SetName(oObj, newAttributeName)
-					Exit Do
-				End If
-			End If	
-		Loop
-		If Not namedEnts.NameExists(newAttributeName) Then namedEnts.SetName(oObj, newAttributeName)
+		newAttributeName = GetNewOrDefaultNameFromEntities(newAttributeName, geomInt)
+		namedEnts.SetName(oObj, newAttributeName)
+'		Do While namedEnts.NameExists(newAttributeName)
+'			If Not namedEnts.NameExists(newAttributeName) Then
+'				namedEnts.SetName(oObj, newAttributeName)
+'			Else
+'				'do something else
+'				geomInt += 1
+'				newAttributeName = GetDefaultResponseFromType(oObj, geomInt)
+'				If Not namedEnts.NameExists(newAttributeName) Then
+'					namedEnts.SetName(oObj, newAttributeName)
+'					Exit Do
+'				End If
+'			End If	
+'		Loop
+'		If Not namedEnts.NameExists(newAttributeName) Then namedEnts.SetName(oObj, newAttributeName)
 	End If
 End Sub
+
+Public namedEnts As AII.NamedEntities = Nothing
 
 ''' <summary>
 ''' Gets a default result which matches the manual approach.
@@ -49,6 +47,25 @@ Function GetDefaultResponseFromType(ByVal oobj As Object, ByVal geomInt As Integ
 	Return defaultResponseFromType
 End Function
 
-Function GetDefaultResponseByType() As String
-	
+''' <summary>
+''' Returns the expected name based on
+''' </summary>
+''' <param name="attrName"></param>
+''' <param name="geomInt"></param>
+''' <returns></returns>
+Function GetNewOrDefaultNameFromEntities(ByVal attrName As String, ByVal geomInt As Integer) As String
+	Do While namedEnts.NameExists(attrName)
+		If Not namedEnts.NameExists(attrName) Then
+			Return attrName
+		Else
+			'do something else
+			geomInt += 1
+			newAttributeName = GetDefaultResponseFromType(oObj, geomInt)
+			If Not namedEnts.NameExists(attrName) Then
+				Return attrName
+				Exit Do
+			End If
+		End If	
+	Loop
+	If Not namedEnts.NameExists(attrName) Then Return attrName
 End Function
