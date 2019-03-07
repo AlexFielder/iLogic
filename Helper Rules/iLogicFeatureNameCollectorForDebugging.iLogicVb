@@ -3,15 +3,32 @@ Imports AII = Autodesk.iLogic.Interfaces
 Sub main()
 	Dim oObj As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAllEntitiesFilter, "Select a Face, Edge or Vertex")
 	If Not oObj Is Nothing Then
-		Dim defaultResponseFromType As String = TypeName(oObj) & "Geom001"
-		Dim newAttributeName As String = InputBox("What name for the geometry?", "Naming day", defaultResponseFromType)
+		Dim geomInt As Integer = 1
 Break
+		Dim defaultResponseFromType As String = String.Empty
+		Select Case TypeName(oObj)
+			Case "Vertex"
+				defaultResponseFromType = TypeName(oObj) & geomInt.ToString("000")
+			Case Else
+				defaultResponseFromType = TypeName(oObj) & "Geom" & geomInt.ToString("000")
+		End Select
+		Dim newAttributeName As String = InputBox("What name for the geometry?", "Naming day", defaultResponseFromType)
+
 		Dim namedEnts As AII.NamedEntities = ThisDoc.NamedEntities
-		If Not namedEnts.NameExists(newAttributeName) Then
-			namedEnts.SetName(oObj, newAttributeName)
-		Else
-			'do something else
-		End If
+		Do While namedEnts.NameExists(newAttributeName)
+			If Not namedEnts.NameExists(newAttributeName) Then
+				namedEnts.SetName(oObj, newAttributeName)
+			Else
+				'do something else
+				geomInt += 1
+				newAttributeName = TypeName(oObj) & "Geom" & geomInt.ToString("000")
+				If Not namedEnts.NameExists(newAttributeName) Then
+					namedEnts.SetName(oObj, newAttributeName)
+					Exit Do
+				End If
+			End If	
+		Loop
+		If Not namedEnts.NameExists(newAttributeName) Then namedEnts.SetName(oObj, newAttributeName)
 	End If
 
 	
