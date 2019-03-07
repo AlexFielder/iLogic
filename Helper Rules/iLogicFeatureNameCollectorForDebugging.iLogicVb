@@ -5,26 +5,12 @@ Sub main()
 	If Not oObj Is Nothing Then
 		namedEnts = ThisDoc.NamedEntities
 		Dim geomInt As Integer = 1
-		Dim newAttributeName As String = GetDefaultResponseFromType(oObj, geomInt)
+		Dim newAttributeName As String = GetNewOrDefaultNameFromEntities(oObj, "", geomInt)
 		
-		newAttributeName = InputBox("What name for the geometry?", "Naming day", GetDefaultResponseFromType(oObj, geomInt))
-Break
-		newAttributeName = GetNewOrDefaultNameFromEntities(newAttributeName, geomInt)
+		newAttributeName = InputBox("What name For the Geometry?", "Naming Day", newAttributeName)
+'Break
+		newAttributeName = GetNewOrDefaultNameFromEntities(oObj, newAttributeName, geomInt)
 		namedEnts.SetName(oObj, newAttributeName)
-'		Do While namedEnts.NameExists(newAttributeName)
-'			If Not namedEnts.NameExists(newAttributeName) Then
-'				namedEnts.SetName(oObj, newAttributeName)
-'			Else
-'				'do something else
-'				geomInt += 1
-'				newAttributeName = GetDefaultResponseFromType(oObj, geomInt)
-'				If Not namedEnts.NameExists(newAttributeName) Then
-'					namedEnts.SetName(oObj, newAttributeName)
-'					Exit Do
-'				End If
-'			End If	
-'		Loop
-'		If Not namedEnts.NameExists(newAttributeName) Then namedEnts.SetName(oObj, newAttributeName)
 	End If
 End Sub
 
@@ -53,14 +39,17 @@ End Function
 ''' <param name="attrName"></param>
 ''' <param name="geomInt"></param>
 ''' <returns></returns>
-Function GetNewOrDefaultNameFromEntities(ByVal attrName As String, ByVal geomInt As Integer) As String
+Function GetNewOrDefaultNameFromEntities(ByVal oobj As Object, ByVal attrName As String, ByVal geomInt As Integer) As String
+	If attrName = String.Empty 
+		attrName = GetDefaultResponseFromType(oobj, geomInt)
+	End If
+	
 	Do While namedEnts.NameExists(attrName)
 		If Not namedEnts.NameExists(attrName) Then
 			Return attrName
 		Else
-			'do something else
 			geomInt += 1
-			newAttributeName = GetDefaultResponseFromType(oObj, geomInt)
+			attrName = GetDefaultResponseFromType(oobj, geomInt)
 			If Not namedEnts.NameExists(attrName) Then
 				Return attrName
 				Exit Do
