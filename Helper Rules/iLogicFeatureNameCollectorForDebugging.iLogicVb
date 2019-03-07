@@ -5,14 +5,14 @@ Sub main()
 	If Not oObj Is Nothing Then
 		Dim geomInt As Integer = 1
 Break
-		Dim defaultResponseFromType As String = String.Empty
-		Select Case TypeName(oObj)
-			Case "Vertex"
-				defaultResponseFromType = TypeName(oObj) & geomInt.ToString("000")
-			Case Else
-				defaultResponseFromType = TypeName(oObj) & "Geom" & geomInt.ToString("000")
-		End Select
-		Dim newAttributeName As String = InputBox("What name for the geometry?", "Naming day", defaultResponseFromType)
+'		Dim defaultResponseFromType As String = String.Empty
+'		Select Case TypeName(oObj)
+'			Case "Vertex"
+'				defaultResponseFromType = TypeName(oObj) & geomInt.ToString("0")
+'			Case Else
+'				defaultResponseFromType = TypeName(oObj) & "Geom" & geomInt.ToString("000")
+'		End Select
+		Dim newAttributeName As String = InputBox("What name for the geometry?", "Naming day", GetDefaultResponseFromType(oObj, geomInt))
 
 		Dim namedEnts As AII.NamedEntities = ThisDoc.NamedEntities
 		Do While namedEnts.NameExists(newAttributeName)
@@ -21,7 +21,7 @@ Break
 			Else
 				'do something else
 				geomInt += 1
-				newAttributeName = TypeName(oObj) & "Geom" & geomInt.ToString("000")
+				newAttributeName = GetDefaultResponseFromType(oObj, geomInt)
 				If Not namedEnts.NameExists(newAttributeName) Then
 					namedEnts.SetName(oObj, newAttributeName)
 					Exit Do
@@ -30,6 +30,25 @@ Break
 		Loop
 		If Not namedEnts.NameExists(newAttributeName) Then namedEnts.SetName(oObj, newAttributeName)
 	End If
-
-	
 End Sub
+
+''' <summary>
+''' Gets a default result which matches the manual approach.
+''' </summary>
+''' <param name="oobj"></param>
+''' <param name="geomInt"></param>
+''' <returns></returns>
+Function GetDefaultResponseFromType(ByVal oobj As Object, ByVal geomInt As Integer) As String
+	Dim defaultResponseFromType As String = String.Empty
+	Select Case TypeName(oobj)
+		Case "Vertex"
+			defaultResponseFromType = TypeName(oobj) & geomInt.ToString("0")
+		Case Else
+			defaultResponseFromType = TypeName(oobj) & "Geom" & geomInt.ToString("000")
+	End Select
+	Return defaultResponseFromType
+End Function
+
+Function GetDefaultResponseByType() As String
+	
+End Function
