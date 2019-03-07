@@ -1,5 +1,4 @@
-﻿Imports System.Text
-Imports AII = Autodesk.iLogic.Interfaces
+﻿Imports AII = Autodesk.iLogic.Interfaces
 Sub main()
 	Dim oObj As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAllEntitiesFilter, "Select a Face, Edge or Vertex")
 	If Not oObj Is Nothing Then

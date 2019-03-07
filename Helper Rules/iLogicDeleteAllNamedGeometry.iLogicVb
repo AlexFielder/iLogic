@@ -1,0 +1,17 @@
+﻿Imports AII = Autodesk.iLogic.Interfaces
+Sub main()
+	namedEnts = ThisDoc.NamedEntities
+	
+	'doesn't work:
+'	For i = namedEnts.Entities.Count To 1
+'		Dim namedEntToDelete As NameValueMap = namedEnts.Entities.Item(i)
+'		namedEntToDelete.Remove(1)
+'	Next i
+'break
+'	For Each namedEnt As NameValueMap In namedEnts.Entities
+'		namedEnts.DeleteName(namedEnt)
+'	Next
+
+End Sub
+
+Public namedEnts As AII.NamedEntities = Nothing
