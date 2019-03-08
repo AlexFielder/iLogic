@@ -1,7 +1,6 @@
-Sub Main()
+﻿Sub Main()
 	oDocument = ThisApplication.ActiveDocument
 	Dim oSheets As Sheets
-	Dim oSheet As Sheet
 	Dim oPar As UserParameter
 
 	For i = 1 To oDocument.Sheets.Count
@@ -16,34 +15,29 @@ Sub Main()
 	Next
 End Sub
 
-public oDocument As drawingdocument = nothing
+Public oDocument As DrawingDocument = Nothing
+Public oSheet As Sheet = Nothing
 
 Function CompareTextToExpected(byval textBox as Inventor.TextBox, byval textBoxContents as string) as Boolean
 	select case textBox.Text
-		case "Title" :
+		Case "<TITLE>" :
 			if not textBoxContents = "your expected string" then MarkTextBoxContentsAsIncorrect(textBox, "Text doesn't match expected Title")
-		case "Part Number" :
+		case "<PART NUMBER>" :
 			if not textBoxContents = "your expected string" then MarkTextBoxContentsAsIncorrect(textBox, "Text doesn't match expected Part Number")
 	end select
 End Function
 
 Sub MarkTextBoxContentsAsIncorrect(byval textbox as Inventor.TextBox, byval ErrorText as string)
-	Call createText(textbox.location, ErrorText)
+	Call CreateText(textbox.Origin, ErrorText)
 End Sub
 
 Sub CreateText (byval textlocation as point2d, byval QAText As String)
-
-	Dim oSheet As Sheet
 	Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
 	Dim TextPoint As Point2d = oTG.CreatePoint2d(textLocation.X, textlocation.Y)
-	
-	'Set the Drawing View based on the Index passed into the sub
-	oSheet = oDocument.Sheets.Item(1)
 	
 	Dim oGeneralNotes As GeneralNotes
 	oGeneralNotes = oSheet.DrawingNotes.GeneralNotes
 	
 	Dim oGeneralNote As GeneralNote
 	oGeneralNote = oGeneralNotes.AddFitted(TextPoint, QAText)
-
 End Sub
