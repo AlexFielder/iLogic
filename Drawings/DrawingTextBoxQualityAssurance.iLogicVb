@@ -33,48 +33,22 @@ Function CompareTextToExpected(byval textBox as Inventor.TextBox, byval textBoxC
 End Function
 
 Sub MarkTextBoxContentsAsIncorrect(byval textbox as Inventor.TextBox, byval ErrorText as string)
-	
+	Call createText(textbox.location, ErrorText)
 End Sub
 
 Sub CreateText (byval textlocation as point2d, byval QAText As String)
 
 	Dim oSheet As Sheet
-	Dim oDrawingView As DrawingView
-	Dim oTG As TransientGeometry
-	Dim oPoint As Point2d
-	Dim TextPoint As Point2d
-	Dim ViewWidth As Double
-	Dim TextWidth As Double
+	Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
+	Dim TextPoint As Point2d = oTG.CreatePoint2d(textLocation.X, textlocation.Y)
 	
 	'Set the Drawing View based on the Index passed into the sub
-	oSheet = oDrawingDoc.Sheets.Item(1)
-	oDrawingView = oSheet.DrawingViews.Item(ViewNumber)
-	oTG = ThisApplication.TransientGeometry
-	
-	TextPoint = oTG.CreatePoint2d(0, 0)
-	
+	oSheet = oDocument.Sheets.Item(1)
 	
 	Dim oGeneralNotes As GeneralNotes
 	oGeneralNotes = oSheet.DrawingNotes.GeneralNotes
 	
-	'Randomly place the Text (oText is the string passed through the sub)
 	Dim oGeneralNote As GeneralNote
-	oGeneralNote = oGeneralNotes.AddFitted(oTG.CreatePoint2d(5, 5), oText)
-	
-	'Get the origin points of the View
-	oPointx = oDrawingView.Position.x
-	oPointy = oDrawingView.Position.y
-	
-	'Get the Lengths of the View and Text
-	ViewWidth = oDrawingView.Width
-	ViewHeight = oDrawingView.Height
-	TextWidth = oGeneralNote.Width
-	
-	'This will Center the text width wise and place it at the OffsetDistance Vertically
-	TextPoint.x = oPointx - TextWidth/2
-	TextPoint.y = oPointy - ViewHeight + OffsetDistance
-	
-	'Set the TextPoint 
-	oGeneralNote.Position = TextPoint
+	oGeneralNote = oGeneralNotes.AddFitted(TextPoint, QAText)
 
 End Sub
