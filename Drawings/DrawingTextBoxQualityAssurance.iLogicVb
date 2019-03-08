@@ -6,7 +6,7 @@
 	For i = 1 To oDocument.Sheets.Count
 		oDocument.Sheets(i).Activate
 		oSheet = oDocument.Sheets(i)
-		Dim oTitleBlock As TitleBlock = oDocument.Sheets(i).TitleBlock
+		oTitleBlock = oDocument.Sheets(i).TitleBlock
 		For Each oTextBox As Inventor.TextBox In oTitleBlock.Definition.Sketch.TextBoxes
 			If oTextBox.Text <> "" Then
 				CompareTextToExpected(oTextBox, oTitleBlock.GetResultText(oTextBox))
@@ -17,6 +17,7 @@ End Sub
 
 Public oDocument As DrawingDocument = Nothing
 Public oSheet As Sheet = Nothing
+Public oTitleBlock As TitleBlock = Nothing
 
 Function CompareTextToExpected(byval textBox as Inventor.TextBox, byval textBoxContents as string) as Boolean
 	select case textBox.Text
@@ -31,7 +32,8 @@ Sub MarkTextBoxContentsAsIncorrect(byval textbox as Inventor.TextBox, byval Erro
 	Call CreateText(textbox.Origin, ErrorText)
 End Sub
 
-Sub CreateText (byval textlocation as point2d, byval QAText As String)
+Sub CreateText(ByVal textlocation As Point2d, ByVal QAText As String)
+	Call textlocation.transformby(oTitleBlock.Transformation)
 	Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
 	Dim TextPoint As Point2d = oTG.CreatePoint2d(textLocation.X, textlocation.Y)
 	
