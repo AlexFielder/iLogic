@@ -2,18 +2,13 @@ Sub Main()
 	oDocument = ThisApplication.ActiveDocument
 	Dim oSheets As Sheets
 	Dim oSheet As Sheet
-	' Dim DrawingNumber As String = String.empty
-	' Dim DrawingTitle As String = String.empty
-	' Dim DrawingPrefix As String = String.Empty
 	Dim oPar As UserParameter
 
 	For i = 1 To oDocument.Sheets.Count
 		oDocument.Sheets(i).Activate
 		oSheet = oDocument.Sheets(i)
-		'MessageBox.Show(osheet.Name)
 		Dim oTitleBlock As TitleBlock = oDocument.Sheets(i).TitleBlock
 		For Each oTextBox As Inventor.TextBox In oTitleBlock.Definition.Sketch.TextBoxes
-			' MessageBox.Show(otextbox.Text)
 			If oTextBox.Text <> "" Then
 				CompareTextToExpected(oTextBox, oTitleBlock.GetResultText(oTextBox))
 			End If
