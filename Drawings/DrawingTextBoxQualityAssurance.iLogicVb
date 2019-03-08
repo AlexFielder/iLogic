@@ -18,13 +18,6 @@ Sub Main()
 				CompareTextToExpected(oTextBox, oTitleBlock.GetResultText(oTextBox))
 			End If
 		Next
-		' If Not DrawingNumber = String.Empty And Not DrawingTitle = String.Empty Then ' DrawingPrefix = String.empty Then
-			' MessageBox.Show("Filename will include: " & DrawingNumber & " & " & DrawingTitle)
-			' PrintSheet(osheet, DrawingNumber, DrawingPrefix, singleSheet)
-		' Else
-			' MessageBox.Show("Either the Drawing Number or Prefix was missing on this sheet, Exiting!")
-			' Exit Function
-		' End If
 	Next
 End Sub
 
