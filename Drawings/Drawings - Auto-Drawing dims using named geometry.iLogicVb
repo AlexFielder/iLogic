@@ -21,13 +21,11 @@ Sub AddChamferNote(View As String, Edge1 As String, Edge2 As String, Optional No
 	Dim oDoc As DrawingDocument = ThisDoc.Document
 	Dim oSheet As Sheet = oDoc.ActiveSheet
 	Dim oView As DrawingView = ActiveSheet.View(View).View		
-	' Ready code for creating of reference points
 	Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
 	Dim oViewModelDoc As Document = oView.ReferencedFile.ReferencedDocument
 
 	Dim aoEdge1 As Object
 	oObjs = oViewModelDoc.AttributeManager.FindObjects("iLogicEntityNameSet", "iLogicEntityName", Edge1)
-'	oObjs = oViewModelDoc.AttributeManager.FindObjects(Edge1, "DIM", "1")
 	aoEdge1 = oObjs.Item(1)
 	
 	Dim aoDrawingCurve1 As DrawingCurve
@@ -46,7 +44,6 @@ Sub AddChamferNote(View As String, Edge1 As String, Edge2 As String, Optional No
 
 	Dim aoEdge2 As Object
 	oObjs = oViewModelDoc.AttributeManager.FindObjects("iLogicEntityNameSet", "iLogicEntityName", Edge2)
-'	oObjs = oViewModelDoc.AttributeManager.FindObjects(Edge2, "DIM", "1")
 	aoEdge2 = oObjs.Item(1)
 
 	Dim aoDrawingCurve2 As DrawingCurve
