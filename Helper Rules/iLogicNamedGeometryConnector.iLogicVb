@@ -1,0 +1,4 @@
+﻿
+
+'Constraints.AddFlush("Flush1", "PartForiLogicFeatureNameCollector:1", "Work Plane1", "Part2:1", "Work Plane1",
+'                     offset := 0.0, biasPoint1 := Nothing, biasPoint2 := Nothing)
