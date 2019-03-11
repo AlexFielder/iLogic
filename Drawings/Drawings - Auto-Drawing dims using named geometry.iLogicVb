@@ -33,6 +33,7 @@ Sub AddChamferNote(View As String, Edge1 As String, Edge2 As String, Optional No
 	Dim aoDrawingCurve1 As DrawingCurve
 	oDrawViewCurves1 = oView.DrawingCurves(aoEdge1)
 	aoDrawingCurve1 = oDrawViewCurves1.Item(1)
+	
 	Dim points As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
 	Dim leaderPoint As Point2d = oTG.CreatePoint2d(aoDrawingCurve1.MidPoint.X, aoDrawingCurve1.MidPoint.Y + 2.5)
 	
