@@ -1,5 +1,72 @@
 ﻿'this rule will attempt to look at a supplied assembly and dimensions the extents of a group of objects that are constrained together.
 Sub Main()
+	AddChamferNote("VIEW1", "Edge0", "Edge1", 2.5, 2.5)
+End Sub
+
+
+''' <summary>
+''' Initially copied from this thread: 
+''' https://forums.autodesk.com/t5/Inventor-customization/create-chamfer-note-With-ilogic/td-p/8646855
+''' </summary>
+''' <param name="View"></param>
+''' <param name="Edge1"></param>
+''' <param name="Edge2"></param>
+''' <param name="NoteLocationX"></param>
+''' <param name="NoteLocationY"></param>
+Sub AddChamferNote(View As String, Edge1 As String, Edge2 As String, Optional NoteLocationX As Double = 1, Optional NoteLocationY As Double = 1)
+	If Not TypeOf ThisDoc.Document Is DrawingDocument Then 
+		MessageBox.Show("Not a Drawing!")
+		Exit Sub
+	End If
+	Dim oDoc As DrawingDocument = ThisDoc.Document
+	Dim oSheet As Sheet = oDoc.ActiveSheet
+	Dim oView As DrawingView = ActiveSheet.View(View).View		
+	' Ready code for creating of reference points
+	Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
+	Dim oViewModelDoc As Document = oView.ReferencedFile.ReferencedDocument
+
+	Dim aoEdge1 As Object
+	oObjs = oViewModelDoc.AttributeManager.FindObjects("iLogicEntityNameSet", "iLogicEntityName", Edge1)
+'	oObjs = oViewModelDoc.AttributeManager.FindObjects(Edge1, "DIM", "1")
+	aoEdge1 = oObjs.Item(1)
+	
+	Dim aoDrawingCurve1 As DrawingCurve
+	oDrawViewCurves1 = oView.DrawingCurves(aoEdge1)
+	aoDrawingCurve1 = oDrawViewCurves1.Item(1)
+	Dim points As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+	Dim leaderPoint As Point2d = oTG.CreatePoint2d(aoDrawingCurve1.MidPoint.X, aoDrawingCurve1.MidPoint.Y + 2.5)
+	
+	points.Add(leaderPoint)
+	points.Add(aoDrawingCurve1.MidPoint)
+	
+	Dim leaderNote As LeaderNote = oSheet.DrawingNotes.LeaderNotes.Add(points, Edge1)
+	
+	points.Clear
+
+	Dim aoEdge2 As Object
+	oObjs = oViewModelDoc.AttributeManager.FindObjects("iLogicEntityNameSet", "iLogicEntityName", Edge2)
+'	oObjs = oViewModelDoc.AttributeManager.FindObjects(Edge2, "DIM", "1")
+	aoEdge2 = oObjs.Item(1)
+
+	Dim aoDrawingCurve2 As DrawingCurve
+	oDrawViewCurves2 = oView.DrawingCurves(aoEdge2)
+	aoDrawingCurve2 = oDrawViewCurves2.Item(1)
+	leaderPoint = oTG.CreatePoint2d(aoDrawingCurve2.MidPoint.X, aoDrawingCurve2.MidPoint.Y + 2.5)
+	
+	points.Add(leaderPoint)
+	points.Add(aoDrawingCurve2.MidPoint)
+	
+	leaderNote = oSheet.DrawingNotes.LeaderNotes.Add(points, Edge2)
+	
+	Dim oPosition As Point2d = oTG.CreatePoint2d(aoDrawingCurve2.MidPoint.X + NoteLocationX, aoDrawingCurve2.MidPoint.Y + NoteLocationY)
+	
+	Dim oChamferNote As ChamferNote = oSheet.DrawingNotes.ChamferNotes.Add(oPosition, aoDrawingCurve2, aoDrawingCurve1)
+	If Not oChamferNote Is Nothing Then
+		oChamferNote.AttributeSets.Add("ilogic_Created")
+	End If
+End Sub
+	
+Sub DefaultEdges()	
     'This rule will create delete any existing iLogic-created dimensions before replacing them anew
     Dim oDWG As DrawingDocument = ThisDoc.Document
 
