@@ -32,15 +32,15 @@ Sub AddChamferNote(View As String, Edge1 As String, Edge2 As String, Optional No
 	oDrawViewCurves1 = oView.DrawingCurves(aoEdge1)
 	aoDrawingCurve1 = oDrawViewCurves1.Item(1)
 	
-	Dim points As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
-	Dim leaderPoint As Point2d = oTG.CreatePoint2d(aoDrawingCurve1.MidPoint.X, aoDrawingCurve1.MidPoint.Y + NoteLocationY)
+'	Dim points As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+'	Dim leaderPoint As Point2d = oTG.CreatePoint2d(aoDrawingCurve1.MidPoint.X, aoDrawingCurve1.MidPoint.Y + NoteLocationY)
 	
-	points.Add(leaderPoint)
-	points.Add(aoDrawingCurve1.MidPoint)
+'	points.Add(leaderPoint)
+'	points.Add(aoDrawingCurve1.MidPoint)
 	
-	Dim leaderNote As LeaderNote = oSheet.DrawingNotes.LeaderNotes.Add(points, Edge1)
+'	Dim leaderNote As LeaderNote = oSheet.DrawingNotes.LeaderNotes.Add(points, Edge1)
 	
-	points.Clear
+'	points.Clear
 
 	Dim aoEdge2 As Object
 	oObjs = oViewModelDoc.AttributeManager.FindObjects("iLogicEntityNameSet", "iLogicEntityName", Edge2)
@@ -49,12 +49,12 @@ Sub AddChamferNote(View As String, Edge1 As String, Edge2 As String, Optional No
 	Dim aoDrawingCurve2 As DrawingCurve
 	oDrawViewCurves2 = oView.DrawingCurves(aoEdge2)
 	aoDrawingCurve2 = oDrawViewCurves2.Item(1)
-	leaderPoint = oTG.CreatePoint2d(aoDrawingCurve2.MidPoint.X, aoDrawingCurve2.MidPoint.Y + NoteLocationY)
+'	leaderPoint = oTG.CreatePoint2d(aoDrawingCurve2.MidPoint.X, aoDrawingCurve2.MidPoint.Y + NoteLocationY)
 	
-	points.Add(leaderPoint)
-	points.Add(aoDrawingCurve2.MidPoint)
+'	points.Add(leaderPoint)
+'	points.Add(aoDrawingCurve2.MidPoint)
 	
-	leaderNote = oSheet.DrawingNotes.LeaderNotes.Add(points, Edge2)
+'	leaderNote = oSheet.DrawingNotes.LeaderNotes.Add(points, Edge2)
 	
 	Dim oPosition As Point2d = oTG.CreatePoint2d(aoDrawingCurve2.MidPoint.X + NoteLocationX, aoDrawingCurve2.MidPoint.Y + NoteLocationY)
 	
