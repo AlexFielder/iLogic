@@ -1,0 +1,26 @@
+﻿' <FireOthersImmediately>False</FireOthersImmediately>
+ Sub Main
+	allowedMaterials = New String(){"Steel, Mild", "Steel", "Stainless steel", _
+		"Titanium", "Alloy Steel", "Aluminum-6061" }
+
+	materialName = iProperties.Material
+	materialValid = False
+	
+	retval = 0
+	For Each matl in allowedMaterials
+		If matl = materialName Then
+			retval = 1
+			Exit For
+		End If
+	Next
+	
+	If retval = 1 Then 	
+		msg = materialName  & " is Valid"
+	Else
+		 msg = materialName  & " is not a Valid Material"
+	End If
+	
+	RuleArguments.Arguments.Value("ReturnValue") = retval
+	RuleArguments.Arguments.Value("Description") = msg
+End Sub
+

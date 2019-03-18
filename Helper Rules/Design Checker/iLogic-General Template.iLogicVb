@@ -1,0 +1,21 @@
+ Sub Main
+ ' Design Checker fixed code starts here:
+	app = ThisApplication
+	
+
+	'Insert your rule logic here.
+	
+	'Tasks:
+	retval = -1
+	'set return values as desired.  
+	 'if ReturnValue=
+	        ' -1, don't show any results
+	        ' 0, rule failed, show results in tree
+        	' 1, rule passed, show results
+        	
+        ' Set msg to a string to be used as the tooltip.  It should be a description of why the check passed/failed.
+        	
+	RuleArguments.Arguments.Value("ReturnValue") = retval
+	RuleArguments.Arguments.Value("Description") = msg
+End Sub
+

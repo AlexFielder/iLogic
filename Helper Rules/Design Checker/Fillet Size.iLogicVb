@@ -1,0 +1,26 @@
+﻿ Sub Main()
+	featName = RuleArguments("FeatureName") 
+	feat = Feature.InventorFeature(featName)
+	
+	retval = -1
+	'don't allow fillets smaller than 1/8" or larger than 1"
+	If feat.Type = ObjectTypeEnum.kFilletFeatureObject Then
+		'parameter values are in cm, so convert to inches.
+		filletSize = feat.FeatureDimensions(1).Parameter.Value / 2.54
+		
+		If filletSize < .125 Then
+			msg = "Fillet size (" + Str(FilletSize) + ") is too small (less than 1/8"")"
+			retval = 0
+		Else If filletSize >  1 Then
+			msg = "Fillet size (" + Str(FilletSize) + ") is too big (larger than 1"")"
+			retval = 0
+		Else	
+			msg = "Fillet size (" + Str(FilletSize) + ") is valid"
+			retval = 1
+		End If
+	End If
+	 	
+	RuleArguments.Arguments.Value("ReturnValue") = retval
+	RuleArguments.Arguments.Value("Description") = msg
+End Sub
+

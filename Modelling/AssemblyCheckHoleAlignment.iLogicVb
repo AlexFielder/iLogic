@@ -26,8 +26,8 @@ Sub Main()
 		Exit Sub
 	End If
 	
-	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(oDoc, "Hole Alignment Check")
-	Try
+'	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(oDoc, "Hole Alignment Check")
+'	Try
 	    Dim oFace As Face
 		Dim newAxes As List(Of WorkAxis) = CheckBodyFaces(oCompdef, oBody1, oBody2)
 
@@ -67,13 +67,15 @@ Sub Main()
 		oDoc.Update()
 		'does nothing
 	    'oPane.Refresh()
-	Catch ex As Exception
-		MessageBox.Show("There was an error!" & vbCrLf & ex.Message, "Danger Will Robinson")
-		trans.Abort
-		Exit Sub
-	Finally
-		trans.End()
-	End Try
+'	Catch ex As Exception
+'		MessageBox.Show("There was an error!" & vbCrLf & ex.Message, "Danger Will Robinson")
+'		trans.Abort
+'		Exit Sub
+'	Finally
+'		If Not trans Is Nothing Then
+'			trans.End()
+'		End If
+'	End Try
 End Sub
 
 Function CheckBodyFaces(ByVal oCompDef As AssemblyComponentDefinition, ByVal oBody1 As SurfaceBody, ByVal oBody2 As SurfaceBody) As List(Of WorkAxis)
@@ -134,7 +136,7 @@ Function CheckBodyFaces(ByVal oCompDef As AssemblyComponentDefinition, ByVal oBo
 	Return axisList
 End Function
 
-Sub SplitNodeLists(ByVal oPane As BrowserNode, ByVal newAxes As List(Of Inventor.Axis), ByRef alignedNodes As List(Of Inventor.axis), ByRef misAlignedNodes As List(Of Inventor.axis))
+Sub SplitNodeLists(ByVal oPane As BrowserNode, ByVal newAxes As List(Of WorkAxis), ByRef alignedNodes As List(Of WorkAxis), ByRef misAlignedNodes As List(Of WorkAxis))
 	For Each oAxis As WorkAxis In newAxes
         Dim misaligned As Boolean = oAxis.Name.EndsWith("misaligned")
 		
