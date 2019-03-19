@@ -1,0 +1,82 @@
+Public Sub SampleBoolean() 
+    Dim partDoc As PartDocument 
+    Set partDoc = ThisApplication.ActiveDocument 
+    Dim partDef As PartComponentDefinition 
+    Set partDef = partDoc.ComponentDefinition 
+    
+    Dim tg As TransientGeometry 
+    Set tg = ThisApplication.TransientGeometry 
+    Dim tb As TransientBRep 
+    Set tb = ThisApplication.TransientBRep 
+    Dim tObjs As TransientObjects 
+    Set tObjs = ThisApplication.TransientObjects 
+     
+    ' Have the bodies selected. 
+    Dim baseBody As SurfaceBody 
+    Set baseBody = ThisApplication.CommandManager.Pick( _ 
+                        kPartBodyFilter, _ 
+                        "Select the base body") 
+    
+    Dim toolBody As SurfaceBody 
+    Set toolBody = ThisApplication.CommandManager.Pick( _ 
+                        kPartBodyFilter, _ 
+                        "Select the tool body") 
+                        
+    ' Copy the two bodies to create transient copies. 
+    Dim transBase As SurfaceBody 
+    Set transBase = tb.Copy(baseBody) 
+    Dim transTool As SurfaceBody 
+    Set transTool = tb.Copy(toolBody) 
+    
+    ' Create a matrix and a point to use in positioning 
+    ' the punch.  The matrix is initialized to an identity 
+    ' matrix the point is (0,0,0). 
+    Dim trans As Matrix 
+    Set trans = tg.CreateMatrix 
+    Dim lastPosition As Point 
+    Set lastPosition = tg.CreatePoint 
+    
+    ' Process each work point whose name starts with "Punch" 
+    ' by performing a boolean with the tool at that location. 
+    Dim wp As WorkPoint 
+    For Each wp In partDef.WorkPoints 
+        If Left$(UCase(wp.Name), 5) = "PUNCH" Then 
+            ' Transform the tool body to the position of the x and 
+            ' y coordinates work point, leaving the z as-is.  The  
+            ' punch is at the last punch so the transform defines 
+            ' the difference between the last and the current. 
+            trans.Cell(1, 4) = wp.Point.X - lastPosition.X 
+            trans.Cell(2, 4) = wp.Point.Y - lastPosition.Y 
+            Call tb.Transform(transTool, trans) 
+            
+            ' Do the boolean operation. 
+            Call tb.DoBoolean(transBase, transTool, _ 
+                              kBooleanTypeDifference) 
+        
+            ' Save the last position. 
+            Set lastPosition = wp.Point 
+        End If 
+    Next 
+    
+    ' Create a base body feature of the result. 
+    Dim nonParamFeatures As NonParametricBaseFeatures 
+    Set nonParamFeatures = partDef.Features.NonParametricBaseFeatures 
+    Dim nonParamDef As NonParametricBaseFeatureDefinition 
+    Set nonParamDef = nonParamFeatures.CreateDefinition 
+    
+    Dim objs As ObjectCollection 
+    Set objs = tObjs.CreateObjectCollection 
+    Call objs.Add(transBase) 
+    nonParamDef.BRepEntities = objs 
+    nonParamDef.OutputType = kSolidOutputType 
+    
+    Call nonParamFeatures.AddByDefinition(nonParamDef) 
+    
+    ' Turn off the display of the original two 
+    ' features to see the result. 
+    baseBody.Visible = False 
+    toolBody.Visible = False 
+    
+    ' Force a refresh of the view. 
+    ThisApplication.ActiveView.Update 
+End Sub

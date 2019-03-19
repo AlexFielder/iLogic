@@ -1,0 +1,47 @@
+ ' Assumes the drawing view is created from a assembly.
+
+    ' Select a balloon manually before running this procedure
+
+    Private Sub test(ByVal app As Inventor.Application)
+
+ 
+
+        Dim doc As DrawingDocument = app.ActiveDocument
+
+ 
+
+        Dim balloon As Balloon = doc.SelectSet(1)
+
+ 
+
+        Dim leader As Leader = balloon.Leader
+
+ 
+
+        'assuming the leader is a single line segment
+
+        Dim leaderNode As LeaderNode = leader.AllNodes(2)
+
+ 
+
+        Dim intent As GeometryIntent = leaderNode.AttachedEntity
+
+ 
+
+        Dim curve As DrawingCurve = intent.Geometry
+
+ 
+
+        Dim edgePx As EdgeProxy = curve.ModelGeometry
+
+ 
+
+        Dim occurrence As ComponentOccurrence = edgePx.ContainingOccurrence
+
+ 
+
+        Debug.Print(vbCrLf + "Occurrence Name: " + occurrence.Name)
+
+ 
+
+    End Sub
