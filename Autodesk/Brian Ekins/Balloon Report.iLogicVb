@@ -1,0 +1,100 @@
+Public Sub BalloonReport()  
+  ' Get the active drawing document.  
+  Dim drawDoc As DrawingDocument  
+  Set drawDoc = ThisApplication.ActiveDocument  
+
+  ' Open a file to write the results into.  
+  Dim filename As String  
+  filename = "C:\Temp\BalloonReport.txt"  
+  Open filename For Output As #1  
+
+  ' Print out the header for the report, both to the  
+  ' output file and the immediate window in VBA.  
+  Debug.Print ""  
+  Debug.Print "==== Balloon Report ===="  
+  Print #1, "==== Balloon Report ===="  
+
+  ' Iterate through the sheets.  
+  Dim drawSheet As sheet  
+  For Each drawSheet In drawDoc.Sheets  
+    ' Print out the sheet name.  
+    Debug.Print "  Sheet: " & drawSheet.Name  
+    Print #1, "  Sheet: " & drawSheet.Name  
+
+    ' Determine the zones within this sheet.  This assumes that 
+    ' the border was created as a standard border where the 
+    ' zones are explicitly defined.  If this is a custom border 
+    ' then some other mechanism will need to be created to  
+    ' define the zones.  
+    Dim border As DefaultBorder  
+    Set border = drawSheet.border  
+    Dim XZoneWidth As Double  
+    Dim YZoneWidth As Double  
+    XZoneWidth = drawSheet.Width / border.HorizontalZoneCount  
+    YZoneWidth = drawSheet.Height / border.VerticalZoneCount  
+    Dim XZoneIsNumber As Boolean  
+    If border.HorizontalZoneLabelMode = kBorderLabelModeNumeric Then  
+        XZoneIsNumber = True  
+    Else  
+        XZoneIsNumber = False  
+    End If  
+
+    Dim YZoneIsNumber As Boolean  
+    If border.VerticalZoneLabelMode = kBorderLabelModeNumeric Then  
+      YZoneIsNumber = True  
+    Else  
+      YZoneIsNumber = False  
+    End If  
+
+    ' Iterate through the balloons on this sheet.  
+    Dim drawBalloon As Balloon  
+    For Each drawBalloon In drawSheet.Balloons  
+      ' Because the border is numbered in the X direction from  
+      ' right to left and the sheet coordinate system is from  
+      ' left to right, this reverses the X coordinate so the  
+      ' zone computation will be correct.  
+      Dim newXPosition As Double  
+      newXPosition = drawSheet.Width - drawBalloon.position.X  
+
+      ' Determine the X zone.  
+      Dim XZone As Integer  
+      XZone = Int(newXPosition / XZoneWidth)  
+
+      ' Get the X zone as a string.  
+      Dim XZoneValue As String  
+
+      If XZoneIsNumber Then  
+        XZoneValue = XZone + 1  
+      Else  
+        XZoneValue = Chr(XZone + 65)  
+      End If  
+
+      ' Determine Y zone.  
+      Dim YZone As Integer  
+      YZone = Int(drawBalloon.position.Y / YZoneWidth)  
+
+      ' Get the Y zone as a string.  
+      Dim YZoneValue As String  
+      If YZoneIsNumber Then  
+        YZoneValue = YZone + 1  
+      Else  
+        YZoneValue = Chr(YZone + 65)  
+      End If  
+
+      ' Iterate through each value set associated with this balloon.  
+      Dim valueSet As BalloonValueSet  
+      For Each valueSet In drawBalloon.BalloonValueSets  
+        ' Print out the results for this value set.  
+        Debug.Print "    Balloon: " & valueSet.value & _  
+                    ", (" & XZoneValue & ", " & YZoneValue & ")"  
+        Print #1, "    Balloon: " & valueSet.value & _  
+                  ", (" & XZoneValue & ", " & YZoneValue & ")"  
+      Next  
+    Next  
+  Next  
+
+  ' Close the output file.  
+  Close #1  
+
+  MsgBox "Report written to: """ & filename & """" 
+End Sub
