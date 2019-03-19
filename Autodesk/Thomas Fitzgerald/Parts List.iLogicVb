@@ -1,0 +1,26 @@
+Sub Main
+ Dim invDoc As DrawingDocument = ThisApplication.ActiveDocument
+ Dim oSheet As Sheet = invDoc.ActiveSheet
+ Try
+ DeletePartsList(oSheet)
+ Catch
+ End Try
+ Dim oDrawingView As DrawingView = oSheet.DrawingViews(1)
+ Dim oBorder As Border = oSheet.Border
+ Dim oPlacementPoint As Point2d
+ If Not oBorder Is Nothing Then
+ oPlacementPoint = oBorder.RangeBox.MaxPoint
+ Else
+ oPlacementPoint =
+ThisApplication.TransientGeometry.CreatePoint2d(oSheet.Width, oSheet.Height)
+ End If
+Dim partsListBomType As PartsListLevelEnum = 46593
+ Dim oPartsList As PartsList = oSheet.PartsLists.Add(oDrawingView,
+oPlacementPoint, partsListBomType)
+End Sub
+Private Sub DeletePartsList(oSheet As Sheet)
+ Dim oPartList As PartsList
+ For Each oPartList In oSheet.PartsLists
+ oPartList.Delete()
+ Next
+End Sub

@@ -1,0 +1,96 @@
+' User-defined type used in the code code below. 
+Private Type udtPartInfo 
+   Number As Integer 
+   ReferencedFile As String 
+End Type 
+
+
+Public Sub RenumberBalloonsToFirstSheet() 
+   ' Get the active drawing document. 
+   If ThisApplication.ActiveDocumentType <> _ 
+                                         kDrawingDocumentObject Then 
+      MsgBox "A drawing must be active." 
+      Exit Sub 
+   End If 
+  
+   Dim drawDoc As DrawingDocument 
+   Set drawDoc = ThisApplication.ActiveDocument 
+    
+   ' Get the first sheet 
+   Dim baseSheet As Sheet 
+   Set baseSheet = drawDoc.Sheets.Item(1) 
+    
+   ' Get the drawing BOM from a balloon.  An assumption is that 
+   ' there is only one assembly represented on the sheet since 
+   ' this is arbitrarily using the BOM data of assembly associated 
+   ' with the first balloon found. 
+   Dim valSet As BalloonValueSet 
+   Set valSet = baseSheet.Balloons.Item(1).BalloonValueSets.Item(1) 
+   Dim drawBOM As DrawingBOM 
+   Set drawBOM = valSet.ReferencedRow.Parent 
+   Dim partInfo() As udtPartInfo 
+   ReDim partInfo(drawBOM.DrawingBOMRows.Count - 1) 
+   
+   ' Determine which column contains the item number information. 
+   Dim itemColumn As Integer 
+   Dim i As Integer 
+   For i = 1 To drawBOM.DrawingBOMColumns.Count 
+      If drawBOM.DrawingBOMColumns.Item(i).PropertyType = _ 
+                                        kItemPartsListProperty Then 
+         itemColumn = i 
+         Exit For 
+      End If 
+   Next 
+   
+   For i = 1 To drawBOM.DrawingBOMRows.Count 
+      Dim drawBOMRow As DrawingBOMRow 
+      Set drawBOMRow = drawBOM.DrawingBOMRows.Item(i) 
+
+      ' Get the filename of the file associated with this 
+      ' row of the BOM. 
+      Dim partDef As PartComponentDefinition 
+      Set partDef = drawBOMRow.BOMRow.ComponentDefinitions.Item(1) 
+      partInfo(i - 1).ReferencedFile = partDef.Document.FullFileName 
+      
+      ' Get the part number from the drawing BOM.  This could 
+      ' be different than the assembly BOM since it can be 
+      ' overridden in the drawing. 
+      partInfo(i - 1).Number = drawBOMRow.Item(itemColumn).Value 
+   Next 
+    
+   ' Iterate through the other sheets setting the balloon values 
+   ' to match these. If a balloon to a new part is found it will 
+   ' be set to the next highest value so all parts have unique 
+   ' balloon values. 
+   For i = 2 To drawDoc.Sheets.Count 
+      Dim currentSheet As Sheet 
+      Set currentSheet = drawDoc.Sheets.Item(i) 
+
+      ' Look through the balloons on this sheet. 
+      Dim checkBalloon As Balloon 
+      For Each checkBalloon In currentSheet.Balloons 
+         ' Initialize the flag indicating a match was found. 
+         Dim matchFound As Boolean 
+         matchFound = False 
+         Dim valueSet As BalloonValueSet 
+         Set valueSet = checkBalloon.BalloonValueSets.Item(1) 
+         Dim checkFilename As String 
+         checkFilename = _ 
+                      valueSet.ReferencedFiles.Item(1).FullFileName  
+
+         ' Find the data that matches this balloon. 
+         Dim j As Integer 
+         For j = 0 To UBound(partInfo) 
+            If checkFilename = partInfo(j).ReferencedFile Then 
+               ' Override the balloon value to match, if 
+               ' it's different. 
+               matchFound = True 
+               If valueSet.ItemNumber <> partInfo(j).Number Then 
+                  valueSet.OverrideValue = partInfo(j).Number 
+               End If 
+               Exit For 
+            End If 
+         Next 
+      Next 
+   Next 
+End Sub

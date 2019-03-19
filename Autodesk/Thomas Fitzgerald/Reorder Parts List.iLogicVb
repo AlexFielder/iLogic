@@ -1,0 +1,4 @@
+Dim oDrawDoc As DrawingDocument = ThisApplication.ActiveDocument
+Dim oPartList As PartsList = oDrawDoc.ActiveSheet.PartsLists.Item(1)
+oPartList.Renumber()
+oPartList.SaveItemOverridesToBOM()

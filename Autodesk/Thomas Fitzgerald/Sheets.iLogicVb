@@ -1,0 +1,24 @@
+Sub Main
+Dim sheetNames As New List(Of String)
+sheetNames.Add("MAIN")
+sheetNames.Add("Detail")
+Dim sheetSize As DrawingSheetSizeEnum = 9988
+Dim invDoc As DrawingDocument = ThisApplication.ActiveDocument
+Dim oSheet As Sheet = Nothing
+'*** Add the number of Sheets and name the Sheets
+For index As Integer = 1 To oSheets.Count
+oSheet = invDoc.Sheets.Add(sheetSize, ,sheetNames(index - 1))
+Next
+'*** Delete Sheet:1
+For Each oSheet In invDoc.Sheets
+If oSheet.Name = "Sheet:1" Then
+oSheet.Delete
+End If
+Next
+'*** Activate the MAIN Sheet
+For Each oSheet In invDoc.Sheets
+If oSheet.Name = oSheets(0) & ":1" Then
+oSheet.Activate
+End If
+Next
+End Sub

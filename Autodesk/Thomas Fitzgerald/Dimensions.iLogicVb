@@ -1,0 +1,107 @@
+Sub Main
+Dim oDoc As DrawingDocument = ThisApplication.ActiveDocument
+Dim dimNumber As Integer = 0
+Dim dimPt(1) As String
+Dim oOcc(1) As Object
+Dim viewName As String = String.Empty
+Dim sheetNumber As Integer = Nothing
+Dim dimType As String = String.Empty
+'*** Make connection to Excel File
+Dim xVal As String =
+GoExcel.CellValue("C:\Vault\Designs\Customers\Autodesk University\AU
+2018\Dataset\Dimensions.xlsx", "Sheet1", "A1")
+'*** Set Variables
+Dim cellVal As Object = Nothing
+Dim inc As Integer = 2
+'*** Loop through Excel File Until empty row
+Do
+dimPt(0) = GoExcel.CellValue("A" & inc)
+dimPt(1) = GoExcel.CellValue("B" & inc)
+viewName = GoExcel.CellValue("C" & inc)
+sheetNumber = GoExcel.CellValue("D" & inc)
+dimType = GoExcel.CellValue("E" & inc)
+ActiveSheet = ThisDrawing.Sheet("Sheet:" & sheetNumber)
+Dim oView As DrawingView = ActiveSheet.View(viewName).View
+Dim oSheet As Sheet = oDoc.Sheets.Item(sheetNumber)
+For count As Integer = 1 To 2
+oOcc(count - 1) = FindPoints(oView, dimPt(count - 1))
+Next
+If oOcc(0).Name = String.Empty Or oOcc(1).Name = String.Empty
+Then
+MessageBox.Show("Points Could Not Be Found")
+Else
+Call CreateLinearDimension(oDoc, oSheet, oView,
+dimPt(0), dimPt(1), oOcc(0), oOcc(1), dimType)
+End If
+inc = inc + 1
+cellVal = GoExcel.CellValue("A" & inc)
+Loop Until (cellVal Is Nothing OrElse
+String.IsNullOrEmpty(cellVal.ToString()))
+End Sub
+Private Function FindPoints(oView As DrawingView, dimPoint As String)
+Page 24
+Dim oAssyDoc As AssemblyDocument =
+oView.ReferencedDocumentDescriptor.ReferencedDocument
+Dim occ As Object
+Dim oDef As Document = Nothing
+For Each oOcc As ComponentOccurrence In
+oAssyDoc.ComponentDefinition.Occurrences
+oDef = oOcc.Definition.Document
+For Each oWorkPoint As WorkPoint In
+oDef.ComponentDefinition.WorkPoints
+If oWorkPoint.Name = dimPoint Then
+occ = oOcc
+End If
+Next
+ Next
+Return occ
+End Function
+Function CreateLinearDimension(oDoc As DrawingDocument, oSheet As Sheet,
+oView As DrawingView, dimPt1 As String, dimPt2 As String, oOcc1 As
+ComponentOccurrence, oOcc2 As ComponentOccurrence, dimType As String)
+Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
+Dim oDocDef1 As Document = oOcc1.Definition.Document
+Dim oDocDef2 As Document = oOcc2.Definition.Document
+ oWP1 = oDocDef1.ComponentDefinition.WorkPoints.Item(dimPt1)
+ oWP2 = oDocDef2.ComponentDefinition.WorkPoints.Item(dimPt2)
+Dim wpProxy1 As WorkPointProxy
+Dim wpProxy2 As WorkPointProxy
+Call oOcc1.CreateGeometryProxy(oWP1, wpProxy1)
+Call oOcc2.CreateGeometryProxy(oWP2, wpProxy2)
+'*** Place Centermarks where the Work Points reside
+ Dim oCM1 As Centermark = oSheet.Centermarks.AddByWorkFeature(wpProxy1,
+oView)
+ Dim oCM2 As Centermark = oSheet.Centermarks.AddByWorkFeature(wpProxy2,
+oView)
+oCM1.Visible = False
+oCM2.Visible = False
+
+ '*** Declare variables for dimension endpoints
+ Dim oShtPt1 As Point2d = oView.ModelToSheetSpace(oWP1.Point)
+ Dim oShtPt2 As Point2d = oView.ModelToSheetSpace(oWP2.Point)
+
+ '*** Create Geometry Intent of the Centermarks
+ Dim oGeomIntent1 As GeometryIntent = oSheet.CreateGeometryIntent(oCM1)
+ Dim oGeomIntent2 As GeometryIntent = oSheet.CreateGeometryIntent(oCM2)
+
+ '*** Define Dimension Orientation variables
+ Dim dimTypeEnum As DimensionTypeEnum = Nothing
+ If dimType = "Vertical" Then
+ dimTypeEnum = 60163
+ ElseIf dimType = "Horizontal" Then
+ dimTypeEnum = 60162
+Page 25
+ End If
+'*** Control where the Dimension Text is located
+ Dim oDimX As Double = oShtPt1.X - 4
+ Dim oDimY As Double = oShtPt1.Y
+
+Dim oPtText As Point2d = oTG.CreatePoint2d(oDimX, oDimY)
+
+ '*** Create the Dimension
+ Dim oDimension As DrawingDimension
+ oDimension =
+oSheet.DrawingDimensions.GeneralDimensions.AddLinear(oPtText, oGeomIntent1,
+oGeomIntent2, dimTypeEnum)
+ oDimension.CenterText
+End Function

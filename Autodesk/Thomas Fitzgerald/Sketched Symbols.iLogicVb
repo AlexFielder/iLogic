@@ -1,0 +1,23 @@
+Sub Main
+Dim symbolCount As Integer = 2
+Dim sketchSymbolName As String = "TestSymbol"
+Dim someValue1 As String = "This Works!"
+Dim someValue2 As String = "You Betcha"
+Dim rotation As Double = 0
+Dim scaleFactor As Double = 1
+Dim xValue As Integer = 5
+Dim yValue As Integer = 2
+ Dim oDrawDoc As DrawingDocument = ThisApplication.ActiveDocument
+ Dim oSketchedSymbolDef As SketchedSymbolDefinition =
+oDrawDoc.SketchedSymbolDefinitions.Item(sketchSymbolName)
+ Dim oSheet As Sheet = oDrawDoc.ActiveSheet
+ ' This sketched symbol definition contains one prompted string input. An
+array must be input that contains the strings for the prompted strings.
+ Dim oPromptStrings(symbolCount - 1) As String
+ oPromptStrings(0) = someValue1
+oPromptStrings(1) = someValue2
+ Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
+ Dim oSketchedSymbol As SketchedSymbol
+ oSketchedSymbol = oSheet.SketchedSymbols.Add(oSketchedSymbolDef,
+oTG.CreatePoint2d(xValue, yValue), rotation, scaleFactor, oPromptStrings)
+End Sub

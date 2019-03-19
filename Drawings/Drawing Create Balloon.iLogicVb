@@ -1,0 +1,90 @@
+﻿Public Sub Main()
+	CreateBalloon()
+End Sub
+
+Public Sub CreateBalloon()
+    ' Set a reference to the drawing document.
+    ' This assumes a drawing document is active.
+    Dim oDrawDoc As DrawingDocument = ThisApplication.ActiveDocument
+
+    ' Set a reference to the active sheet.
+    Dim oActiveSheet As Sheet = oDrawDoc.ActiveSheet
+
+    ' Set a reference to the drawing curve segment.
+    ' This assumes that a drwaing curve is selected.
+    Dim oDrawingCurveSegment As DrawingCurveSegment = oDrawDoc.SelectSet.Item(1)
+
+    ' Set a reference to the drawing curve.
+    Dim oDrawingCurve As DrawingCurve = oDrawingCurveSegment.Parent
+
+    ' Get the mid point of the selected curve
+    ' assuming that the selection curve is linear
+    Dim oMidPoint As Point2d = oDrawingCurve.MidPoint
+
+    ' Set a reference to the TransientGeometry object.
+    Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
+
+    Dim oLeaderPoints As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
+
+    ' Create a couple of leader points.
+    Call oLeaderPoints.Add(oTG.CreatePoint2d(oMidPoint.X + 10, oMidPoint.Y + 10))
+    Call oLeaderPoints.Add(oTG.CreatePoint2d(oMidPoint.X + 10, oMidPoint.Y + 5))
+
+    ' Add the GeometryIntent to the leader points collection.
+    ' This is the geometry that the balloon will attach to.
+    Dim oGeometryIntent As GeometryIntent = oActiveSheet.CreateGeometryIntent(oDrawingCurve)
+    Call oLeaderPoints.Add(oGeometryIntent)
+
+    ' Set a reference to the parent drawing view of the selected curve
+    Dim oDrawingView As DrawingView = oDrawingCurve.Parent
+
+    ' Set a reference to the referenced model document
+    Dim oModelDoc As Document = oDrawingView.ReferencedDocumentDescriptor.ReferencedDocument
+
+    ' Check if a partslist or a balloon has already been created for this model
+    Dim IsDrawingBOMDefined As Boolean
+    IsDrawingBOMDefined = oDrawDoc.DrawingBOMs.IsDrawingBOMDefined(oModelDoc.FullFileName)
+
+    Dim oBalloon As Balloon
+
+    If IsDrawingBOMDefined Then
+
+        ' Just create the balloon with the leader points
+        ' All other arguments can be ignored
+        oBalloon = oDrawDoc.ActiveSheet.Balloons.Add(oLeaderPoints)
+    Else
+
+        ' First check if the 'structured' BOM view has been enabled in the model
+
+        ' Set a reference to the model's BOM object
+        Dim oBOM As BOM = oModelDoc.ComponentDefinition.BOM
+
+        If oBOM.StructuredViewEnabled Then
+
+            ' Level needs to be specified
+            ' Numbering options have already been defined
+            ' Get the Level ('All levels' or 'First level only')
+            ' from the model BOM view - must use the same here
+            Dim Level As PartsListLevelEnum
+            If oBOM.StructuredViewFirstLevelOnly Then
+                Level = kStructured
+            Else
+                Level = kStructuredAllLevels
+            End If
+
+            ' Create the balloon by specifying just the level
+            oBalloon = oActiveSheet.Balloons.Add(oLeaderPoints, , Level)
+        Else
+
+            ' Level and numbering options must be specified
+            ' The corresponding model BOM view will automatically be enabled
+            Dim oNumberingScheme As NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap
+
+            ' Add the option for a comma delimiter
+            oNumberingScheme.Add( "Delimiter", ",")
+
+            ' Create the balloon by specifying the level and numbering scheme
+            oBalloon = oActiveSheet.Balloons.Add(oLeaderPoints, , kStructuredAllLevels, oNumberingScheme)
+        End If
+    End If
+End Sub

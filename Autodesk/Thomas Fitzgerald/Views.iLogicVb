@@ -1,0 +1,95 @@
+Sub Main
+Dim oDoc As DrawingDocument = ThisApplication.ActiveDocument
+Dim oSheet As Sheet = oDoc.ActiveSheet
+DeleteView(oSheet)
+'*** Define View Locations
+Dim sheetCenterVertical As Double = ((oSheet.Height / 2) - 1.5)
+Dim baseViewHorizontal As Double = (oSheet.Width * .17)
+Dim projViewHorizontal As Double = (oSheet.Width * .4)
+Dim detailViewHorizontal As Double = (oSheet.Width * .6)
+Dim isoViewHorizontal As Double = (oSheet.Width * .85)
+'*** Define Model Reference
+Dim modelReference As Document =
+ThisApplication.Documents.Open(SharedVariable("currentPath") & "\" &
+SharedVariable("newFileName") & ".iam", False)
+Dim oScale As Double = 1
+'*** Create Points for View Locations
+Dim oPoint(4) As Point2d
+oPoint(1) =
+ThisApplication.TransientGeometry.CreatePoint2d(baseViewHorizontal,
+sheetCenterVertical)
+oPoint(2) =
+ThisApplication.TransientGeometry.CreatePoint2d(projViewHorizontal,
+sheetCenterVertical)
+oPoint(3) =
+ThisApplication.TransientGeometry.CreatePoint2d(detailViewHorizontal,
+sheetCenterVertical + 2)
+oPoint(4) =
+ThisApplication.TransientGeometry.CreatePoint2d(isoViewHorizontal,
+sheetCenterVertical + 1)
+'*** Define View Orientation
+Dim viewOrientation(4) As ViewOrientationTypeEnum
+viewOrientation(1) = 10764
+viewOrientation(4) = 10759
+'*** Define View Style
+Dim viewStyle(4) As DrawingViewStyleEnum
+viewStyle(1) = 32258
+viewStyle(2) = 32258
+viewStyle(3) = 32258
+viewStyle(4) = 32259
+'*** Create the Views
+Dim oBaseView As DrawingView = Nothing
+Dim oProjView As DrawingView = Nothing
+Dim oDetailView As DrawingView = Nothing
+Dim oIsoView As DrawingView = Nothing
+Dim detailCenter As Point2d = oPoint(2)
+Page 19
+For i = 1 To 4
+If i = 1 Then
+oBaseView =
+oSheet.DrawingViews.AddBaseView(modelReference, oPoint(i), oScale,
+viewOrientation(i), viewStyle(i))
+oBaseView.Name = "BaseView" & i
+Call SetViewScale(oSheet, oBaseView)
+ElseIf i = 2 Then
+oProjView =
+oSheet.DrawingViews.AddProjectedView(oBaseView, oPoint(i), viewStyle(i))
+oProjView.Name = "ProjView" & i
+ElseIf i = 3 Then
+detailCenter.Y = detailCenter.Y + 6.1
+oDetailView =
+oSheet.DrawingViews.AddDetailView(oProjView, oPoint(i), viewStyle(i), True,
+detailCenter, 3.2)
+oDetailView.Name = "View" & i
+oDetailView.Scale = oProjView.Scale * 2
+ElseIf i = 4 Then
+oIsoView =
+oSheet.DrawingViews.AddBaseView(modelReference, oPoint(i), oScale,
+viewOrientation(i), viewStyle(i))
+oIsoView.Name = "IsoView" & i
+Call SetViewScale(oSheet, oIsoView)
+End If
+Next
+iLogicVb.RunRule("Add Parts List")
+End Sub
+
+Function DeleteView(oSheet As Sheet)
+For Each view As DrawingView In oSheet.DrawingViews
+View.Delete()
+Next
+End Function
+
+Function SetViewScale(oSheet As Sheet, oView As DrawingView)
+Dim viewScale As Double = Nothing
+Dim trueViewHeight As Double = Nothing
+Dim viewName As String = oView.Name
+Dim viewHeight As Double = Nothing
+If Not viewName.Contains("Iso") Then
+viewHeight = (oSheet.Height * .6)
+Else
+viewHeight = (oSheet.Height * .45)
+End If
+trueViewHeight = oView.Height
+viewScale = (viewHeight / trueViewHeight)
+oView.Scale = viewScale
+End Function

@@ -1,0 +1,74 @@
+Sub Main
+ Dim oDrawDoc As DrawingDocument = ThisApplication.ActiveDocument
+ Dim oActiveSheet As Sheet = oDrawDoc.ActiveSheet
+Dim oDrawingView As DrawingView = oActiveSheet.DrawingViews.Item(1)
+Dim oAssemblyDoc As AssemblyDocument =
+oDrawingView.ReferencedDocumentDescriptor.ReferencedDocument
+Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
+oDrawingView.ViewStyle = 32257
+'*** Iterate through Assembly to find Parts
+Dim oOccs As ComponentOccurrences =
+oAssemblyDoc.ComponentDefinition.Occurrences
+For Each oOcc As ComponentOccurrence In oOccs
+If oOcc.DefinitionDocumentType = 12291 Then
+Call TraverseSubAssy(oActiveSheet, oDrawingView, oTG,
+oOcc.SubOccurrences)
+Else
+Call CreateBalloon(oActiveSheet, oDrawingView, oTG,
+oOcc)
+End If
+ Next
+oDrawingView.ViewStyle = 32258
+End Sub
+Private Sub TraverseSubAssy(oActiveSheet As Sheet, oDrawingView As
+DrawingView, oTG As TransientGeometry, oOccs As ComponentOccurrences)
+For Each oOcc As ComponentOccurrence In oOccs
+If oOcc.DefinitionDocumentType = 12291 Then
+Call TraverseSubAssy(oActiveSheet, oDrawingView, oTG,
+oOcc.SubOccurrences)
+Else
+Call CreateBalloon(oActiveSheet, oDrawingView, oTG,
+oOcc)
+End If
+ Next
+End Sub
+Public Function CreateBalloon(oActiveSheet As Sheet, oDrawingView As
+DrawingView, oTG As TransientGeometry, oOcc As ComponentOccurrence)
+Dim oModelDoc As Inventor.PartDocument
+oModelDoc = oOcc.Definition.Document
+'*** Find the tagged Faces
+Dim oObjs As ObjectCollection =
+oModelDoc.AttributeManager.FindObjects("Balloon")
+If oObjs.Count = 0 Then
+Exit Function
+End If
+Dim oFace As Inventor.Face
+Page 22
+oFace = oObjs.Item(1)
+Dim oFaceProxy As Inventor.FaceProxy
+Call oOcc.CreateGeometryProxy(oFace, oFaceProxy)
+Dim oDrawCurves As Inventor.DrawingCurvesEnumerator
+oDrawCurves = oDrawingView.DrawingCurves(oFaceProxy)
+Dim oDrawingCurve As Inventor.DrawingCurve
+oDrawingCurve = oDrawCurves.Item(1)
+Dim midPoint As Point2d = Nothing
+midPoint = oDrawingCurve.MidPoint
+Dim oLeaderPoints As ObjectCollection =
+ThisApplication.TransientObjects.CreateObjectCollection
+'*** Locate where the Balloon will be placed
+If midPoint.X > oDrawingView.Position.X Then
+oLeaderPoints.Add(oTG.CreatePoint2d(midPoint.X + 2, midPoint.Y
+- 1))
+Else
+oLeaderPoints.Add(oTG.CreatePoint2d(midPoint.X - 2, midPoint.Y
+- 1))
+End If
+'*** Must be the LAST point added to the array. This is the Balloon
+Leader attachment point.
+Dim geoIntent As Inventor.GeometryIntent =
+oActiveSheet.CreateGeometryIntent(oDrawingCurve, .5)
+oLeaderPoints.Add(geoIntent)
+'*** Create the balloon
+Dim oBalloon As Inventor.Balloon
+oBalloon = oActiveSheet.Balloons.Add(oLeaderPoints)
+End Function
