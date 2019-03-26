@@ -20,7 +20,31 @@ Sub Main()
 '		Dim node As BrowserNode = opane.TopNode.BrowserNodes.Item(i)
 '		Logger.Debug(node.FullPath)
 '	Next
-	call CheckVaultStatusFromInventorBrowser()
+'	Call CheckVaultStatusFromInventorBrowser()
+	If TypeOf ThisDoc.Document Is AssemblyDocument Then 
+		Dim assydoc As AssemblyDocument = ThisDoc.Document
+		Call CheckVaultStatusFromAssembly(assydoc)
+	Else
+		If CheckVaultStatus(ThisDoc.Document.FullFileName)= VaultStatus.kRefresh Then
+				RefreshVaultStatus(doc)
+			End If
+	End If
+End Sub
+
+Sub CheckVaultStatusFromAssembly(ByVal assyDoc As AssemblyDocument)
+	For Each doc As Document In assyDoc.AllReferencedDocuments
+		If TypeOf doc Is PartDocument Then
+			If CheckVaultStatus(doc.FullFileName)= VaultStatus.kRefresh Then
+				RefreshVaultStatus(doc)
+			End If
+		Else
+			If CheckVaultStatus(doc.FullFileName)= VaultStatus.kRefresh Then
+				RefreshVaultStatus(doc)
+			End If
+			Dim referencedAssembly As AssemblyDocument = doc
+			CheckVaultStatusFromAssembly(referencedAssembly)
+		End If
+	Next
 End Sub
 
 Function CheckVaultStatus(ByVal filename As String) As VaultStatus
