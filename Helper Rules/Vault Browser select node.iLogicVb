@@ -1,1 +1,24 @@
-﻿
+﻿Sub main()
+	'works but doesn't select the topnode because that is the Inventor project?
+	Dim odoc As Document = ThisDoc.Document
+	Dim opane As BrowserPane = odoc.BrowserPanes("Vault")
+	opane.Activate
+'	Dim otopNode As BrowserNode = opane.TopNode
+    For Each Pane As BrowserPane In ThisApplication.ActiveDocument.BrowserPanes
+		Logger.Debug("Internal Name: " & Pane.InternalName & vbCrLf  & "Display Name: " & Pane.Name)
+        If Pane.InternalName = "AmBrowserArrangement" Then
+            For i = 1 To Pane.TopNode.BrowserNodes.Count
+				Dim node As BrowserNode = Pane.TopNode.BrowserNodes.Item(i)
+				logger.Debug("node.FullPath: " & node.FullPath)
+                If Not Pane.TopNode.BrowserNodes.Item(i).NativeObject Is Nothing Then
+                    If Pane.TopNode.BrowserNodes.Item(i).NativeObject.Type = kEndOfFeaturesObject Then
+                        Call ThisApplication.ActiveDocument.SelectSet.Clear
+                        Call ThisApplication.ActiveDocument.SelectSet.Select(Pane.TopNode.BrowserNodes.Item(i + 1).NativeObject)
+                        GoTo xit
+                    End If
+                End If
+            Next
+        End If
+    Next
+xit:
+End Sub
