@@ -1,16 +1,77 @@
-﻿Sub main()
+﻿AddReference "Autodesk.Connectivity.WebServices"
+AddReference "Autodesk.DataManagement.Client.Framework.Forms"
+AddReference "Autodesk.DataManagement.Client.Framework.Vault"
+AddReference "Autodesk.DataManagement.Client.Framework.Vault.Forms"
+
+Imports ACW = Autodesk.Connectivity.WebServices
+Imports VDF = Autodesk.DataManagement.Client.Framework
+Imports Autodesk.DataManagement.Client.Framework.Vault.Services
+Imports Autodesk.DataManagement.Client.Framework.Vault.Currency.Connections
+Imports Autodesk.DataManagement.Client.Framework.Vault.Currency.Properties
+
+Sub Main()
 	'works but doesn't select the topnode because that is the Inventor project?
 	Dim odoc As Document = ThisDoc.Document
 	Dim opane As BrowserPane = odoc.BrowserPanes("Vault")
 	opane.Activate
 '	Dim otopNode As BrowserNode = opane.TopNode
-    For Each Pane As BrowserPane In ThisApplication.ActiveDocument.BrowserPanes
+	Dim Connection As VDF.Vault.Currency.Connections.Connection = Nothing
+	Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("localhost", "Vault", "", "", AuthenticationFlags.WindowsAuthentication, Nothing)
+    Connection = results.Connection
+	
+	Dim props As PropertyDefinitionDictionary = Connection.PropertyManager.GetPropertyDefinitions(VDF.Vault.Currency.Entities.EntityClassIds.Files, Nothing, PropertyDefinitionFilter.IncludeAll)
+	Dim statusProp As PropertyDefinition = props.Item(PropertyDefinitionIds.Client.VaultStatus)
+	
+	Dim FileIter As VDF.Vault.Currency.Entities.FileIteration = Nothing
+	Dim oFile As ACW.File = Nothing
+	
+	oFile = FindVaultFileByFileName(Connection, filename)
+	If oFile IsNot Nothing Then
+		FileIter = New VDF.Vault.Currency.Entities.FileIteration(Connection, oFile)
+	End If
+	
+	Dim status As EntityStatusImageInfo = Connection.PropertyManager.GetPropertyValue(FileIter, statusProp, Nothing)
+	
+	
+End Sub
+
+Private Function FindVaultFileByFileName(Connection As VDF.Vault.Currency.Connections.Connection, filename As String) As ACW.File
+
+    Dim result As ACW.File = Nothing
+
+    Dim filePropDefs As ACW.PropDef() = Connection.WebServiceManager.PropertyService.GetPropertyDefinitionsByEntityClassId("FILE")
+    Dim fileNamePropDef As ACW.PropDef = filePropDefs.[Single](Function(n) n.SysName = "ClientFileName")
+
+    ' is equal
+    Dim fileNameMatch As New ACW.SrchCond()
+    fileNameMatch.PropDefId = fileNamePropDef.Id
+    fileNameMatch.PropTyp = ACW.PropertySearchType.SingleProperty
+    fileNameMatch.SrchOper = 3
+    fileNameMatch.SrchRule = ACW.SearchRuleType.Must
+    fileNameMatch.SrchTxt = filename
+
+    Dim bookmark As String = String.Empty
+    Dim searchStatus As ACW.SrchStatus = Nothing
+    Dim searchResults As ACW.File() = Connection.WebServiceManager.DocumentService.FindFilesBySearchConditions(New ACW.SrchCond() {fileNameMatch}, Nothing, Nothing, False, True, bookmark, searchStatus)
+
+    If searchResults IsNot Nothing Then
+        If searchResults.Length > 0 Then
+           result = searchResults(0)
+        End If
+    End If
+
+    Return result
+
+End Function
+
+Sub SelectFirstModelBrowserObject
+	'this selects the first available node in the Model Browser:
+	For Each Pane As BrowserPane In ThisApplication.ActiveDocument.BrowserPanes
 		Logger.Debug("Internal Name: " & Pane.InternalName & vbCrLf & "Display Name: " & Pane.Name)
-		'this selects the first available node in the Model Browser:
         If Pane.InternalName = "AmBrowserArrangement" Then
             For i = 1 To Pane.TopNode.BrowserNodes.Count
 				Dim node As BrowserNode = Pane.TopNode.BrowserNodes.Item(i)
-				logger.Debug("node.FullPath: " & node.FullPath)
+				Logger.Debug("node.FullPath: " & node.FullPath)
                 If Not Pane.TopNode.BrowserNodes.Item(i).NativeObject Is Nothing Then
                     If Pane.TopNode.BrowserNodes.Item(i).NativeObject.Type = kEndOfFeaturesObject Then
                         Call ThisApplication.ActiveDocument.SelectSet.Clear
