@@ -3,6 +3,7 @@ AddReference "Autodesk.DataManagement.Client.Framework.Forms"
 AddReference "Autodesk.DataManagement.Client.Framework.Vault"
 AddReference "Autodesk.DataManagement.Client.Framework.Vault.Forms"
 
+Imports System.Linq
 Imports ACW = Autodesk.Connectivity.WebServices
 Imports VDF = Autodesk.DataManagement.Client.Framework
 Imports Autodesk.DataManagement.Client.Framework.Vault.Services
@@ -85,10 +86,27 @@ Sub CheckVaultStatusFromInventorBrowser
             For i = 1 To Pane.TopNode.BrowserNodes.Count
 				Dim node As BrowserNode = Pane.TopNode.BrowserNodes.Item(i)
 				Logger.Debug("node.FullPath: " & node.FullPath)
-                If Not Pane.TopNode.BrowserNodes.Item(i).NativeObject Is Nothing Then
-					Dim odoc As Document = Pane.TopNode.BrowserNodes.Item(i).NativeObject
-					If CheckVaultStatus(odoc.FullFileName)= VaultStatus.kRefresh Then
-						RefreshVaultStatus(odoc)
+                If Not node.NativeObject Is Nothing Then
+					Logger.Debug("Node Type Name: " & TypeName(node))
+					Logger.Debug("Node NativeObject Type Name: " & TypeName(node.NativeObject))
+					If TypeOf node.NativeObject Is Document Then
+						Dim odoc As Document = Pane.TopNode.BrowserNodes.Item(i).NativeObject
+						If TypeOf odoc Is AssemblyDocument Then
+							Dim AssyDoc As AssemblyDocument = odoc
+							If CheckVaultStatus(odoc.FullFileName)= VaultStatus.kRefresh Then
+								RefreshVaultStatus(odoc)
+							End If
+Break
+							CheckVaultStatusRecursively(AssyDoc)
+						ElseIf TypeOf odoc Is PartDocument Then
+							'not sure we need to get the partdocument but still.
+							Dim partDoc As PartDocument = odoc
+							If CheckVaultStatus(odoc.FullFileName)= VaultStatus.kRefresh Then
+								RefreshVaultStatus(odoc)
+							End If
+						Else
+							'how did we get here?
+						End If
 					End If
 '                    If Pane.TopNode.BrowserNodes.Item(i).NativeObject.Type = kEndOfFeaturesObject Then
 						
@@ -102,6 +120,23 @@ Sub CheckVaultStatusFromInventorBrowser
     Next
 xit:
 End Sub
+
+Sub CheckVaultStatusRecursively(ByVal oDoc As Document)
+	Dim assydoc As AssemblyDocument = oDoc
+	For Each doc As Document In assyDoc.allreferenceddocuments
+		If TypeOf doc Is AssemblyDocument Then
+			If CheckVaultStatus(doc.FullFileName)= VaultStatus.kRefresh Then
+				RefreshVaultStatus(doc)
+			End If
+			CheckVaultStatusRecursively(doc)
+		Else If TypeOf doc Is PartDocument Then
+			If CheckVaultStatus(doc.FullFileName)= VaultStatus.kRefresh Then
+				RefreshVaultStatus(doc)
+			End If
+		End If
+	Next
+End Sub
+
 
 Sub RefreshVaultStatus(ByVal doc As Document)
 	Dim refreshCmd As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("RefreshRevision")
