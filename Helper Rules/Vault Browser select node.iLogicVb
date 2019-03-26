@@ -15,9 +15,7 @@ Sub Main()
 		Dim assydoc As AssemblyDocument = ThisDoc.Document
 		Call CheckVaultStatusFromAssembly(assydoc)
 	Else
-		If CheckVaultStatus(ThisDoc.Document.FullFileName)= VaultStatus.kRefresh Then
-				RefreshVaultStatus(doc)
-			End If
+		'tough luck!
 	End If
 End Sub
 
@@ -25,12 +23,10 @@ Sub CheckVaultStatusFromAssembly(ByVal assyDoc As AssemblyDocument)
 	For Each doc As Document In assyDoc.AllReferencedDocuments
 		If TypeOf doc Is PartDocument Then
 			If CheckVaultStatus(doc.FullFileName)= VaultStatus.kRefresh Then
-'				RefreshVaultStatus(doc)
 				RefreshVaultStatusFromInventorBrowser(doc.FullFileName)
 			End If
 		Else
 			If CheckVaultStatus(doc.FullFileName)= VaultStatus.kRefresh Then
-'				RefreshVaultStatus(doc)
 				RefreshVaultStatusFromInventorBrowser(doc.FullFileName)
 			End If
 			Dim referencedAssembly As AssemblyDocument = doc
@@ -123,20 +119,6 @@ Sub RefreshVaultStatus()
 		Dim refreshCmd As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("RefreshRevision")
 		refreshCmd.Execute()
 	End If
-End Sub
-
-Sub RefreshVaultStatus(ByVal doc As Document)
-	If TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
-		Dim assydoc As AssemblyDocument = ThisApplication.ActiveDocument
-		Call assydoc.SelectSet.Clear()
-		Call assydoc.SelectSet.Select(doc)
-		If assydoc.SelectSet.Count > 0 Then
-			Dim refreshCmd As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("AppRefreshRevisionCmd")
-			refreshCmd.Execute()
-		End If
-	End If
-	
-	
 End Sub
 
 Public Enum VaultStatus
