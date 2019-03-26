@@ -11,16 +11,18 @@ Imports Autodesk.DataManagement.Client.Framework.Vault.Currency.Properties
 
 Sub Main()
 	'works but doesn't select the topnode because that is the Inventor project?
-	Dim odoc As Document = ThisDoc.Document
-	Dim opane As BrowserPane = odoc.BrowserPanes("Vault")
-	opane.Activate
-	For i = 1 To opane.TopNode.BrowserNodes.Count
-		Dim node As BrowserNode = opane.TopNode.BrowserNodes.Item(i)
-		Logger.Debug(node.FullPath)
-	Next
+'	Dim odoc As Document = ThisDoc.Document
+'	Dim opane As BrowserPane = odoc.BrowserPanes("Vault")
+'	opane.Activate
+'	messagebox.Show("count of nodes: " & opane.TopNode.BrowserNodes.Count)
+'	For i = 1 To opane.TopNode.BrowserNodes.Count
+'		Dim node As BrowserNode = opane.TopNode.BrowserNodes.Item(i)
+'		Logger.Debug(node.FullPath)
+'	Next
+	call CheckVaultStatusFromInventorBrowser()
 End Sub
 
-Function CheckVaultStatus(ByVal filename As String) As Boolean
+Function CheckVaultStatus(ByVal filename As String) As VaultStatus
 '	Dim otopNode As BrowserNode = opane.TopNode
 	Dim Connection As VDF.Vault.Currency.Connections.Connection = Nothing
 	Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("localhost", "Vault", "", "", AuthenticationFlags.WindowsAuthentication, Nothing)
@@ -38,8 +40,11 @@ Function CheckVaultStatus(ByVal filename As String) As Boolean
 	End If
 	
 	Dim status As EntityStatusImageInfo = Connection.PropertyManager.GetPropertyValue(FileIter, statusProp, Nothing)
+	Logger.Debug("Vault Status= " & status.Status.ToString())
 	If status.Status.ToString() = "Something" Then
-		
+		Return VaultStatus.kRefresh
+	Else
+		Return VaultStatus.kIgnore	
 	End If
 End Function
 
@@ -72,7 +77,7 @@ Private Function FindVaultFileByFileName(Connection As VDF.Vault.Currency.Connec
 
 End Function
 
-Sub SelectFirstModelBrowserObject
+Sub CheckVaultStatusFromInventorBrowser
 	'this selects the first available node in the Model Browser:
 	For Each Pane As BrowserPane In ThisApplication.ActiveDocument.BrowserPanes
 		Logger.Debug("Internal Name: " & Pane.InternalName & vbCrLf & "Display Name: " & Pane.Name)
@@ -81,14 +86,30 @@ Sub SelectFirstModelBrowserObject
 				Dim node As BrowserNode = Pane.TopNode.BrowserNodes.Item(i)
 				Logger.Debug("node.FullPath: " & node.FullPath)
                 If Not Pane.TopNode.BrowserNodes.Item(i).NativeObject Is Nothing Then
-                    If Pane.TopNode.BrowserNodes.Item(i).NativeObject.Type = kEndOfFeaturesObject Then
-                        Call ThisApplication.ActiveDocument.SelectSet.Clear
-                        Call ThisApplication.ActiveDocument.SelectSet.Select(Pane.TopNode.BrowserNodes.Item(i + 1).NativeObject)
-                        GoTo xit
-                    End If
+					Dim odoc As Document = Pane.TopNode.BrowserNodes.Item(i).NativeObject
+					If CheckVaultStatus(odoc.FullFileName)= VaultStatus.kRefresh Then
+						RefreshVaultStatus(odoc)
+					End If
+'                    If Pane.TopNode.BrowserNodes.Item(i).NativeObject.Type = kEndOfFeaturesObject Then
+						
+'                       Call ThisApplication.ActiveDocument.SelectSet.Clear
+'                       Call ThisApplication.ActiveDocument.SelectSet.Select(Pane.TopNode.BrowserNodes.Item(i + 1).NativeObject)
+'                       GoTo xit
+'                    End If
                 End If
             Next
         End If
     Next
 xit:
 End Sub
+
+Sub RefreshVaultStatus(ByVal doc As Document)
+	Dim refreshCmd As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("RefreshRevision")
+	refreshCmd.Execute()
+End Sub
+
+Public Enum VaultStatus
+	kRefresh
+	kIgnore
+	kOutOfDate
+End Enum
