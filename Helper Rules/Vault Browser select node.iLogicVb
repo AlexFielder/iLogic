@@ -11,16 +11,6 @@ Imports Autodesk.DataManagement.Client.Framework.Vault.Currency.Connections
 Imports Autodesk.DataManagement.Client.Framework.Vault.Currency.Properties
 
 Sub Main()
-	'works but doesn't select the topnode because that is the Inventor project?
-'	Dim odoc As Document = ThisDoc.Document
-'	Dim opane As BrowserPane = odoc.BrowserPanes("Vault")
-'	opane.Activate
-'	messagebox.Show("count of nodes: " & opane.TopNode.BrowserNodes.Count)
-'	For i = 1 To opane.TopNode.BrowserNodes.Count
-'		Dim node As BrowserNode = opane.TopNode.BrowserNodes.Item(i)
-'		Logger.Debug(node.FullPath)
-'	Next
-'	Call CheckVaultStatusFromInventorBrowser()
 	If TypeOf ThisDoc.Document Is AssemblyDocument Then 
 		Dim assydoc As AssemblyDocument = ThisDoc.Document
 		Call CheckVaultStatusFromAssembly(assydoc)
@@ -51,7 +41,6 @@ End Sub
 
 Function CheckVaultStatus(ByVal filename As String) As VaultStatus
 	filename = IO.Path.GetFileName(filename)
-'	Dim otopNode As BrowserNode = opane.TopNode
 	Dim Connection As VDF.Vault.Currency.Connections.Connection = Nothing
 	Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("localhost", "Vault", "", "", AuthenticationFlags.WindowsAuthentication, Nothing)
     Connection = results.Connection
@@ -61,7 +50,7 @@ Function CheckVaultStatus(ByVal filename As String) As VaultStatus
 	
 	Dim FileIter As VDF.Vault.Currency.Entities.FileIteration = Nothing
 	Dim oFile As ACW.File = Nothing
-'break	
+
 	oFile = FindVaultFileByFileName(Connection, filename)
 	If oFile IsNot Nothing Then
 		FileIter = New VDF.Vault.Currency.Entities.FileIteration(Connection, oFile)
@@ -70,7 +59,6 @@ Function CheckVaultStatus(ByVal filename As String) As VaultStatus
 	Dim status As EntityStatusImageInfo = Connection.PropertyManager.GetPropertyValue(FileIter, statusProp, Nothing)
 	Logger.Debug("Filename: " & filename & "Vault Status= " & status.Status.ToString())
 	If status.Status.ToString() = "NotCheckedOut-Unknown-NotLatestConsumable-MatchesOlderVaultVersion-MatchesLatestRevision-DoesNotHaveLocalEdits-None" Then
-Break
 		Return VaultStatus.kRefresh
 	Else
 		Return VaultStatus.kIgnore	
@@ -83,10 +71,9 @@ Private Function FindVaultFileByFileName(Connection As VDF.Vault.Currency.Connec
 
     Dim filePropDefs As ACW.PropDef() = Connection.WebServiceManager.PropertyService.GetPropertyDefinitionsByEntityClassId("FILE")
     Dim fileNamePropDef As ACW.PropDef = filePropDefs.[Single](Function(n) n.SysName = "ClientFileName")
-'break
-    ' is equal
     Dim fileNameMatch As New ACW.SrchCond()
-    fileNameMatch.PropDefId = fileNamePropDef.Id
+
+	fileNameMatch.PropDefId = fileNamePropDef.Id
     fileNameMatch.PropTyp = ACW.PropertySearchType.SingleProperty
     fileNameMatch.SrchOper = 3
     fileNameMatch.SrchRule = ACW.SearchRuleType.Must
@@ -107,8 +94,6 @@ Private Function FindVaultFileByFileName(Connection As VDF.Vault.Currency.Connec
 End Function
 
 Sub RefreshVaultStatusFromInventorBrowser(ByVal filename As String)
-Break
-	'this selects the first available node in the Model Browser:
 	For Each Pane As BrowserPane In ThisApplication.ActiveDocument.BrowserPanes
 		Logger.Debug("Internal Name: " & Pane.InternalName & vbCrLf & "Display Name: " & Pane.Name)
         If Pane.InternalName = "AmBrowserArrangement" Then
@@ -131,28 +116,11 @@ Break
             Next
         End If
     Next
-xit:
-End Sub
-
-Sub CheckVaultStatusRecursively(ByVal oDoc As Document)
-	Dim assydoc As AssemblyDocument = oDoc
-	For Each doc As Document In assydoc.AllReferencedDocuments
-		If TypeOf doc Is AssemblyDocument Then
-			If CheckVaultStatus(doc.FullFileName)= VaultStatus.kRefresh Then
-				RefreshVaultStatus(doc)
-			End If
-			CheckVaultStatusRecursively(doc)
-		Else If TypeOf doc Is PartDocument Then
-			If CheckVaultStatus(doc.FullFileName)= VaultStatus.kRefresh Then
-				RefreshVaultStatus(doc)
-			End If
-		End If
-	Next
 End Sub
 
 Sub RefreshVaultStatus()
 	If ThisApplication.ActiveDocument.selectset.count > 0 Then
-		Dim refreshCmd As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("AppRefreshRevisionCmd")
+		Dim refreshCmd As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("RefreshRevision")
 		refreshCmd.Execute()
 	End If
 End Sub
