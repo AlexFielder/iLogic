@@ -5,7 +5,8 @@
 	opane.Activate
 '	Dim otopNode As BrowserNode = opane.TopNode
     For Each Pane As BrowserPane In ThisApplication.ActiveDocument.BrowserPanes
-		Logger.Debug("Internal Name: " & Pane.InternalName & vbCrLf  & "Display Name: " & Pane.Name)
+		Logger.Debug("Internal Name: " & Pane.InternalName & vbCrLf & "Display Name: " & Pane.Name)
+		'this selects the first available node in the Model Browser:
         If Pane.InternalName = "AmBrowserArrangement" Then
             For i = 1 To Pane.TopNode.BrowserNodes.Count
 				Dim node As BrowserNode = Pane.TopNode.BrowserNodes.Item(i)
