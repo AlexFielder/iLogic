@@ -14,6 +14,13 @@ Sub Main()
 	Dim odoc As Document = ThisDoc.Document
 	Dim opane As BrowserPane = odoc.BrowserPanes("Vault")
 	opane.Activate
+	For i = 1 To opane.TopNode.BrowserNodes.Count
+		Dim node As BrowserNode = opane.TopNode.BrowserNodes.Item(i)
+		Logger.Debug(node.FullPath)
+	Next
+End Sub
+
+Function CheckVaultStatus(ByVal filename As String) As Boolean
 '	Dim otopNode As BrowserNode = opane.TopNode
 	Dim Connection As VDF.Vault.Currency.Connections.Connection = Nothing
 	Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("localhost", "Vault", "", "", AuthenticationFlags.WindowsAuthentication, Nothing)
@@ -31,9 +38,10 @@ Sub Main()
 	End If
 	
 	Dim status As EntityStatusImageInfo = Connection.PropertyManager.GetPropertyValue(FileIter, statusProp, Nothing)
-	
-	
-End Sub
+	If status.Status.ToString() = "Something" Then
+		
+	End If
+End Function
 
 Private Function FindVaultFileByFileName(Connection As VDF.Vault.Currency.Connections.Connection, filename As String) As ACW.File
 
