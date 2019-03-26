@@ -48,6 +48,7 @@ Sub CheckVaultStatusFromAssembly(ByVal assyDoc As AssemblyDocument)
 End Sub
 
 Function CheckVaultStatus(ByVal filename As String) As VaultStatus
+	filename = IO.Path.GetFileName(filename)
 '	Dim otopNode As BrowserNode = opane.TopNode
 	Dim Connection As VDF.Vault.Currency.Connections.Connection = Nothing
 	Dim results As VDF.Vault.Results.LogInResult = VDF.Vault.Library.ConnectionManager.LogIn("localhost", "Vault", "", "", AuthenticationFlags.WindowsAuthentication, Nothing)
@@ -58,15 +59,15 @@ Function CheckVaultStatus(ByVal filename As String) As VaultStatus
 	
 	Dim FileIter As VDF.Vault.Currency.Entities.FileIteration = Nothing
 	Dim oFile As ACW.File = Nothing
-	
+'break	
 	oFile = FindVaultFileByFileName(Connection, filename)
 	If oFile IsNot Nothing Then
 		FileIter = New VDF.Vault.Currency.Entities.FileIteration(Connection, oFile)
 	End If
 	
 	Dim status As EntityStatusImageInfo = Connection.PropertyManager.GetPropertyValue(FileIter, statusProp, Nothing)
-	Logger.Debug("Vault Status= " & status.Status.ToString())
-	If status.Status.ToString() = "Something" Then
+	Logger.Debug("Filename: " & filename & "Vault Status= " & status.Status.ToString())
+	If status.Status.ToString() = "NotCheckedOut-Unknown-NotLatestConsumable-MatchesOlderVaultVersion-MatchesLatestRevision-DoesNotHaveLocalEdits-None" Then
 		Return VaultStatus.kRefresh
 	Else
 		Return VaultStatus.kIgnore	
@@ -79,7 +80,7 @@ Private Function FindVaultFileByFileName(Connection As VDF.Vault.Currency.Connec
 
     Dim filePropDefs As ACW.PropDef() = Connection.WebServiceManager.PropertyService.GetPropertyDefinitionsByEntityClassId("FILE")
     Dim fileNamePropDef As ACW.PropDef = filePropDefs.[Single](Function(n) n.SysName = "ClientFileName")
-
+'break
     ' is equal
     Dim fileNameMatch As New ACW.SrchCond()
     fileNameMatch.PropDefId = fileNamePropDef.Id
@@ -163,7 +164,9 @@ End Sub
 
 
 Sub RefreshVaultStatus(ByVal doc As Document)
-	Dim refreshCmd As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("RefreshRevision")
+	ThisDoc.Document.SelectSet.Clear
+	ThisDoc.Document.SelectSet.Select(doc)
+	Dim refreshCmd As ControlDefinition = ThisApplication.CommandManager.ControlDefinitions("AppRefreshRevisionCmd")
 	refreshCmd.Execute()
 End Sub
 
