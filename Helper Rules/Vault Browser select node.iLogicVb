@@ -68,6 +68,7 @@ Function CheckVaultStatus(ByVal filename As String) As VaultStatus
 	Dim status As EntityStatusImageInfo = Connection.PropertyManager.GetPropertyValue(FileIter, statusProp, Nothing)
 	Logger.Debug("Filename: " & filename & "Vault Status= " & status.Status.ToString())
 	If status.Status.ToString() = "NotCheckedOut-Unknown-NotLatestConsumable-MatchesOlderVaultVersion-MatchesLatestRevision-DoesNotHaveLocalEdits-None" Then
+Break
 		Return VaultStatus.kRefresh
 	Else
 		Return VaultStatus.kIgnore	
