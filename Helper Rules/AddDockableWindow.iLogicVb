@@ -84,6 +84,7 @@ End Sub
 	
 	'display form
     dc.Show()
+	break
     Return dc.Handle.ToInt64()
 End Function
 
