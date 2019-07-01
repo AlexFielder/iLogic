@@ -1,0 +1,53 @@
+﻿Option Explicit On
+
+Sub Main()
+	Dim InvApp As Inventor.Application = ThisApplication
+	If TypeOf(InvApp.ActiveDocument) Is PartDocument Then
+		Dim partDoc As PartDocument = InvApp.ActiveDocument
+		partDef = partDoc.ComponentDefinition
+		transGeom = InvApp.TransientGeometry
+		Dim checkTolerance As Double = 0.0000001
+		Dim objectToCheck As Object = InvApp.CommandManager.Pick(SelectionFilterEnum.kSketchCurveCircularFilter, "Pick a circle!")
+		If Not objectToCheck Is Nothing Then
+			Dim circleToCheck As SketchCircle = objectToCheck
+			Dim circleParentSketch As PlanarSketch = circleToCheck.Parent
+			vectorForCheck = circleParentSketch.PlanarEntityGeometry.Normal
+			Dim circleCenterPoint As SketchPoint = circleToCheck.CenterSketchPoint
+			Dim foundObjects As ObjectsEnumerator = CheckCircle(circleToCheck, checkTolerance)
+			If (foundObjects.Count > 0) Then
+				MessageBox.Show("We found an intersection, no need to change anything!")
+			Else
+				MessageBox.Show("No intersection found using Circle centre, testing using circle radius instead")
+				foundObjects = CheckCircle(circleToCheck, circleToCheck.Geometry.Radius)
+				If (foundObjects.Count = 0) Then
+					MessageBox.Show("No intersection found, flip the sketch axis here!")
+				Else
+					MessageBox.Show("We found an intersection using the circle radius, no need to change anything!")
+				End If
+			End If
+		Else
+			MessageBox.Show("Pick a circle please!")
+			
+		End If
+	Else
+		MessageBox.Show("Needs a part file for this example! Exiting...")
+		Exit Sub
+	End If
+End Sub
+
+Public partDef As PartComponentDefinition = Nothing
+Public transGeom As TransientGeometry = Nothing
+Public vectorForCheck As UnitVector = Nothing
+
+Function CheckCircle(circleToCheck As SketchCircle, checkTolerance As Double)
+	Dim circleParentSketch As PlanarSketch = circleToCheck.Parent
+	vectorForCheck = circleParentSketch.PlanarEntityGeometry.Normal
+	Dim circleCenterPoint As SketchPoint = circleToCheck.CenterSketchPoint
+	Dim foundObjects As ObjectsEnumerator = Nothing
+	Dim locationPoints As ObjectsEnumerator = Nothing
+	Dim center As Double() = Nothing 
+
+	Dim pointToCheck As Point = circleCenterPoint.Geometry3d
+	partDef.FindUsingRay(pointToCheck, vectorForCheck, checkTolerance, foundObjects, locationPoints)
+	Return foundObjects
+End Function
