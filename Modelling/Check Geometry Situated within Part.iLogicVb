@@ -27,7 +27,6 @@ Sub Main()
 			End If
 		Else
 			MessageBox.Show("Pick a circle please!")
-			
 		End If
 	Else
 		MessageBox.Show("Needs a part file for this example! Exiting...")
@@ -39,14 +38,18 @@ Public partDef As PartComponentDefinition = Nothing
 Public transGeom As TransientGeometry = Nothing
 Public vectorForCheck As UnitVector = Nothing
 
-Function CheckCircle(circleToCheck As SketchCircle, checkTolerance As Double)
+''' <summary>
+''' Checks the provided circle's centre point intersects with geometry along the normal axis of its parent sketch.
+''' Returns the resultant intersection points; returns nothing if there aren't any.
+''' </summary>
+''' <param name="circleToCheck">The circle being checked</param>
+''' <param name="checkTolerance">the tolerance we're using</param>
+Function CheckCircle(ByVal circleToCheck As SketchCircle, ByVal checkTolerance As Double)
 	Dim circleParentSketch As PlanarSketch = circleToCheck.Parent
 	vectorForCheck = circleParentSketch.PlanarEntityGeometry.Normal
 	Dim circleCenterPoint As SketchPoint = circleToCheck.CenterSketchPoint
 	Dim foundObjects As ObjectsEnumerator = Nothing
 	Dim locationPoints As ObjectsEnumerator = Nothing
-	Dim center As Double() = Nothing 
-
 	Dim pointToCheck As Point = circleCenterPoint.Geometry3d
 	partDef.FindUsingRay(pointToCheck, vectorForCheck, checkTolerance, foundObjects, locationPoints)
 	Return foundObjects
