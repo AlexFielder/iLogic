@@ -1,14 +1,16 @@
+Option explicit on
+
 Dim oPartDoc As Document = ThisDoc.Document
 Dim oPartCompDef As PartComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
 Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
 
 'get measurements to determine Material Thickness
-My_x = Measure.ExtentsLength
-My_y = Measure.ExtentsWidth
-My_z = Measure.ExtentsHeight
+Dim My_x As Double = Measure.ExtentsLength
+Dim My_y As Double = Measure.ExtentsWidth
+Dim My_z As Double = Measure.ExtentsHeight
 
 'Make shortest value the Thickness, rounded to 4 places
-oThickness = Round(MinOfMany(My_x, My_y, My_z), 4)
+Dim oThickness As Double = Round(MinOfMany(My_x, My_y, My_z), 4)
 
 'Select Face and Edges to dimension sketch circles from
 Dim oFace As Face = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartFaceFilter, "Select Surface to Place Holes")
@@ -17,9 +19,9 @@ Dim oLeftEdge As Edge = ThisApplication.CommandManager.Pick(SelectionFilterEnum.
 Dim oRightEdge As Edge = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartEdgeFilter, "Select Right Edge of Pattern")
 Dim oWorkPoint As WorkPoint = oPartCompDef.WorkPoints.AddByTwoLines(oFrontEdge, oLeftEdge)
 
-oMaterial = MaterialType
-oHoleType = HoleType
-oHoleSize = HoleSizes * 2.54
+Dim oMaterial As String = MaterialType
+Dim oHoleType As String = HoleType
+Dim oHoleSize As Double = HoleSizes * 2.54
 
 
 'Add Sketch and set sketch origin point to the startVertex of the FrontEdge
@@ -55,7 +57,7 @@ End If
 'and can be used.
 	For Each oSketchNameCheck As Sketch In oPartCompDef.Sketches
 		If Left(oSketchNameCheck.Name,oNameCharCount) = oNameCompare Then
-			oSketchNumber = Val(Mid(oSketchNameCheck.Name, oNameNumCount, 2))			
+			Dim oSketchNumber As Integer = Val(Mid(oSketchNameCheck.Name, oNameNumCount, 2))			
 	        While oSketchNameSuffix <= oSketchNumber
 				oSketchNameSuffix = oSketchNameSuffix + 1
 			End While
@@ -66,18 +68,18 @@ oSketch.Name = oNameCompare & oSketchNameSuffix
 
 'QTY of holes and distance from front, left and right edges
 Dim oQty = 4
-oFromLeftEdge = FromLeftEdge * 2.54
-oFromRightEdge = FromRightEdge * 2.54
-oFromFrontEdge = FromFrontEdge * 2.54
-Dim oFrontEdgeDistance = ThisApplication.MeasureTools.GetMinimumDistance(oFrontEdge.StartVertex, oFrontEdge.StopVertex)
-Dim oPatternSpacing = (oFrontEdgeDistance -(oFromLeftEdge + oFromRightEdge)) / (oQty-1)
+Dim oFromLeftEdge As Double = FromLeftEdge * 2.54
+Dim oFromRightEdge As Double = FromRightEdge * 2.54
+Dim oFromFrontEdge As Double = FromFrontEdge * 2.54
+Dim oFrontEdgeDistance As Double = ThisApplication.MeasureTools.GetMinimumDistance(oFrontEdge.StartVertex, oFrontEdge.StopVertex)
+Dim oPatternSpacing As Double = (oFrontEdgeDistance -(oFromLeftEdge + oFromRightEdge)) / (oQty-1)
 
 'create a sketch point to check if the coordinate system needs
 'To be flipped so the circles fall inside the parent part.
 
-oWPlanes = ThisDoc.Document.ComponentDefinition.WorkPlanes
-oPlane = oWPlanes.Item(2).Name
-MessageBox.Show(oPlane,"iLogic")
+Dim oWPlanes As WorkPlanes = ThisDoc.Document.ComponentDefinition.WorkPlanes
+Dim oPlane As WorkPlane = oWPlanes.Item(2)
+MessageBox.Show(oPlane.Name,"iLogic")
 
 Dim oSketchPoint As SketchPoint = oSketch.SketchPoints.Add(oTG.CreatePoint2d(oFromLeftEdge, oFromFrontEdge))
 Dim circleParentSketch As PlanarSketch = oSketchPoint.Parent
@@ -87,7 +89,7 @@ Dim foundObjects As ObjectsEnumerator = Nothing
 Dim locationPoints As ObjectsEnumerator = Nothing
 oPartCompDef.FindUsingRay(pointToCheck, vectorForCheck, .00001, foundObjects, locationPoints)
 
-If oPlane.IsPerpendicularTo(oSketch, 15) Then
+If oPlane.Plane.IsPerpendicularTo(oSketch, 15) Then
 	If (foundObjects.Count = 0) Then
 		MessageBox.Show("No Intersection Found", "iLogic")
 		oSketch.NaturalAxisDirection = False
