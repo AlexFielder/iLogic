@@ -1,0 +1,121 @@
+Dim oPartDoc As Document = ThisDoc.Document
+Dim oPartCompDef As PartComponentDefinition = ThisApplication.ActiveDocument.ComponentDefinition
+Dim oTG As TransientGeometry = ThisApplication.TransientGeometry
+
+'get measurements to determine Material Thickness
+My_x = Measure.ExtentsLength
+My_y = Measure.ExtentsWidth
+My_z = Measure.ExtentsHeight
+
+'Make shortest value the Thickness, rounded to 4 places
+oThickness = Round(MinOfMany(My_x, My_y, My_z), 4)
+
+'Select Face and Edges to dimension sketch circles from
+Dim oFace As Face = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartFaceFilter, "Select Surface to Place Holes")
+Dim oFrontEdge As Edge = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartEdgeFilter, "Select Front Edge of Pattern")
+Dim oLeftEdge As Edge = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartEdgeFilter, "Select Left Edge of Pattern")
+Dim oRightEdge As Edge = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartEdgeFilter, "Select Right Edge of Pattern")
+Dim oWorkPoint As WorkPoint = oPartCompDef.WorkPoints.AddByTwoLines(oFrontEdge, oLeftEdge)
+
+oMaterial = MaterialType
+oHoleType = HoleType
+oHoleSize = HoleSizes * 2.54
+
+
+'Add Sketch and set sketch origin point to the startVertex of the FrontEdge
+Dim oSketch As PlanarSketch
+oSketch = oPartCompDef.Sketches.Add(oFace, False)
+oSketch.AxisEntity = oFrontEdge
+oSketch.OriginPoint = oFrontEdge.StartVertex
+
+
+'Create the name for the sketch based on user assigned parameters
+Dim oSketchNameSuffix As Integer
+Dim oNameCompare As String
+Dim oNameNumCount As Integer
+Dim oNameCharCount As Integer
+
+If oHoleType = "Thru" Then
+	oSketchNameSuffix = 0
+	oNameCompare = "SK_Hole_"
+	oNameCharCount = 8
+	oNameNumCount = 9
+
+Else If oHoleType = "Pilot" Then
+	oSketchNameSuffix = 0
+	oNameCompare = "SK_Pilot_"
+	oNameCharCount = 9
+	oNameNumCount = 10
+
+End If
+
+'Check all sketches in the model tree and compare the names to the
+'name of the newly created sketch and if name exists increment the
+'suffix by 1. Continue until the newly created sketch name is unique
+'and can be used.
+	For Each oSketchNameCheck As Sketch In oPartCompDef.Sketches
+		If Left(oSketchNameCheck.Name,oNameCharCount) = oNameCompare Then
+			oSketchNumber = Val(Mid(oSketchNameCheck.Name, oNameNumCount, 2))			
+	        While oSketchNameSuffix <= oSketchNumber
+				oSketchNameSuffix = oSketchNameSuffix + 1
+			End While
+		End If	
+	Next 
+	
+oSketch.Name = oNameCompare & oSketchNameSuffix
+
+'QTY of holes and distance from front, left and right edges
+Dim oQty = 4
+oFromLeftEdge = FromLeftEdge * 2.54
+oFromRightEdge = FromRightEdge * 2.54
+oFromFrontEdge = FromFrontEdge * 2.54
+Dim oFrontEdgeDistance = ThisApplication.MeasureTools.GetMinimumDistance(oFrontEdge.StartVertex, oFrontEdge.StopVertex)
+Dim oPatternSpacing = (oFrontEdgeDistance -(oFromLeftEdge + oFromRightEdge)) / (oQty-1)
+
+'create a sketch point to check if the coordinate system needs
+'To be flipped so the circles fall inside the parent part.
+
+oWPlanes = ThisDoc.Document.ComponentDefinition.WorkPlanes
+oPlane = oWPlanes.Item(2).Name
+MessageBox.Show(oPlane,"iLogic")
+
+Dim oSketchPoint As SketchPoint = oSketch.SketchPoints.Add(oTG.CreatePoint2d(oFromLeftEdge, oFromFrontEdge))
+Dim circleParentSketch As PlanarSketch = oSketchPoint.Parent
+Dim vectorForCheck As UnitVector = circleParentSketch.PlanarEntityGeometry.Normal
+Dim pointToCheck As Point = oSketchPoint.Geometry3d
+Dim foundObjects As ObjectsEnumerator = Nothing
+Dim locationPoints As ObjectsEnumerator = Nothing
+oPartCompDef.FindUsingRay(pointToCheck, vectorForCheck, .00001, foundObjects, locationPoints)
+
+If oPlane.IsPerpendicularTo(oSketch, 15) Then
+	If (foundObjects.Count = 0) Then
+		MessageBox.Show("No Intersection Found", "iLogic")
+		oSketch.NaturalAxisDirection = False
+	Else If (foundObjects.Count > 0) Then
+		MessageBox.Show("Intersection Found", "iLogic")
+		oSketch.NaturalAxisDirection = True
+	End If
+Else
+	If (foundObjects.Count = 0) Then
+		MessageBox.Show("No Intersection Found", "iLogic")
+		oSketch.NaturalAxisDirection = True
+	Else If (foundObjects.Count > 0) Then
+		MessageBox.Show("Intersection Found", "iLogic")
+		oSketch.NaturalAxisDirection = False
+	End If
+End If
+
+oSketchPoint.Delete
+
+'create the sketch circles 
+
+For i = 0 To oQty - 1
+	Dim oCircle As SketchCircle = oSketch.SketchCircles.AddByCenterRadius(oTG.CreatePoint2d(oFromLeftEdge + (i * oPatternSpacing), oFromFrontEdge), (oHoleSize/2))
+Next
+
+'extrude cut the holes from the parent part.
+Dim oProfile As Profile = oSketch.Profiles.AddForSolid
+Dim oExtrude As ExtrudeFeature = oPartCompDef.Features.ExtrudeFeatures.AddByDistanceExtent(oProfile, oThickness*2.54, kNegativeExtentDirection, kCutOperation)
+
+
+
