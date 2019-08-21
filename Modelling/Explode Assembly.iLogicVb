@@ -1,4 +1,5 @@
 ﻿Sub Main()
+	Dim Trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument,"Explode Assembly")
 	Dim points As New List(Of KeyValuePair(Of String, Point))
 	Dim thisAssy As AssemblyDocument = ThisApplication.ActiveDocument
 	Dim originMatrix As Matrix = ThisApplication.TransientGeometry.CreateMatrix
@@ -32,13 +33,17 @@
 		Dim tmpPoint As Point = getBoxCentreFromOccurrence(occ)
 		points.Add(New KeyValuePair(Of String, Point)(occ.Name, tmpPoint))
 	Next
-
+Try
 	For Each pnt As KeyValuePair(Of String, Point) In points
 		Dim point As Point = pnt.Value
 		Dim wp As WorkPoint = thisAssy.ComponentDefinition.WorkPoints.AddFixed(ThisApplication.TransientGeometry.CreatePoint(point.X, point.Y, point.Z))
 		wp.Name = "Work Point: " & pnt.Key
 	Next
-
+	Trans.End
+Catch Ex As Exception
+	Trans.Abort
+	MessageBox.Show(Ex.Message)
+End Try
 End Sub
 
 Function getBoxCentreFromComponentDefinition (thiscompDef As ComponentDefinition) As Point
