@@ -1,0 +1,38 @@
+﻿Option Explicit On
+AddReference "System.Core"
+AddReference "System.Linq"
+Imports System.Collections.Generic
+Imports System
+Imports System.Linq
+Imports System.Text
+Imports BomTool
+Imports System.Text.RegularExpressions
+
+Sub Main()
+	Dim grpBy As GroupBy = GroupBy.kAlpha
+	Dim srtBy As SortBy = SortBy.kDefault
+	GroupAndSortBy(grpBy, srtBy)
+End Sub
+
+Public Sub GroupAndSortBy(ByVal groupEnum As GroupBy, ByVal sortEnum As SortBy)
+	If Not TypeOf (ThisApplication.ActiveDocument) Is AssemblyDocument Then
+		MessageBox.Show("Not an assembly document")
+		Exit Sub
+	Else
+		If ThisApplication.ActiveDocument.Fullname = String.Empty Then
+			MessageBox.Show("Document not saved, suggest you do that and re-run", "Because reasons")
+			Exit sub
+		End If
+	End If
+End Sub
+
+Public Enum GroupBy
+	kAlpha
+	kNumeric
+End Enum
+
+Public Enum SortBy
+	kAlpha
+	kDefault
+	kNumeric
+End Enum
