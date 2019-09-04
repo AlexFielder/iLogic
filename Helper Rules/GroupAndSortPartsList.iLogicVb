@@ -107,7 +107,7 @@ Public Function CollateBOMRows(ByVal oBOMRows As BOMRowsEnumerator) As List(Of B
         ' Get the current row.
         Dim oRow As BOMRow
         oRow = oBOMRows.Item(i)
-        Break
+'        Break
 		'Set a reference to the primary ComponentDefinition of the row
         Dim oCompDef As ComponentDefinition
         oCompDef = oRow.ComponentDefinitions.Item(1)
