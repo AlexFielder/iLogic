@@ -1,4 +1,4 @@
-﻿Option Explicit
+﻿Option Explicit On
 Option Compare Text
 
 Imports System.Collections.Generic
