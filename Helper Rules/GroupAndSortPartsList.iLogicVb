@@ -14,7 +14,10 @@ Sub Main()
 	GroupAndSortBy(grpBy, srtBy)
 End Sub
 
+Public BomList As List(Of BomRowItem)
+
 Public Sub GroupAndSortBy(ByVal groupEnum As GroupBy, ByVal sortEnum As SortBy)
+	BomList = New List(Of BomRowItem)
 	Dim AssyDoc As AssemblyDocument
 	If Not TypeOf (ThisApplication.ActiveDocument) Is AssemblyDocument Then
 		MessageBox.Show("Not an assembly document")
@@ -27,9 +30,336 @@ Public Sub GroupAndSortBy(ByVal groupEnum As GroupBy, ByVal sortEnum As SortBy)
 		End If
 	End If
 	
-	messagebox.Show("Okay so far son.")
+	
+	Dim oBom As BOM = AssyDoc.ComponentDefinition.BOM
+	oBom.StructuredViewFirstLevelOnly = True
+    ' Make sure that the structured view is enabled.
+	oBom.StructuredViewEnabled = True
+
+    'Set a reference to the "Structured" BOMView
+    Dim oBOMView As BOMView
+    oBOMView = oBOM.BOMViews.Item("Structured")
+	
+	Dim PartsList As List(Of BomRowItem) = CollateBOMRows(oBOMView.BOMRows)
+	'Messagebox.Show("Parts found: " & PartsList.Count)
+	
+	Dim grouped = PartsList.OrderBy(Function(x) x.PartNo).ThenBy(Function(x) x.ItemNo).GroupBy(Function(x) x.StartsWith)
+'	Dim grouped = InventorBomList.OrderBy(Function(x) x.BomRowType).ThenBy(Function(x) x.PartNo).GroupBy(Function(x) x.BomRowType)
+	MessageBox.Show("Okay so far son.")
+	BomList = New List(Of BomRowItem)
+	Dim AlphaPartInt As Integer = 100
+	Dim NumPartInt As Integer = 200
+	
+	For Each Group As Object In grouped
+		For Each item As BomRowItem In Group
+'			MessageBox.Show(item.ItemNo & " Part No: " & item.PartNo)
+			Select Case item.StartsWith
+			Case StartsWith.kDigit
+				item.ItemNo = NumPartInt
+				NumPartInt += 1
+				BomList.Add(item)
+				Exit Select
+			Case StartsWith.kalpha
+				item.ItemNo = AlphaPartInt
+				AlphaPartInt += 1
+				BomList.Add(item)
+				Exit Select
+			End Select
+		Next
+	Next
+	
+	BomList.OrderBy(Function(x) x.ItemNo)
+	
+	UpdateInventorPartsList(oBOMView.BOMRows, BomList)
+	
 End Sub
 
+''' <summary>
+''' Updates the Inventor item number.
+''' </summary>
+''' <param name="oBOMROWs">the BOMROWs collection</param>
+''' <param name="oSortedPartsList"></param>
+Public Sub UpdateInventorPartsList(oBOMROWs As BOMRowsEnumerator, oSortedPartsList As List(Of BomRowItem))
+    'MessageBox.Show("Reached UpdateInventorPartsList Sub");
+    Dim oCompdef As ComponentDefinition
+    For Each oRow As BOMRow In oBOMROWs
+        oCompdef = oRow.ComponentDefinitions(1)
+        Dim item As Long = (From a In oSortedPartsList Where a.FileName = oCompdef.Document.FullFileName Select a.ItemNo).FirstOrDefault()
+        If item = 0 OrElse item = 9999 Then
+            oRow.ItemNumber = ""
+        Else
+            oRow.ItemNumber = item.ToString()
+        End If
+    Next
+End Sub
+
+''' <summary>
+''' Copied from Modelling/RunCorrectBomForExcel
+''' </summary>
+''' <param name="oBOMRows"></param>
+''' <returns></returns>
+Public Function CollateBOMRows(ByVal oBOMRows As BOMRowsEnumerator) As List(Of BomRowItem)
+	Dim tmplist As List(Of BomRowItem) = New List(Of BomRowItem)
+    ' Iterate through the contents of the BOM Rows.
+    Dim i As Long
+    For i = 1 To oBOMRows.Count
+
+        ' Get the current row.
+        Dim oRow As BOMRow
+        oRow = oBOMRows.Item(i)
+        
+		'Set a reference to the primary ComponentDefinition of the row
+        Dim oCompDef As ComponentDefinition
+        oCompDef = oRow.ComponentDefinitions.Item(1)
+        tmplist.Add(getRowItem(oCompDef, oRow))
+    Next
+    Return tmplist
+End Function
+
+''' <summary>
+''' Copied from Modelling/RunCorrectBomForExcel
+''' creates a BomRowItem for every ComponentDefinition passed to it.
+''' </summary>
+''' <param name="oCompdef">the ComponentDefinition we need to query against.</param>
+''' <returns>Returns a BomRowItem</returns>
+''' <remarks></remarks>
+Public Function getRowItem(oCompdef As ComponentDefinition, oRow As BOMRow) As BomRowItem
+
+    'get the PropertySets we need
+    Dim invProjProperties As PropertySet = oCompdef.Document.PropertySets.Item("{32853F0F-3444-11D1-9E93-0060B03C1CA6}")
+    Dim invSummaryiProperties As PropertySet = oCompdef.Document.PropertySets.Item("{F29F85E0-4FF9-1068-AB91-08002B27B3D9}")
+    Dim invCustomPropertySet As PropertySet = oCompdef.Document.PropertySets.Item("Inventor User Defined Properties")
+
+    Dim oPartNumProperty As String = invProjProperties.ItemByPropId(PropertiesForDesignTrackingPropertiesEnum.kPartNumberDesignTrackingProperties).Value
+    Dim oRevProperty As String = invSummaryiProperties.ItemByPropId(PropertiesForSummaryInformationEnum.kRevisionSummaryInformation).Value
+    If oRevProperty = "" Then
+        oRevProperty = "-"
+    End If
+    Dim oDescripProperty As String = invProjProperties.ItemByPropId(PropertiesForDesignTrackingPropertiesEnum.kDescriptionDesignTrackingProperties).Value
+    Dim oStatusProperty As String = invProjProperties.ItemByPropId(PropertiesForDesignTrackingPropertiesEnum.kDesignStatusDesignTrackingProperties).Value
+
+    Dim oItemNo As String = oRow.ItemNumber
+    'Dim oClassification As String = Classification
+    Dim oMaterial As String
+    If TypeOf oCompdef.Document Is AssemblyDocument Then
+        oMaterial = "-"
+    Else
+        oMaterial = oCompdef.Material.Name
+    End If
+    Dim oQty As Long = oRow.ItemQuantity
+    Dim oVendorProperty As String = invProjProperties.ItemByPropId(PropertiesForDesignTrackingPropertiesEnum.kVendorDesignTrackingProperties).Value
+    If oVendorProperty = "" Or oVendorProperty = "Supplier/Manufacturer" Then
+        oVendorProperty = "-"
+    End If
+    Dim oCommentsProperty As String = invSummaryiProperties.ItemByPropId(PropertiesForSummaryInformationEnum.kCommentsSummaryInformation).Value
+    If oCommentsProperty = "" Then
+        oCommentsProperty = "-"
+    End If
+
+    'Dim rowItem As BomTool.BomRowItem = New BomTool.BomRowItem()
+    Dim rowItem As BomRowItem = New BomRowItem()
+
+    rowItem.FileName = oCompdef.Document.FullFileName
+    rowItem.PartNo = oPartNumProperty
+    rowItem.Rev = oRevProperty
+    rowItem.Descr = oDescripProperty
+    rowItem.ItemNo = oItemNo
+	rowItem.StartsWith = GetStartsWith(rowItem.PartNo)
+    'rowItem.Classification = oClassification
+    rowItem.Material = oMaterial
+    rowItem.Qty = oQty
+    rowItem.Vendor = oVendorProperty
+    rowItem.Comments = oCommentsProperty
+    rowItem.BomRowType = GetBomRowTypeByFileName(oCompdef.Document.FullFileName)
+    rowItem.status = oStatusProperty
+    Return rowItem
+End Function
+
+Public Function GetStartsWith(ByVal PartNo As String) As StartsWith
+	Dim firstChar As String = PartNo.Take(1).ToArray()
+	If Char.IsLetter(firstChar) Then
+		Return StartsWith.kAlpha
+	Else If Char.IsNumber(firstChar) Then
+		Return StartsWith.kDigit
+	End If
+End Function
+
+''' <summary>
+''' Copied from Modelling/RunCorrectBomForExcel
+''' Returns the BomRowType int
+''' </summary>
+''' <param name="DocName">The name to check against.</param>
+''' <returns></returns>
+''' <remarks></remarks>
+Public Function GetBomRowTypeByFileName(DocName As String) As Long
+    If DocName.Contains("SP-") Then
+        'MessageBox.Show(DocName & " Returns value 1")
+        Return 1
+    ElseIf DocName.EndsWith(".iam") And Not DocName = ThisApplication.ActiveDocument.FullFileName Then
+        'MessageBox.Show(DocName & " Returns value 2")
+        Return 2
+    ElseIf DocName.Contains("DT-") Then
+        'MessageBox.Show(DocName & " Returns value 3")
+        Return 3
+    ElseIf DocName.Contains("COTS-") Or DocName.Contains("Content") Or DocName.Contains("Imported Components") Then
+        'MessageBox.Show(DocName & " Returns value 4")
+        Return 4
+    ElseIf DocName = ThisApplication.ActiveDocument.FullFileName Then
+        'MessageBox.Show(DocName & " Returns value 0")
+        Return 0
+    Else 'These are parts which don't match any of the above criteria
+        'MessageBox.Show(DocName & " Returns value 4")
+        Return 4
+    End If
+End Function
+
+#Region "Classes"
+Public Class BomRowItem
+    Public Property FileName() As String
+        Get
+            Return m_FileName
+        End Get
+        Set(value As String)
+            m_FileName = value
+        End Set
+    End Property
+    Private m_FileName As String
+    Public Property PartNo() As String
+        Get
+            Return m_PartNo
+        End Get
+        Set(value As String)
+            m_PartNo = value
+        End Set
+    End Property
+    Private m_PartNo As String
+    Public Property Descr() As String
+        Get
+            Return m_Descr
+        End Get
+        Set(value As String)
+            m_Descr = value
+        End Set
+    End Property
+    Private m_Descr As String
+    Public Property Rev() As String
+        Get
+            Return m_Rev
+        End Get
+        Set(value As String)
+            m_Rev = value
+        End Set
+    End Property
+    Private m_Rev As String
+    Public Property ItemNo() As Long
+        Get
+            Return m_ItemNo
+        End Get
+        Set(value As Long)
+            m_ItemNo = value
+        End Set
+    End Property
+    Private m_ItemNo As Long
+	Public Property StartsWith As StartsWith
+		Get
+			Return m_StartsWith
+		End Get
+		Set (value As StartsWith)
+			m_StartsWith = value
+		End Set
+	End Property
+	Private m_StartsWith As StartsWith
+'    Public Property Classification() As String
+'        Get
+'            Return m_Classification
+'        End Get
+'        Set(value As String)
+'            m_Classification = value
+'        End Set
+'    End Property
+'    Private m_Classification As String
+    Public Property Material() As String
+        Get
+            Return m_Material
+        End Get
+        Set(value As String)
+            m_Material = value
+        End Set
+    End Property
+    Private m_Material As String
+    Public Property Qty() As Long
+        Get
+            Return m_Qty
+        End Get
+        Set(value As Long)
+            m_Qty = value
+        End Set
+    End Property
+    Private m_Qty As Long
+    Public Property Vendor() As String
+        Get
+            Return m_Vendor
+        End Get
+        Set(value As String)
+            m_Vendor = value
+        End Set
+    End Property
+    Private m_Vendor As String
+    Public Property Comments() As String
+        Get
+            Return m_Comments
+        End Get
+        Set(value As String)
+            m_Comments = value
+        End Set
+    End Property
+    Private m_Comments As String
+    Public Property BomRowType() As Long
+        Get
+            Return m_BomRowType
+        End Get
+        Set(value As Long)
+            m_BomRowType = value
+        End Set
+    End Property
+    Private m_BomRowType As Long
+    Public Property status() As String
+        Get
+            Return m_status
+        End Get
+        Set(value As String)
+            m_status = value
+        End Set
+    End Property
+    Private m_status As String
+End Class
+Public Class PartsListRowItem
+    Implements IComparable(Of PartsListRowItem)
+    Public Property ItemNo() As String
+        Get
+            Return m_ItemNo
+        End Get
+        Set(value As String)
+            m_ItemNo = value
+        End Set
+    End Property
+    Private m_ItemNo As String
+    Public Property IsBallooned() As [Boolean]
+        Get
+            Return m_IsBallooned
+        End Get
+        Set(value As [Boolean])
+            m_IsBallooned = value
+        End Set
+    End Property
+    Private m_IsBallooned As [Boolean]
+    Public Function CompareTo(other As PartsListRowItem) As Integer Implements IComparable(Of PartsListRowItem).CompareTo
+        Return Me.CompareTo(other)
+    End Function
+End Class
+
+#End Region
+#Region "Enums"
 Public Enum GroupBy
 	kAlpha
 	kNumeric
@@ -40,3 +370,10 @@ Public Enum SortBy
 	kDefault
 	kNumeric
 End Enum
+
+Public Enum StartsWith
+	kDigit
+	kAlpha
+End Enum
+
+#End Region
