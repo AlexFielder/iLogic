@@ -49,7 +49,7 @@ Public Sub GroupAndSortBy(ByVal groupEnum As GroupBy, ByVal sortEnum As SortBy)
 	BomList = New List(Of BomRowItem)
 	Dim AlphaPartInt As Integer = 100
 	Dim NumPartInt As Integer = 200
-	
+'	break
 	For Each Group As Object In grouped
 		For Each item As BomRowItem In Group
 '			MessageBox.Show(item.ItemNo & " Part No: " & item.PartNo)
@@ -107,7 +107,7 @@ Public Function CollateBOMRows(ByVal oBOMRows As BOMRowsEnumerator) As List(Of B
         ' Get the current row.
         Dim oRow As BOMRow
         oRow = oBOMRows.Item(i)
-        
+        Break
 		'Set a reference to the primary ComponentDefinition of the row
         Dim oCompDef As ComponentDefinition
         oCompDef = oRow.ComponentDefinitions.Item(1)
