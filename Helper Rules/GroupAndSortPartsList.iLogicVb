@@ -15,15 +15,19 @@ Sub Main()
 End Sub
 
 Public Sub GroupAndSortBy(ByVal groupEnum As GroupBy, ByVal sortEnum As SortBy)
+	Dim AssyDoc As AssemblyDocument
 	If Not TypeOf (ThisApplication.ActiveDocument) Is AssemblyDocument Then
 		MessageBox.Show("Not an assembly document")
 		Exit Sub
 	Else
-		If ThisApplication.ActiveDocument.Fullname = String.Empty Then
+		AssyDoc = ThisApplication.ActiveDocument
+		If AssyDoc.FullFilename = String.Empty Then
 			MessageBox.Show("Document not saved, suggest you do that and re-run", "Because reasons")
-			Exit sub
+			Exit Sub
 		End If
 	End If
+	
+	messagebox.Show("Okay so far son.")
 End Sub
 
 Public Enum GroupBy
