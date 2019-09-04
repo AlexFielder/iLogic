@@ -71,7 +71,7 @@ Public Sub GroupAndSortBy(ByVal groupEnum As GroupBy, ByVal sortEnum As SortBy)
 	BomList.OrderBy(Function(x) x.ItemNo)
 	
 	UpdateInventorPartsList(oBOMView.BOMRows, BomList)
-	
+	oBOMView.Sort("Item", 1)
 End Sub
 
 ''' <summary>
