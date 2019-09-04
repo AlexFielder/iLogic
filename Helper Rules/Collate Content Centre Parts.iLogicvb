@@ -20,13 +20,6 @@ Private Shared itemisedPartsList As List(Of Document) = Nothing
 
 'Private Shared ItemNo As Integer = 500
 
-'=======================================================
-'Service provided by Telerik (www.telerik.com)
-'Conversion powered by Refactoring Essentials.
-'Twitter: @telerik
-'Facebook: facebook.com/telerik
-'=======================================================
-
 Private Sub RunRenumberItems()
     Try
 		
@@ -89,14 +82,6 @@ Sub AddText(fs as FileStream, value As String)
     fs.Write(info, 0, info.Length)
 End Sub
 
-
-'=======================================================
-'Service provided by Telerik (www.telerik.com)
-'Conversion powered by Refactoring Essentials.
-'Twitter: @telerik
-'Facebook: facebook.com/telerik
-'=======================================================
-
 Private Sub ProcessAllAssemblyOccurrences()
     Try
         Dim doc As AssemblyDocument = CType(ThisApplication.ActiveDocument, AssemblyDocument)
@@ -128,21 +113,6 @@ End Sub
 Public Sub Updatestatusbar(ByVal percent As Double, ByVal message As String)
     ThisApplication.StatusBarText = message & " (" + percent.ToString("P1") & ")"
 End Sub
-
-'=======================================================
-'Service provided by Telerik (www.telerik.com)
-'Conversion powered by Refactoring Essentials.
-'Twitter: @telerik
-'Facebook: facebook.com/telerik
-'=======================================================
-
-
-'=======================================================
-'Service provided by Telerik (www.telerik.com)
-'Conversion powered by Refactoring Essentials.
-'Twitter: @telerik
-'Facebook: facebook.com/telerik
-'=======================================================
 
 Private Sub RenumberBomViews(ByVal parentAssyCompDef As AssemblyComponentDefinition, ByVal BOMLevels As Boolean, ByVal Optional ExportToExcelNow As Boolean = False)
     Try
@@ -180,18 +150,10 @@ Private Sub RenumberBomViews(ByVal parentAssyCompDef As AssemblyComponentDefinit
     End Try
 End Sub
 
-'=======================================================
-'Service provided by Telerik (www.telerik.com)
-'Conversion powered by Refactoring Essentials.
-'Twitter: @telerik
-'Facebook: facebook.com/telerik
-'=======================================================
-
-
 Private Sub RenumberBOMViewRows(ByVal parentAssyDoc As AssemblyDocument, ByVal BOMRows As BOMRowsEnumerator)
     Try
         For Each row As BOMRow In BOMRows
-            Dim rowCompDef As ComponentDefinition = row.ComponentDefinitions(1)
+            Dim rowCompDef As ComponentDefinition = Row.ComponentDefinitions(1)
             Dim ThisDoc As Document = CType(rowCompDef.Document, Document)
             If row.Promoted Then
                 'Log.Info(ThisDoc.FullFileName & " is Promoted!")
@@ -257,21 +219,6 @@ Private Function GetRoundNum(ByVal Number As Double, ByVal multiple As Integer) 
     Return Convert.ToInt32(Number / multiple) * multiple
 End Function
 
-'=======================================================
-'Service provided by Telerik (www.telerik.com)
-'Conversion powered by Refactoring Essentials.
-'Twitter: @telerik
-'Facebook: facebook.com/telerik
-'=======================================================
-
-
-'=======================================================
-'Service provided by Telerik (www.telerik.com)
-'Conversion powered by Refactoring Essentials.
-'Twitter: @telerik
-'Facebook: facebook.com/telerik
-'=======================================================
-
 Public Function GetiPropertyDisplayName(ByVal iProp As [Property]) As String
     Return iProp.DisplayName
 End Function
@@ -310,14 +257,6 @@ Public Function GetiPropertyTypeString(ByVal iProp As [Property]) As String
     Return Nothing
 End Function
 
-'=======================================================
-'Service provided by Telerik (www.telerik.com)
-'Conversion powered by Refactoring Essentials.
-'Twitter: @telerik
-'Facebook: facebook.com/telerik
-'=======================================================
-
-
 Public Function GetorSetStandardiProperty(ByVal DocToUpdate As Inventor.Document, ByVal iPropertyTypeEnum As PropertiesForDesignTrackingPropertiesEnum, ByVal Optional newpropertyvalue As String = "", ByVal Optional propertyTypeStr As String = "") As String
     Dim invProjProperties As PropertySet = DocToUpdate.PropertySets("{32853F0F-3444-11D1-9E93-0060B03C1CA6}")
     Dim currentvalue As String = String.Empty
@@ -334,14 +273,6 @@ Public Function GetorSetStandardiProperty(ByVal DocToUpdate As Inventor.Document
 
     Return currentvalue
 End Function
-
-'=======================================================
-'Service provided by Telerik (www.telerik.com)
-'Conversion powered by Refactoring Essentials.
-'Twitter: @telerik
-'Facebook: facebook.com/telerik
-'=======================================================
-
 
 Public Function SetorCreateCustomiProperty(ByVal Doc As Inventor.Document, ByVal PropertyName As String, ByVal Optional PropertyValue As Object = Nothing) As Object
     Try
@@ -373,15 +304,6 @@ Public Function SetorCreateCustomiProperty(ByVal Doc As Inventor.Document, ByVal
         Return Nothing
     End Try
 End Function
-
-'=======================================================
-'Service provided by Telerik (www.telerik.com)
-'Conversion powered by Refactoring Essentials.
-'Twitter: @telerik
-'Facebook: facebook.com/telerik
-'=======================================================
-
-
 
 Public Class BomRowItem
 
@@ -445,10 +367,3 @@ Public Class BomRowItem
         End Set
     End Property
 End Class
-
-'=======================================================
-'Service provided by Telerik (www.telerik.com)
-'Conversion powered by Refactoring Essentials.
-'Twitter: @telerik
-'Facebook: facebook.com/telerik
-'=======================================================
