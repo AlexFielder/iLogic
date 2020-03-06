@@ -248,3 +248,4 @@ ModelManifest.xml
 *.txt
 ilogicdebugging/
 .history/
+.vscode/launch.json
