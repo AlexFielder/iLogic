@@ -1,11 +1,15 @@
 ﻿Imports Inventor.ViewOrientationTypeEnum
 Imports Inventor.DrawingViewStyleEnum
+Imports System.IO
 
 Private Sub Main
 CreateDrawingsFromAssembly(ThisDoc.Document)
 End Sub
-Private Sub CreateDrawingsFromAssembly(ByVal oDoc as Inventor.Document)
-	Dim oDrawingDoc as DrawingDocument    
+Private Sub CreateDrawingsFromAssembly(ByVal oDoc As Inventor.Document)
+	'change the following to switch modes:
+	Dim createSingleDrawing As Boolean = True
+	
+	Dim oDrawingDoc as DrawingDocument	   
 	Dim oPartDoc as Document
 	Dim oSheet As sheet
 	Dim oBaseView As DrawingView
@@ -29,12 +33,24 @@ Private Sub CreateDrawingsFromAssembly(ByVal oDoc as Inventor.Document)
 		If oDoc.DocumentType = Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then
 			oAssy = CType(oDoc, AssemblyDocument)
 
+			If createSingleDrawing Then
+				oDrawingDoc = ThisApplication.Documents.Add(DocumentTypeEnum.kDrawingDocumentObject, TemplateFileName:= ThisApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kDrawingDocumentObject), CreateVisible:= True)
+				oSheet = oDrawingDoc.Sheets.Item(1)
+			end if
+
 			For Each refDoc As Document In oAssy.AllReferencedDocuments
 				If refDoc.FullFileName.Contains("Content Center") Then Continue For
 				'Define dwg Template File Location
-				oDrawingDoc = ThisApplication.Documents.Add(DocumentTypeEnum.kDrawingDocumentObject, TemplateFileName:= ThisApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kDrawingDocumentObject), CreateVisible:= True)
-				oSheet = oDrawingDoc.Sheets.Item(1)
-    
+				if not createSingleDrawing then
+					oDrawingDoc = ThisApplication.Documents.Add(DocumentTypeEnum.kDrawingDocumentObject, TemplateFileName:= ThisApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kDrawingDocumentObject), CreateVisible:= True)
+					oSheet = oDrawingDoc.Sheets.Item(1)
+				Else
+					'Break 'turned off after debugging.
+					If oDrawingDoc.Sheets.Count >= 1 Then
+						oSheet = oDrawingDoc.Sheets.Add()
+					End If
+					oSheet.Name = IO.Path.GetFileNameWithoutExtension( refDoc.FullFileName)
+				End If
 				'Define 2d view bottom left corner points for four views
 				oPoint1 = ThisApplication.TransientGeometry.CreatePoint2d(11, 11) 'BASE
 				oPoint2 = ThisApplication.TransientGeometry.CreatePoint2d(28, 11) 'RIGHT
