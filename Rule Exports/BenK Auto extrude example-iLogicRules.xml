@@ -82,14 +82,14 @@ Public Sub ExtrudeFeature(ByVal ActiveDoc As Document)
 		ElapsedTime = Now().Subtract(StartTime)
 		ThisApplication.StatusBarText = oRectangleLines.Count
 		
-		'ThisApplication.StatusBarText = MessageBox.Show("Operation took " &amp; ElapsedTime.TotalSeconds &amp; " Seconds", "Graitec iLogic")
+		'ThisApplication.StatusBarText = MessageBox.Show("Operation took " &amp; ElapsedTime.TotalSeconds &amp; " Seconds", "My iLogic")
 		oLine = oRectangleLines(i)
 		If Parameter("HighlightSketchLines") Then
 			Dim oColor As Color = ThisApplication.TransientObjects.CreateColor(255, 0, 0) 'Red
 
 			Dim originalcolour As Color = oLine.OverrideColor
 			oLine.OverrideColor = oColor
-			MessageBox.Show("Operation took " &amp; ElapsedTime.TotalSeconds &amp; " Seconds", "Graitec iLogic")
+			MessageBox.Show("Operation took " &amp; ElapsedTime.TotalSeconds &amp; " Seconds", "My iLogic")
 			oLine.OverrideColor = originalcolour
 		End If
 		

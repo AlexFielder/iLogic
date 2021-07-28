@@ -159,7 +159,7 @@ Public Sub Export3DPDF()
     Dim oDocument As Document = ThisApplication.ActiveDocument
     
     If oDocument.FileSaveCounter = 0 Then
-        MsgBox("You must save the document to continue...", 64, "Graitec iLogic")
+        MsgBox("You must save the document to continue...", 64, "My iLogic")
     Return
     End If
     
