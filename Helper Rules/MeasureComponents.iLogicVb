@@ -1,0 +1,25 @@
+﻿'MEASURE PANEL DIMS'
+
+'Measure The object and create variables
+'Logger.Debug(ThisDoc.Document.FullFileName) 'always shows as the assembly name
+Dim editingDoc As Document = ThisApplication.ActiveDocument
+Logger.Debug(editingDoc.FullFileName)
+
+L1 = Measure.ExtentsLength
+L2 = Measure.ExtentsWidth
+L3 = Measure.ExtentsHeight
+
+'Sort measurements
+
+THK = MinOfMany(L1,L2,L3)
+LTH = MaxOfMany(L1,L2,L3)
+WTH = L1 + L2 + L3 - THK - LTH
+
+'Create external custom parameters, parameters rounded to 1 dec point
+
+iProperties.Value(editingDoc.FullFileName,"custom","LENGTH") =  Round(LTH,1)
+iProperties.Value(editingDoc.FullFileName,"custom","WIDTH") = Round(WTH, 1)
+iProperties.Value(editingDoc.FullFileName,"custom", "THICKNESS") = Round(THK,1)
+
+iProperties.Value(editingDoc.FullFileName,"custom","DATE_MEASURED") =  Now()
+
