@@ -1,0 +1,14 @@
+﻿Option Explicit On
+
+'copy custom iProperties between files
+
+dim oPropsets as PropertySets
+Dim oDoc As Document = ThisApplication.ActiveDocument
+
+If TypeOf oDoc Is DrawingDocument Then
+	Dim drawingDoc As DrawingDocument = oDoc
+	oPropsets = drawingDoc.PropertySets.Item("User Defined Properties")
+	
+End If
+'oPropsets = oDoc.PropertySets.Item("User Defined Properties")
+Logger.Info(oPropsets.Count)
