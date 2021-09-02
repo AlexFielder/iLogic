@@ -23,56 +23,56 @@ Sub Main
 
 		Dim oPartCompDef As PartComponentDefinition = oDoc.ComponentDefinition
 		Dim oWorkPlanes As WorkPlanes = oPartCompDef.WorkPlanes
-		Dim oFilter As SelectionFilterEnum = SelectionFilterEnum.kWorkPlaneFilter
+		Dim oFilter As SelectionFilterEnum = SelectionFilterEnum.kAllPlanarEntities
 
-		' Turn origin planes on
-		For a = 1 To 3
-			oWorkPlanes.Item(a).Visible = True
-		Next
+'		' Turn origin planes on
+'		For a = 1 To 3
+'			oWorkPlanes.Item(a).Visible = True
+'		Next
 
-		' Get start plane from user
-		Dim oStartPlane As WorkPlane = ThisApplication.CommandManager.Pick(oFilter, "Select Start Plane")
-		Dim slicingEndPoint As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAllPointEntities,"Select a point to slice between")
-		Dim GridlineName As String = InputBox("Enter Name of Grid Planes", "Say my name!", "GL")
+'		' Get start plane from user
+'		Dim oStartPlane As WorkPlane = ThisApplication.CommandManager.Pick(oFilter, "Select Start Plane")
+'		Dim slicingEndPoint As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kAllPointEntities,"Select a point to slice between")
+'		Dim GridlineName As String = InputBox("Enter Name of Grid Planes", "Say my name!", "GL")
 
-		If GridlineName = "" Then
-			Cleanup(oWorkPlanes)
-			Return
-		End If
+'		If GridlineName = "" Then
+'			Cleanup(oWorkPlanes)
+'			Return
+'		End If
 		
-		Dim StartNo As Double = 10
-	'	Dim Offset As String = InputBox("Enter Plane Offset in mm (From Previous)" & vbLf & vbLf & "Hit cancel to finish", Title, StartNo)
-		Dim totaloffset As Double = ThisApplication.MeasureTools.GetMinimumDistance(oStartPlane, slicingEndPoint)
-		Dim numPlanes As Double = CDbl(InputBox("Enter Number of planes" & vbLf & vbLf & "Hit cancel to finish", "Planes, Planes, Planes", StartNo))
-		Dim offset As Double = totaloffset / numPlanes
-		Dim oNewWorkPlane As WorkPlane
-		'1 less than total slices because otherwise there's nothing to slice.
-		For i As Integer = 0 To numPlanes -1
-			Dim CountString As String = i.ToString("D4")
-			If i = 0 Then
-				oNewWorkPlane = oStartPlane
-			Else If i = 1 Then
-				oNewWorkPlane = oWorkPlanes.AddByPlaneAndOffset(oStartPlane, offset)
-			Else
-				oNewWorkPlane = oWorkPlanes.AddByPlaneAndOffset(oNewWorkPlane, offset)
-			End If
-			Try
-				oNewWorkPlane.Name = "Work Plane" & GridlineName & CountString
-			Catch
-			End Try
-			Dim newSketch As PlanarSketch = CreateSketch(oPartCompDef, oNewWorkPlane)
-			oNewWorkPlane.Visible = False
-			newSketch.ProjectedCuts.Add()
-			newSketch.Edit()
-			newSketch.ExitEdit()
-			newSketch.Name = GridlineName & CountString
-			ExportSketch(newSketch)
-			newSketch.Visible = False
-			If newSketch.SketchLines.Count > 0 Then
-'				newSketch.exp
-			End If
-	'		offset += offset
-		Next i
+'		Dim StartNo As Double = 10
+'	'	Dim Offset As String = InputBox("Enter Plane Offset in mm (From Previous)" & vbLf & vbLf & "Hit cancel to finish", Title, StartNo)
+'		Dim totaloffset As Double = ThisApplication.MeasureTools.GetMinimumDistance(oStartPlane, slicingEndPoint)
+'		Dim numPlanes As Double = CDbl(InputBox("Enter Number of planes" & vbLf & vbLf & "Hit cancel to finish", "Planes, Planes, Planes", StartNo))
+'		Dim offset As Double = totaloffset / numPlanes
+'		Dim oNewWorkPlane As WorkPlane
+'		'1 less than total slices because otherwise there's nothing to slice.
+'		For i As Integer = 0 To numPlanes -1
+'			Dim CountString As String = i.ToString("D4")
+'			If i = 0 Then
+'				oNewWorkPlane = oStartPlane
+'			Else If i = 1 Then
+'				oNewWorkPlane = oWorkPlanes.AddByPlaneAndOffset(oStartPlane, offset)
+'			Else
+'				oNewWorkPlane = oWorkPlanes.AddByPlaneAndOffset(oNewWorkPlane, offset)
+'			End If
+'			Try
+'				oNewWorkPlane.Name = "Work Plane" & GridlineName & CountString
+'			Catch
+'			End Try
+'			Dim newSketch As PlanarSketch = CreateSketch(oPartCompDef, oNewWorkPlane)
+'			oNewWorkPlane.Visible = False
+'			newSketch.ProjectedCuts.Add()
+'			newSketch.Edit()
+'			newSketch.ExitEdit()
+'			newSketch.Name = GridlineName & CountString
+'			ExportSketch(newSketch)
+'			newSketch.Visible = False
+'			If newSketch.SketchLines.Count > 0 Then
+''				newSketch.exp
+'			End If
+'	'		offset += offset
+'		Next i
 		Cleanup(oWorkPlanes)
 		trans.End()
 	Catch
