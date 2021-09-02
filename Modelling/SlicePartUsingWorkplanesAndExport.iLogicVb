@@ -9,7 +9,7 @@ Imports Inventor.SelectionFilterEnum
 Sub Main
 	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Slice and export tool")
 	transGeom = ThisApplication.TransientGeometry
-	Try
+'	Try
 		Dim Cont As Boolean = True
 		Dim Counter As Integer = 1
 
@@ -23,7 +23,31 @@ Sub Main
 
 		Dim oPartCompDef As PartComponentDefinition = oDoc.ComponentDefinition
 		Dim oWorkPlanes As WorkPlanes = oPartCompDef.WorkPlanes
-		Dim oFilter As SelectionFilterEnum = SelectionFilterEnum.kAllPlanarEntities
+		
+		oSelect = New clsSelect
+		oSelect.thisapp = ThisApplication
+		' Call the WindowSelect method of the clsSelect object
+		Break
+		oSelect.WindowSelect
+		
+'		Dim oFilter As SelectionFilterEnum = SelectionFilterEnum.kAllEntitiesFilter
+
+'		Dim faces As Collection = ThisApplication.CommandManager.Pick(oFilter, "Select planar faces")
+
+'		Dim someCount As Integer = 0
+
+'		For Each face As Face In faces
+''		For i = 1 To oWorkPlanes.Count
+'			Logger.Debug(Face.name)
+''		    Dim newSketch As PlanarSketch = CreateSketch(oPartCompDef, wp)
+''		    wp.Visible = False
+''		    newSketch.ProjectedCuts.Add()
+''		    newSketch.Edit()
+''		    newSketch.ExitEdit()
+''		    newSketch.Name = wp.Name + someCount.ToString
+''		    ExportSketch(newSketch)
+''		    someCount = someCount + 1
+'		Next
 
 '		' Turn origin planes on
 '		For a = 1 To 3
@@ -73,12 +97,14 @@ Sub Main
 '			End If
 '	'		offset += offset
 '		Next i
-		Cleanup(oWorkPlanes)
-		trans.End()
-	Catch
-		trans.Abort()
-	End Try
+'		Cleanup(oWorkPlanes)
+'		trans.End()
+'	Catch
+'		trans.Abort()
+'	End Try
 End Sub
+
+Private oSelect As clsSelect
 
 Sub ExportSketch(ByVal thisSketch As PlanarSketch)
 	'Export face to pre-defined folder
@@ -146,3 +172,73 @@ Public Sub CorrectForMissingOriginPoint(ByVal compDef As ComponentDefinition, By
         OriginSketchPoint = thisSketch.AddByProjectingEntity(compDef.WorkPoints.Item(1))
     End If
 End Sub
+
+Public Class clsSelect
+
+'*************************************************************
+' The declarations and functions below need to be copied into
+' a class module whose name is "clsSelect". The name can be
+' changed but you'll need to change the declaration in the
+' calling function "TestWindowSelection" to use the new name.
+
+' Declare the event objects
+Public WithEvents oInteractEvents As InteractionEvents
+Public WithEvents oSelectEvents As SelectEvents
+Public thisapp As Inventor.Application
+' Declare a flag that's used to determine if command prompts are shown as tooltips.
+Private bTooltipEnabled As Boolean
+
+Public Function WindowSelect()
+    ' Create an InteractionEvents object.
+    oInteractEvents = thisapp.CommandManager.CreateInteractionEvents
+
+    ' Ensure interaction is enabled.
+    oInteractEvents.InteractionDisabled = False
+
+    ' Set a reference to the select events.
+    oSelectEvents = oInteractEvents.SelectEvents
+
+    ' Set the filter for circular edges (this includes circular arcs).
+    oSelectEvents.AddSelectionFilter(SelectionFilterEnum.kAllEntitiesFilter)
+
+    oSelectEvents.WindowSelectEnabled = True
+
+    bTooltipEnabled = thisapp.GeneralOptions.ShowCommandPromptTooltips
+    thisapp.GeneralOptions.ShowCommandPromptTooltips = True
+
+    oInteractEvents.StatusBarText = "Window select. Esc to exit."
+    ' Start the InteractionEvents object.
+    oInteractEvents.Start
+End Function
+
+Private Sub oInteractEvents_OnTerminate()
+    ' Reset to original value
+    thisapp.GeneralOptions.ShowCommandPromptTooltips = bTooltipEnabled
+
+    ' Clean up.
+    oSelectEvents = Nothing
+    oInteractEvents = Nothing
+End Sub
+
+Private Sub oSelectEvents_OnPreSelect(PreSelectEntity As Object, DoHighlight As Boolean, MorePreSelectEntities As ObjectCollection, ByVal SelectionDevice As SelectionDeviceEnum, ByVal ModelPosition As Point, ByVal ViewPosition As Point2d, ByVal View As Inventor.View)
+    ' Set a reference to the selected edge.
+    ' Only circular edges can come through since the circular edge filter was set.
+'    Dim oEdge As Edge = PreSelectEntity
+	
+	Dim oFace As Face = PreSelectEntity
+
+    ' Allow only fully circular edges to be picked.
+'    If Not oEdge.GeometryType = kCircleCurve Then
+'      DoHighlight = False
+'    End If
+	MessageBox.Show(oFace.SurfaceBody.Name)
+	If Not TypeOf(oFace) Is Face Then
+		DoHighlight = False
+	End If
+End Sub
+
+Private Sub oSelectEvents_OnSelect(ByVal JustSelectedEntities As ObjectsEnumerator, ByVal SelectionDevice As SelectionDeviceEnum, ByVal ModelPosition As Point, ByVal ViewPosition As Point2d, ByVal View As Inventor.View)
+    MsgBox ("Picked " & JustSelectedEntities.Count & " faces.")
+End Sub
+
+End Class
