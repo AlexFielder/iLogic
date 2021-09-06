@@ -1,12 +1,14 @@
-﻿Imports Inventor
+﻿option explicit on
+
+Imports Inventor
 Imports System.IO
 Public Sub Main
 If TypeOf ThisDoc.Document Is PartDocument Then
-PartFeatureCount(ThisDoc)
+	PartFeatureCount(ThisDoc.Document)
 Else
-RunFeatureCount(ThisDoc.Document)
+	RunFeatureCount(ThisDoc.Document)
 End If
-MessageBox.Show("Done!")
+	MessageBox.Show("Done!")
 End Sub
 
 Public Sub RunFeatureCount(ByVal oDoc as Inventor.Document)
@@ -74,6 +76,7 @@ Sub FeatureCount(ByVal oDoc as Inventor.Document)
 				Dim Occs as ComponentOccurrences = oDoc.ComponentDefinition.Occurrences			
 				Dim oParams as Parameters = oDoc.ComponentDefinition.Parameters
 				'Dim oConstraints as Constraints = oDoc.ComponentDefinition.Constraints
+				break
 				Try
 					If Not iProperties.Value(DocName,"Custom", "FEATURECOUNT") = oFeats.Count Then
 						iProperties.Value(DocName,"Custom", "FEATURECOUNT") = oFeats.Count
@@ -89,12 +92,18 @@ Sub FeatureCount(ByVal oDoc as Inventor.Document)
 						iProperties.Value(DocName, "Custom", "PARAMETERCOUNT") = oParams.Count
 						SaveRequired = True
 					End If
+					Break
 					'MessageBox.Show("Parameter Count for this part is: " & oDoc.ComponentDefinition.Constraints.Count, "PARAMETERCOUNT")
 					If Not iProperties.Value(DocName, "Custom","CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count Then
 						iProperties.Value(DocName,"Custom", "CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count
 						SaveRequired = True
 					End If
 					'MessageBox.Show("Constraint Count for Assembly " & DocName & " is: " & oDoc.ComponentDefinition.Constraints.Count, "CONSTRAINTCOUNT")
+					If Not iProperties.Value(DocName, "Custom","JOINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count Then
+						iProperties.Value(DocName,"Custom", "JOINTCOUNT") = oDoc.ComponentDefinition.Joints.Count
+						SaveRequired = True
+					End If
+					'MessageBox.Show("Joint Count for Assembly " & DocName & " is: " & oDoc.ComponentDefinition.Constraints.Count, "JOINTCOUNT")
 					If SaveRequired Then
 						'oDoc.Save 'try to save the file.
 					End If
@@ -103,23 +112,25 @@ Sub FeatureCount(ByVal oDoc as Inventor.Document)
 					iProperties.Value(DocName,"Custom", "FEATURECOUNT") = oFeats.Count
 					iProperties.Value(DocName, "Custom", "OCCURRENCECOUNT") = Occs.Count
 					iProperties.Value(DocName, "Custom", "PARAMETERCOUNT") = oParams.Count
-					iProperties.Value(DocName,"Custom", "CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count
+					iProperties.Value(DocName, "Custom", "CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count
+					iProperties.Value(DocName, "Custom", "JOINTCOUNT") = oDoc.ComponentDefinition.Joints.Count
 					'oDoc.Save 'saves the assembly
 					Exit Sub
 				End Try
 			End If
 		End If
 	Catch ex As Exception
-		'MessageBox.Show("The error is: " & ex.Message & vbCrLf & ex.StackTrace,oDoc.DisplayName)
+		MessageBox.Show("The error is: " & ex.Message & vbCrLf & ex.StackTrace,oDoc.DisplayName)
 	End Try
 	
 End Sub
 	Dim SaveRequired As Boolean = False
-Sub PartFeatureCount(ByVal oDoc)
+Sub PartFeatureCount(ByVal oDoc As Inventor.Document)
+'break
 	Try
 		If Not oDoc.File.FullFileName.Contains("Content") And Not oDoc.File.fullfilename.contains("FACILITY") And Not oDoc.File.fullfilename.contains("Imported Components") Then
-			Dim oFeats as PartFeatures = oDoc.Document.ComponentDefinition.Features
-			Dim oParams as Parameters = oDoc.Document.ComponentDefinition.Parameters
+			Dim oFeats As PartFeatures = oDoc.ComponentDefinition.Features
+			Dim oParams as Parameters = oDoc.ComponentDefinition.Parameters
 			Try
 				'may need to save the file when we're done, hence the boolean check
 				If Not iProperties.Value("Custom", "FEATURECOUNT") = oFeats.Count Then
@@ -145,7 +156,7 @@ Sub PartFeatureCount(ByVal oDoc)
 			End Try
 		End If
 	Catch ex As Exception
-		'MessageBox.Show("The error is: " & ex.Message & vbCrLf & ex.StackTrace)
+		MessageBox.Show("The error is: " & ex.Message & vbCrLf & ex.StackTrace)
 	End Try
 	
 End Sub
@@ -174,12 +185,18 @@ Sub AssemblyFeatureCount(ByVal oDoc)
 					iProperties.Value("Custom", "PARAMETERCOUNT") = oParams.Count
 					SaveRequired = True
 				End If
+				break
 				'MessageBox.Show("Parameter Count for this part is: " & oDoc.ComponentDefinition.Constraints.Count, "PARAMETERCOUNT")
 				If Not iProperties.Value("Custom","CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count Then
 					iProperties.Value("Custom", "CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count
 					SaveRequired = True
 				End If
 				'MessageBox.Show("Constraint Count for Assembly " & DocName & " is: " & oDoc.ComponentDefinition.Constraints.Count, "CONSTRAINTCOUNT")
+				If Not iProperties.Value("Custom","JOINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count Then
+						iProperties.Value("Custom", "JOINTCOUNT") = oDoc.ComponentDefinition.Joints.Count
+						SaveRequired = True
+					End If
+					'MessageBox.Show("Joint Count for Assembly " & DocName & " is: " & oDoc.ComponentDefinition.Constraints.Count, "JOINTCOUNT")
 				If SaveRequired Then
 					'oDoc.Save 'try to save the file.
 				End If
@@ -189,6 +206,7 @@ Sub AssemblyFeatureCount(ByVal oDoc)
 				iProperties.Value("Custom", "OCCURRENCECOUNT") = Occs.Count
 				iProperties.Value("Custom", "PARAMETERCOUNT") = oParams.Count
 				iProperties.Value("Custom", "CONSTRAINTCOUNT") = oDoc.ComponentDefinition.Constraints.Count
+				iProperties.Value("Custom", "JOINTCOUNT") = oDoc.ComponentDefinition.Joints.Count
 				'oDoc.Save 'saves the assembly
 				Exit Sub
 			End Try
