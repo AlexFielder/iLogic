@@ -1,4 +1,5 @@
-﻿Sub Main()
+﻿option explicit on
+Sub Main()
     If TypeOf ThisDoc.Document Is PartDocument Then
         If Not ThisDoc.Document.File.FullFileName.Contains("Content") Then 'skip CC and FACILITY files
             If Not ThisDoc.Document.File.fullfilename.contains("FACILITY") Then
