@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ShareableOptions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ExternalRuleDirectories>
+    <string>C:\Users\alex_\Dropbox\iLogic\C360</string>
+    <string>C:\Users\alex_\Dropbox\iLogic\AddRemove</string>
+    <string>C:\Users\alex_\Dropbox\iLogic\CM Examples</string>
+    <string>C:\Users\alex_\Dropbox\iLogic\Drawings</string>
+    <string>C:\Users\alex_\Dropbox\iLogic\Helper Rules</string>
+    <string>C:\Users\alex_\Dropbox\iLogic\Misc</string>
+    <string>C:\Users\alex_\Dropbox\iLogic\Modelling</string>
+    <string>C:\Users\alex_\Dropbox\iLogic\Module Rules</string>
+    <string>C:\Users\alex_\OneDrive\Documents\GitHub\ManAndMachine\MandM-iLogic\Stormking</string>
+    <string>C:\Users\alex_\OneDrive\Documents\GitHub\ManAndMachine\MandM-iLogic\ThrislingtonCubiclesLtd</string>
+    <string>C:\Users\alex_\OneDrive\Documents\GitHub\ManAndMachine\MandM-iLogic\Vista</string>
+  </ExternalRuleDirectories>
+  <ExternalRuleFilenames />
+  <ExternalRuleDefaultExtension>.iLogicVb</ExternalRuleDefaultExtension>
+  <CustomAddinPath />
+  <RulesOnEventsFilter>RunAll</RulesOnEventsFilter>
+  <RuleSecurityInspectionEnabled>false</RuleSecurityInspectionEnabled>
+  <ExcelEngine>Internal</ExcelEngine>
+</ShareableOptions>

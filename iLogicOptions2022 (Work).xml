@@ -9,9 +9,14 @@
     <string>C:\Users\alex.fielder\Dropbox\iLogic\Misc</string>
     <string>C:\Users\alex.fielder\Dropbox\iLogic\Modelling</string>
     <string>C:\Users\alex.fielder\Dropbox\iLogic\Module Rules</string>
+    <string>C:\Users\alex.fielder\OneDrive\Documents\GitHub\ManAndMachine\MandM-iLogic\Stormking</string>
+    <string>C:\Users\alex.fielder\OneDrive\Documents\GitHub\ManAndMachine\MandM-iLogic\ThrislingtonCubiclesLtd</string>
+    <string>C:\Users\alex.fielder\OneDrive\Documents\GitHub\ManAndMachine\MandM-iLogic\Vista</string>
   </ExternalRuleDirectories>
   <ExternalRuleFilenames />
   <ExternalRuleDefaultExtension>.iLogicVb</ExternalRuleDefaultExtension>
+  <CustomAddinPath />
   <RulesOnEventsFilter>RunAll</RulesOnEventsFilter>
   <RuleSecurityInspectionEnabled>false</RuleSecurityInspectionEnabled>
+  <ExcelEngine>Internal</ExcelEngine>
 </ShareableOptions>
