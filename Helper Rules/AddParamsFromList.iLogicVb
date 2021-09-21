@@ -1,0 +1,16 @@
+﻿option explicit on
+'''Rule Header Template for iLogic, to be placed before Sub Main() but after header values (if any) so Inventor
+'''doesn't throw a tantrum.
+'''Where multiple choice values are defined, please delete unessessary values'''
+'''Inventor version: (year)
+'''Customer name:N/A
+'''Project name:N/A
+'''Intended use: Import parameters from somewhere.
+'''Intented location: External Rule
+'''Called from:N/A
+'''Rule type: Helper
+'''Dependencies (if any):N/A
+'''github link: (if known)
+Sub main()
+	
+End Sub
