@@ -15,7 +15,7 @@
 '''Dependencies (if any):N/A
 '''github link: (if known)
 Sub main()
-break
+'break
 	Dim transManager As TransactionManager = ThisApplication.TransactionManager
     Dim ParamValuesToAdd As ArrayList  'List (Of String) = Nothing
     dim ListOfParamsToAdd as list(Of ParamToAdd) = new List(Of ParamToAdd)
@@ -40,6 +40,7 @@ break
 	            ListOfParamsToAdd.Add(newParam)
 			End If
 	    Next
+'		Break
 	    If TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
 			AssyDoc = ThisApplication.ActiveDocument
 	        Dim assyCompDef As AssemblyComponentDefinition = AssyDoc.ComponentDefinition
@@ -70,16 +71,17 @@ public sub AddParamsFromlist(byval ParamToAddList As List(Of ParamToAdd), userPa
             Case UnitsTypeEnum.kTextUnits
                 tmpParam = userParams.AddTextParameter(ParamToAdd.Name, ParamToAdd.Value, ParamToAdd.Type)
             Case UnitsTypeEnum.kMillimeterLengthUnits
-				Dim paramValue As Double = Convert.ToDouble(ParamToAdd.Value)
-                If Not paramValue = 0 Then
+				Dim paramValue As Double = Double.TryParse(ParamToAdd.Value, paramValue) 'Convert.ToDouble(ParamToAdd.Value)
+                If Not (Double.TryParse(ParamToAdd.Value, paramValue)) = 0 Then
                     tmpParam = userParams.AddByValue(ParamToAdd.Name, paramValue, ParamToAdd.Type)
                 else 'if paramValue is nothing, then it is a string, so we need to add the parameter and then set its value to a string value
                     tmpParam = userParams.AddByExpression(ParamToAdd.Name, "133.7mm", ParamToAdd.Type)
-                    tmpParam.SetValue(ParamToAdd.Value)
-                end if
-            case else
+					Break
+					tmpParam.Expression = ParamToAdd.Value
+                End If
+            Case Else
         
-        end select
+        End Select
     next
 end sub
 
