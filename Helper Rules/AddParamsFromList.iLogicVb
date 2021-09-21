@@ -5,12 +5,113 @@
 '''Inventor version: (year)
 '''Customer name:N/A
 '''Project name:N/A
-'''Intended use: Import parameters from somewhere.
+'''Intended use: Import parameters from pipe-delimited multivalue list that we can copy into Inventor from notepad++?
+''' pipe-delimited list of values, one per line:
+''' ParameterName1|Value1|Type1 (UnitsTypeEnum.kTextUnits or UnitsTypeEnum.kMilimeterUnits or UnitsTypeEnum.kUnitlessUnits etc. 
+''' refer to this page for more info on UnitsTypeEnum: https://help.autodesk.com/view/INVNTOR/2022/ENU/?guid=GUID-59997AD8-527C-4552-B90E-88D1B1F97841)
 '''Intented location: External Rule
 '''Called from:N/A
 '''Rule type: Helper
 '''Dependencies (if any):N/A
 '''github link: (if known)
 Sub main()
-	
+break
+	Dim transManager As TransactionManager = ThisApplication.TransactionManager
+    Dim ParamValuesToAdd As ArrayList  'List (Of String) = Nothing
+    dim ListOfParamsToAdd as list(Of ParamToAdd) = new List(Of ParamToAdd)
+    'retrieve multivalue parameter list, loop through it and create new list of ParamsToAdd
+    ParamValuesToAdd = MultiValue.List("ParamsToAdd")
+	Dim addParamsTransaction As Transaction = transManager.StartTransaction(ThisDoc.Document, "Add Parameters from Multivalue Parameter")
+	Try
+	    For Each param As String In ParamValuesToAdd
+	        Dim paramProps As String() = param.Split("|")
+			If Not paramProps(0) = "ParamName" Then
+	            Dim newParam As ParamToAdd = New ParamToAdd
+	            newParam.Name =  paramProps(0)
+	            newParam.Value = paramProps(1)
+				Select Case paramProps(2)
+					Case "UnitsTypeEnum.kMillimeterLengthUnits"
+						newParam.Type = UnitsTypeEnum.kMillimeterLengthUnits
+					Case "UnitsTypeEnum.kTextUnits"
+						newParam.Type = UnitsTypeEnum.kTextUnits
+					Case Else
+			            newParam.Type = UnitsTypeEnum.kUnitlessUnits
+				End Select
+	            ListOfParamsToAdd.Add(newParam)
+			End If
+	    Next
+	    If TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
+			AssyDoc = ThisApplication.ActiveDocument
+	        Dim assyCompDef As AssemblyComponentDefinition = AssyDoc.ComponentDefinition
+	        Dim userParams As UserParameters = assyCompDef.Parameters.UserParameters
+	        AddParamsFromlist(ListOfParamsToAdd, userParams)
+	    Else If TypeOf ThisApplication.ActiveDocument Is PartDocument Then
+	        PartDoc = ThisApplication.ActiveDocument
+	        Dim partCompDef As PartComponentDefinition = PartDoc.ComponentDefinition
+	        Dim userParams As UserParameters = partCompDef.Parameters.UserParameters
+	        AddParamsFromlist(ListOfParamsToAdd, userParams)
+		Else
+			MessageBox.Show("Not an assembly.")
+		End If
+		addParamsTransaction.End()
+	Catch ex As Exception
+		MessageBox.Show(ex.Message)
+		addParamsTransaction.Abort()
+	End Try
 End Sub
+
+Public AssyDoc As AssemblyDocument = Nothing
+Public PartDoc As PartDocument = Nothing
+
+public sub AddParamsFromlist(byval ParamToAddList As List(Of ParamToAdd), userParams As UserParameters)
+    dim tmpParam as Parameter = nothing
+    for each paramToAdd in ParamToAddList
+        Select ParamToAdd.Type
+            Case UnitsTypeEnum.kTextUnits
+                tmpParam = userParams.AddTextParameter(ParamToAdd.Name, ParamToAdd.Value, ParamToAdd.Type)
+            Case UnitsTypeEnum.kMillimeterLengthUnits
+				Dim paramValue As Double = Convert.ToDouble(ParamToAdd.Value)
+                If Not paramValue = 0 Then
+                    tmpParam = userParams.AddByValue(ParamToAdd.Name, paramValue, ParamToAdd.Type)
+                else 'if paramValue is nothing, then it is a string, so we need to add the parameter and then set its value to a string value
+                    tmpParam = userParams.AddByExpression(ParamToAdd.Name, "133.7mm", ParamToAdd.Type)
+                    tmpParam.SetValue(ParamToAdd.Value)
+                end if
+            case else
+        
+        end select
+    next
+end sub
+
+
+Public class ParamToAdd
+    Public Property Name as String
+        Get
+            return m_Name
+        End Get
+        Set(value As String)
+            m_Name = value
+        End Set
+    End Property
+    private m_Name as String = nothing
+
+    Public Property Value as String
+        Get
+            return m_Value
+        End Get
+        Set(value As String)
+            m_Value = value
+        End Set
+	End Property
+    Private m_Value As String = Nothing
+
+    Public Property Type as UnitsTypeEnum
+    Get
+        return m_Type
+    End Get
+    Set(value As UnitsTypeEnum)
+        m_Type = value
+    End Set
+	End Property
+    Private m_Type As UnitsTypeEnum = Nothing
+End Class
