@@ -14,14 +14,16 @@
 '''Rule type: Helper
 '''Dependencies (if any):N/A
 '''github link: (if known)
+
 Sub main()
 'break
 	Dim transManager As TransactionManager = ThisApplication.TransactionManager
     Dim ParamValuesToAdd As ArrayList  'List (Of String) = Nothing
-    dim ListOfParamsToAdd as list(Of ParamToAdd) = new List(Of ParamToAdd)
+    Dim ListOfParamsToAdd As List(Of ParamToAdd) = New List(Of ParamToAdd)
     'retrieve multivalue parameter list, loop through it and create new list of ParamsToAdd
     ParamValuesToAdd = MultiValue.List("ParamsToAdd")
 	Dim addParamsTransaction As Transaction = transManager.StartTransaction(ThisDoc.Document, "Add Parameters from Multivalue Parameter")
+' Break	
 	Try
 	    For Each param As String In ParamValuesToAdd
 	        Dim paramProps As String() = param.Split("|")
@@ -69,7 +71,7 @@ public sub AddParamsFromlist(byval ParamToAddList As List(Of ParamToAdd), userPa
     for each paramToAdd in ParamToAddList
         Select ParamToAdd.Type
             Case UnitsTypeEnum.kTextUnits
-                tmpParam = userParams.AddTextParameter(ParamToAdd.Name, ParamToAdd.Value, ParamToAdd.Type)
+				tmpParam = userParams.AddByValue(ParamToAdd.Name, "", ParamToAdd.Type)
             Case UnitsTypeEnum.kMillimeterLengthUnits
 				Dim paramValue As Double = Double.TryParse(ParamToAdd.Value, paramValue) 'Convert.ToDouble(ParamToAdd.Value)
                 If Not (Double.TryParse(ParamToAdd.Value, paramValue)) = 0 Then
