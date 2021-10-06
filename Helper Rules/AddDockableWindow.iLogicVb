@@ -130,7 +130,7 @@ End Sub
 Public Sub ButtonClick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles buttonExample.Click
 	MessageBox.Show("Hello World.")
 	ThisApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject)
-	iLogicVb.RunExternalRule("TFI Dome thingy")
+	' iLogicVb.RunExternalRule("TFI Dome thingy")
 End Sub
 
  Private Class CSharpImpl
