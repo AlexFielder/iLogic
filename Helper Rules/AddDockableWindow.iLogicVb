@@ -81,12 +81,19 @@ End Sub
 	cbBoxDiameter.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
 	cbBoxDiameter.Width = (size.Width * 0.75) - 2 * margin
 	dc.Controls.Add(cbBoxDiameter)
-	
+	buttonExample = New Button
+	buttonExample.Text = "Click Me."
+	buttonExample.Location = New System.Drawing.Point(((size.Width * 0.25)) + margin, cbBoxDiameter.Location.Y + 30)
+	buttonExample.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
+	buttonExample.Width = (size.Width * 0.75) - 2 * margin
+	dc.Controls.Add(buttonExample)
 	'display form
     dc.Show()
 	break
     Return dc.Handle.ToInt64()
 End Function
+
+Public WithEvents buttonExample As Button
 
 Function measureText(stringtoMeasure As String) As Size
 	Dim arialBold = New Font("Arial", 6.0F)
@@ -118,6 +125,12 @@ End Function
     dockableWin.ShowTitleBar = True
     dockableWin.SetMinimumSize(100, 100)
     dockableWin.Visible = True
+End Sub
+
+Public Sub ButtonClick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles buttonExample.Click
+	MessageBox.Show("Hello World.")
+	ThisApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject)
+	iLogicVb.RunExternalRule("TFI Dome thingy")
 End Sub
 
  Private Class CSharpImpl
