@@ -1,8 +1,14 @@
 ﻿''' <summary>
 ''' All of these functions will work with the currently active document inside of Inventor.
 ''' </summary>
-Public Class Parameters
-#Region "Parameters"
+Public Class ParametersHelper
+#Region "ParametersHelper"
+	Public Sub New(ByVal InventorApp As Inventor.Application)
+		ThisApplication = InventorApp
+	End Sub
+
+	Public ThisApplication As Inventor.Application
+
     ''' <summary>
     ''' UNTESTED 2016-05-24 AF
     ''' Sets a string parameter value
@@ -20,9 +26,9 @@ Public Class Parameters
         oLengthParam.Expression = ParameterValue
 
         ' Update the document.
-        If InventorAddinServer.UpdateAfterEachParameterChange Then
+'        If InventorAddinServer.UpdateAfterEachParameterChange Then
             ThisApplication.ActiveDocument.Update()
-        End If
+'        End If
     End Sub
     ''' <summary>
     ''' UNTESTED 2016-05-24 AF
@@ -41,9 +47,9 @@ Public Class Parameters
         oLengthParam.Expression = ParameterValue
 
         ' Update the document.
-        If InventorAddinServer.UpdateAfterEachParameterChange Then
+'        If InventorAddinServer.UpdateAfterEachParameterChange Then
             ThisApplication.ActiveDocument.Update()
-        End If
+'        End If
     End Sub
     ''' <summary>
     ''' UNTESTED 2016-05-24 AF
@@ -62,9 +68,9 @@ Public Class Parameters
         oLengthParam.Expression = ParameterValue
 
         ' Update the document.
-        If InventorAddinServer.UpdateAfterEachParameterChange Then
+'        If InventorAddinServer.UpdateAfterEachParameterChange Then
             ThisApplication.ActiveDocument.Update()
-        End If
+'        End If
     End Sub
     ''' <summary>
     ''' UNTESTED 2016-05-24 AF
@@ -83,9 +89,9 @@ Public Class Parameters
         oLengthParam.Expression = ParameterValue
 
         ' Update the document.
-        If InventorAddinServer.UpdateAfterEachParameterChange Then
+'        If InventorAddinServer.UpdateAfterEachParameterChange Then
             ThisApplication.ActiveDocument.Update()
-        End If
+'        End If
     End Sub
 
     Public Function GetParameter(ByVal ParamName As String) As Inventor.Parameter
