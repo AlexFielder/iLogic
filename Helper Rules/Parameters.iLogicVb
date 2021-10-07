@@ -11,7 +11,7 @@ Public Class Parameters
     ''' <param name="ParameterValue"></param>
     Public Sub SetParameter(ByVal ParameterName As String, ByVal ParameterValue As String)
         ' Get the Parameters object. Assumes a part or assembly document is active.
-        Dim oParameters As Inventor.Parameters = AddinGlobal.InventorApp.ActiveDocument.ComponentDefinition.Parameters
+        Dim oParameters As Inventor.Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
 
         ' Get the parameter named "Length".
         Dim oLengthParam As Inventor.Parameter = oParameters.Item(ParameterName)
@@ -21,7 +21,7 @@ Public Class Parameters
 
         ' Update the document.
         If InventorAddinServer.UpdateAfterEachParameterChange Then
-            AddinGlobal.InventorApp.ActiveDocument.Update()
+            ThisApplication.ActiveDocument.Update()
         End If
     End Sub
     ''' <summary>
@@ -32,7 +32,7 @@ Public Class Parameters
     ''' <param name="ParameterValue"></param>
     Public Sub SetParameter(ByVal ParameterName As String, ByVal ParameterValue As Double)
         ' Get the Parameters object. Assumes a part or assembly document is active.
-        Dim oParameters As Inventor.Parameters = AddinGlobal.InventorApp.ActiveDocument.ComponentDefinition.Parameters
+        Dim oParameters As Inventor.Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
 
         ' Get the parameter named "Length".
         Dim oLengthParam As Inventor.Parameter = oParameters.Item(ParameterName)
@@ -42,7 +42,7 @@ Public Class Parameters
 
         ' Update the document.
         If InventorAddinServer.UpdateAfterEachParameterChange Then
-            AddinGlobal.InventorApp.ActiveDocument.Update()
+            ThisApplication.ActiveDocument.Update()
         End If
     End Sub
     ''' <summary>
@@ -53,7 +53,7 @@ Public Class Parameters
     ''' <param name="ParameterValue"></param>
     Public Sub SetParameter(ByVal ParameterName As String, ByVal ParameterValue As Boolean)
         ' Get the Parameters object. Assumes a part or assembly document is active.
-        Dim oParameters As Inventor.Parameters = AddinGlobal.InventorApp.ActiveDocument.ComponentDefinition.Parameters
+        Dim oParameters As Inventor.Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
 
         ' Get the parameter named "Length".
         Dim oLengthParam As Inventor.Parameter = oParameters.Item(ParameterName)
@@ -63,7 +63,7 @@ Public Class Parameters
 
         ' Update the document.
         If InventorAddinServer.UpdateAfterEachParameterChange Then
-            AddinGlobal.InventorApp.ActiveDocument.Update()
+            ThisApplication.ActiveDocument.Update()
         End If
     End Sub
     ''' <summary>
@@ -74,7 +74,7 @@ Public Class Parameters
     ''' <param name="ParameterValue"></param>
     Public Sub SetParameter(ByVal ParameterName As String, ByVal ParameterValue As DateTime)
         ' Get the Parameters object. Assumes a part or assembly document is active.
-        Dim oParameters As Inventor.Parameters = AddinGlobal.InventorApp.ActiveDocument.ComponentDefinition.Parameters
+        Dim oParameters As Inventor.Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
 
         ' Get the parameter named "Length".
         Dim oLengthParam As Inventor.Parameter = oParameters.Item(ParameterName)
@@ -84,12 +84,12 @@ Public Class Parameters
 
         ' Update the document.
         If InventorAddinServer.UpdateAfterEachParameterChange Then
-            AddinGlobal.InventorApp.ActiveDocument.Update()
+            ThisApplication.ActiveDocument.Update()
         End If
     End Sub
 
     Public Function GetParameter(ByVal ParamName As String) As Inventor.Parameter
-        Dim oParameters As Inventor.Parameters = AddinGlobal.InventorApp.ActiveDocument.ComponentDefinition.Parameters
+        Dim oParameters As Inventor.Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
         If oParameters(ParamName).ParameterType = ParameterTypeEnum.kUserParameter Then
             Return GetUserParameter(ParamName)
         ElseIf oParameters(ParamName).ParameterType = ParameterTypeEnum.kReferenceParameter Then
@@ -110,7 +110,7 @@ Public Class Parameters
     ''' <param name="ParameterName"></param>
     ''' <returns></returns>
     Public Function GetUserParameter(ByVal ParameterName As String) As Inventor.UserParameter
-        Dim oParameters As Inventor.Parameters = AddinGlobal.InventorApp.ActiveDocument.ComponentDefinition.Parameters
+        Dim oParameters As Inventor.Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
         Return oParameters.Item(ParameterName)
     End Function
 
@@ -120,7 +120,7 @@ Public Class Parameters
     ''' <param name="ParameterName"></param>
     ''' <returns></returns>
     Public Function GetReferenceParameter(ByVal ParameterName As String) As Inventor.ReferenceParameter
-        Dim oParameters As Inventor.Parameters = AddinGlobal.InventorApp.ActiveDocument.ComponentDefinition.Parameters
+        Dim oParameters As Inventor.Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
         Return oParameters.Item(ParameterName)
     End Function
 
@@ -130,7 +130,7 @@ Public Class Parameters
     ''' <param name="ParameterName"></param>
     ''' <returns></returns>
     Public Function GetModelParameter(ByVal ParameterName As String) As Inventor.ModelParameter
-        Dim oParameters As Inventor.Parameters = AddinGlobal.InventorApp.ActiveDocument.ComponentDefinition.Parameters
+        Dim oParameters As Inventor.Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
         Return oParameters.Item(ParameterName)
     End Function
 
@@ -140,7 +140,7 @@ Public Class Parameters
     ''' <param name="ParameterName"></param>
     ''' <returns></returns>
     Public Function GetDerivedParameter(ByVal ParameterName As String) As Inventor.DerivedParameter
-        Dim oParameters As Inventor.Parameters = AddinGlobal.InventorApp.ActiveDocument.ComponentDefinition.Parameters
+        Dim oParameters As Inventor.Parameters = ThisApplication.ActiveDocument.ComponentDefinition.Parameters
         Return oParameters.Item(ParameterName)
     End Function
 
