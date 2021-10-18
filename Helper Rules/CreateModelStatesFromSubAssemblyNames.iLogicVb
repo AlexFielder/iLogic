@@ -2,6 +2,7 @@
 Sub main()
 	If TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
 		Dim AssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
+		Dim TransManager as TransactionManager = ThisApplication.TransactionManager
 		Dim CompOccs As ComponentOccurrences = AssyDoc.ComponentDefinition.Occurrences
 		Dim ThisAssyModelStates As ModelStates = AssyDoc.ComponentDefinition.ModelStates
 		Dim ModelBrowserPane As BrowserPane = AssyDoc.BrowserPanes("Model")
@@ -9,7 +10,7 @@ Sub main()
 		
 		Dim ListOfStatesToCreate As List(Of String) = (From node As BrowserNode In oTopNode.BrowserNodes
 														Let NodeDef As BrowserNodeDefinition = node.BrowserNodeDefinition
-														Where NodeDef.Label.Contains(":1") And Not NodeDef.Label.Contains(": ")
+														Where NodeDef.Label.Contains("Cleat:1") And Not NodeDef.Label.Contains(": ")
 														Select System.Text.RegularExpressions.Regex.Replace(nodedef.Label,":.*","")).ToList()
 		'debugging ^
 		For Each Str As String In ListOfStatesToCreate
@@ -18,39 +19,45 @@ Sub main()
 		
 		Dim excludedStateNames() As String = {"Part1", "Part2", "SomethingElse", "etc." }
 		Dim excludedStateNamesList As List(Of String) = New List(Of String)(excludedStateNames)
-		
-		If ThisAssyModelStates.Count > 0 Then
-			For Each state As ModelState In ThisAssyModelStates
-				If ListOfStatesToCreate.Any(Function(x) state.Name.Contains(x)) Then
-					state.Delete
-				End If
-			Next
-		End If
+		Dim NewModelStates As Transaction = TransManager.StartTransaction(AssyDoc,"Create Modelstates based on Assembly component names")
+		Try
+			If ThisAssyModelStates.Count > 0 Then
+				For Each state As ModelState In ThisAssyModelStates
+					If ListOfStatesToCreate.Any(Function(x) state.Name.Contains(x)) Then
+						state.Delete
+					End If
+				Next
+			End If
 
-		ListOfStatesToCreate.RemoveAll(Function(y) excludedStateNamesList.Exists(Function(z) y = z))
-		
-		For Each stateToCreate As String In ListOfStatesToCreate
-			Dim newModelstate As ModelState = ThisAssyModelStates.Add(stateToCreate)
-Break
-			Dim Suppress As List(Of ComponentOccurrence) = (From Occ As ComponentOccurrence In CompOccs
-																				Where Not Occ.Name.StartsWith(stateToCreate)
-																				Select occ).ToList()
-			'suprreses everything after the first State.
-			For Each Occ As ComponentOccurrence In Suppress
-				Occ.Suppress
-			Next
+			ListOfStatesToCreate.RemoveAll(Function(y) excludedStateNamesList.Exists(Function(z) y = z))
 			
-			Dim UnSuppress As List(Of ComponentOccurrence) = (From Occ As ComponentOccurrence In CompOccs
-																				Where Occ.Name.StartsWith(stateToCreate)
-																				Select occ).ToList()
-			'suprreses everything after the first State.
-			For Each Occ As ComponentOccurrence In UnSuppress
-				Occ.Unsuppress
+			For Each stateToCreate As String In ListOfStatesToCreate
+				Dim newModelstate As ModelState = ThisAssyModelStates.Add(stateToCreate)
+	'Break
+				Dim Suppress As List(Of ComponentOccurrence) = (From Occ As ComponentOccurrence In CompOccs
+																					Where Not Occ.Name.StartsWith(stateToCreate)
+																					Select occ).ToList()
+				'suprreses everything after the first State.
+				For Each Occ As ComponentOccurrence In Suppress
+					Occ.Suppress
+				Next
+				
+				Dim UnSuppress As List(Of ComponentOccurrence) = (From Occ As ComponentOccurrence In CompOccs
+																					Where Occ.Name.StartsWith(stateToCreate)
+																					Select occ).ToList()
+				'suprreses everything after the first State.
+				For Each Occ As ComponentOccurrence In UnSuppress
+					Occ.Unsuppress
+				Next
+				
 			Next
-			
-		Next
-		'activate Master modelstate.
-		AssyDoc.ComponentDefinition.ModelStates.Item(1).Activate
+			'activate Master modelstate.
+			AssyDoc.ComponentDefinition.ModelStates.Item(1).Activate
+			NewModelStates.End()
+		Catch
+			Logger.Error("Something broke that prevented us from creating the modelstates we wanted")
+			NewModelStates.Abort()
+		End Try
 	Else
 		Exit Sub
 	End If
