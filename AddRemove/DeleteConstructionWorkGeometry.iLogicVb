@@ -1,0 +1,33 @@
+﻿Sub main()
+	Dim AssyDoc As AssemblyDocument = Nothing
+	Dim PartDoc As PartDocument = Nothing
+	
+	Dim ThisDef As ComponentDefinition = Nothing
+	
+	If TypeOf ThisApplication.ActiveDocument Is AssemblyDocument Then
+		AssyDoc = ThisApplication.ActiveDocument
+	Else If TypeOf ThisApplication.ActiveDocument Is PartDocument Then
+		PartDoc = ThisApplication.ActiveDocument
+	End If
+	
+	If Not AssyDoc Is Nothing Then
+		ThisDef = AssyDoc.ComponentDefinition
+	End If
+	
+	If Not PartDoc Is Nothing Then
+		ThisDef = PartDoc.ComponentDefinition
+	End If
+	
+	If Not ThisDef Is Nothing Then
+		For Each wp As WorkPoint In ThisDef.WorkPoints
+			If wp.Construction Then
+				wp.Delete
+			End If
+		Next
+		For Each wa As WorkAxis In ThisDef.WorkAxes
+			If wa.Construction Then
+				wa.Delete
+			End If
+		Next
+	End If
+End Sub
