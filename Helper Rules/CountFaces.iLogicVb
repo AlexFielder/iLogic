@@ -1,0 +1,23 @@
+﻿Imports System.LINQ
+AddReference "System.Core"
+''' <summary>
+''' Copied from here: https://forums.autodesk.com/t5/inventor-ilogic-api-vba-forum/fastest-way-to-sort-faces-by-type/m-p/9342098
+''' </summary>
+Sub Main
+Dim oIPT As PartDocument=ThisDoc.Document
+Dim oCD As ComponentDefinition=oIPT.ComponentDefinition
+Dim PFQ As Integer
+Break
+For Each oWS As WorkSurface In oCD.WorkSurfaces
+	For Each oSB1 As SurfaceBody In oWS.SurfaceBodies
+		Dim F1 = From x In oSB1.Faces Where x.SurfaceType=SurfaceTypeEnum.kPlaneSurface
+		PFQ += F1.Count
+	Next
+Next
+
+For Each oSB2 As SurfaceBody In oCD.SurfaceBodies
+	Dim F2 = From x In oSB2.Faces Where x.SurfaceType=SurfaceTypeEnum.kPlaneSurface
+	PFQ += F2.Count
+Next
+MsgBox("Plane faces QTY=" & PFQ,, "Finished")
+End Sub
