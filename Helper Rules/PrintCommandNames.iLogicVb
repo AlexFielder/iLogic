@@ -1,0 +1,14 @@
+﻿imports System.IO
+
+Sub Main()
+    Dim oControlDefs As ControlDefinitions = ThisApplication.CommandManager.ControlDefinitions
+
+    Dim oControlDef As ControlDefinition
+    
+	Dim oFile As StreamWriter = System.IO.File.CreateText("c:\temp\CommandNames.txt")
+    oFile.WriteLine("Command Name" & "|" & "Description")
+    For Each oControlDef In oControlDefs
+		oFile.WriteLine(oControlDef.InternalName & "|" & oControlDef.DescriptionText)
+    Next
+	oFile.Close()
+End Sub
