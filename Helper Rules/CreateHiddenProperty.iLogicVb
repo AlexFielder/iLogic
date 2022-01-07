@@ -1,0 +1,38 @@
+﻿Sub Main() 'CreateInvisiblePropertySet()
+Break
+Dim oDoc As Document = ThisApplication.ActiveDocument
+If Not oDoc.PropertySets.Item("MyCustomPropertySet") Is Nothing Then oDoc.PropertySets.Item("MyCustomPropertySet").Delete
+Dim oCustomPropertySet As PropertySet = oDoc.PropertySets.Add("MyCustomPropertySet")
+Dim myCar As Car = New Car
+myCar.EngineSize = 1100
+myCar.Make = "Ford"
+myCar.Model = "Focus"
+'Dim oCustomProperty As Inventor.Property = oCustomPropertySet.Add("MyValue", "InvisibleProperty")
+Dim prop As String = WriteClassPropertiesToString(myCar)
+Dim oCustomProperty As Inventor.Property = oCustomPropertySet.Add(prop, "Car001")
+
+call ShowValueOfHiddenPropertySet()
+
+End Sub
+
+Sub ShowValueOfHiddenPropertySet()
+
+Dim oDoc As Document = ThisApplication.ActiveDocument
+Dim oCustomPropertySet As PropertySet = oDoc.PropertySets.Item("MyCustomPropertySet")
+Dim oCustomProperty As Inventor.Property = oCustomPropertySet.Item( "Car001")'"InvisibleProperty")
+
+MessageBox.Show(oCustomProperty.Value)
+
+End Sub
+
+Public Function WriteClassPropertiesToString(ByVal myobj As Car) As String
+	For Each prop In myobj.GetType.GetProperties()
+		WriteClassPropertiesToString = WriteClassPropertiesToString & prop.GetValue(myobj, Nothing) & "|"
+	next
+End function
+
+Public Class Car
+	Public Property Make As String
+	Public Property Model As String
+	Public Property EngineSize As Double
+End Class
