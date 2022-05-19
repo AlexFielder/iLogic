@@ -1,0 +1,67 @@
+﻿AddReference "System.XML"
+AddReference "Newtonsoft.Json.dll"
+AddReference "System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+AddReference "System.IO.Compression.FileSystem"
+
+Option Explicit On
+AddVbFile "Classes\ClassHelperClasses"
+Imports System.Xml
+Imports System.Xml.Serialization
+Imports Microsoft.VisualBasic.FileIO
+Imports System.IO
+Imports System.IO.Compression
+Imports System.Linq
+Imports newtonsoft.json
+Public Sub Main()
+	'AssyDoc = ThisApplication.ActiveDocument
+	'AssyDef = AssyDoc.Componentdefinition
+	Dim MasterPartGeomSets As MAMPartGeometrySets = New MAMPartGeometrySets()
+	MasterPartGeomSets.MAMPartGeometrySetList = New List(Of MAMPartGeometrySetDefinition)
+	Dim MasterJsonReportFileName As String = "C:\Users\alex.fielder\OneDrive\Inventor\Designs\MasterPartGeomSets.json"
+	For Each doc As Document In ThisApplication.Documents
+		If TypeOf doc Is PartDocument Then
+'Break
+			Dim PartGeomSets As MAMPartGeometrySets = New MAMPartGeometrySets()
+			PartGeomSets.MAMPartGeometrySetList = New List(Of MAMPartGeometrySetDefinition)
+			Dim partDoc As PartDocument = doc
+			Dim FolderName As String = System.IO.Path.GetDirectoryName(partDoc.FullFileName)
+			Dim reportFilename As String = FolderName & "\" & System.IO.Path.GetFileNameWithoutExtension(partDoc.FullFileName) & ".xml"
+			Dim jsonReportFilename As String = FolderName & "\" & System.IO.Path.GetFileNameWithoutExtension(partDoc.FullFileName) & ".json"
+			Dim AttribMgr As AttributeManager = partDoc.AttributeManager
+			Dim objsFound As AttributeSetsEnumerator = AttribMgr.FindAttributeSets("iLogicEntityNameSet", "iLogicEntityName")
+			Dim GeomType As MamPartGeometryTypeEnum
+			If objsFound IsNot Nothing Then
+				For Each attrSet As AttributeSet In objsFound
+					For Each attr As Attribute In attrSet
+						Dim partObjs As ObjectCollection = AttribMgr.FindObjects("iLogicEntityNameSet", "iLogicEntityName", attr.value)
+						If Not partObjs.Count = 0 Then
+							If TypeOf partObjs(1) Is Face Then
+								GeomType = MamPartGeometryTypeEnum.kFace
+							Else If TypeOf partObjs(1) Is Edge Then
+								GeomType = MamPartGeometryTypeEnum.kEdge
+							Else
+								GeomType = MamPartGeometryTypeEnum.kNone
+							End If
+							Dim partDocGeomSetDef As MAMPartGeometrySetDefinition = New MAMPartGeometrySetDefinition() With { .PartFileName = system.IO.Path.GetFileNameWithoutExtension(partDoc.FullFileName), .PartGeometryName = attr.value, .PartGeometryType = GeomType }
+							PartGeomSets.MAMPartGeometrySetList.add(partDocGeomSetDef)
+							MasterPartGeomSets.MAMPartGeometrySetList.add(partDocGeomSetDef)
+						End If
+					Next
+				Next
+				
+				Dim ser As XmlSerializer = New XmlSerializer(GetType(MAMPartGeometrySets))
+				Using fs As System.IO.FileStream = New System.IO.FileStream(reportFilename, System.IO.FileMode.Create)
+					ser.Serialize(fs, PartGeomSets)
+				End Using
+				
+				System.IO.File.WriteAllText(jsonReportFilename, JsonConvert.SerializeObject(PartGeomSets))
+			Else
+				Continue For
+			End If
+		End If
+	Next
+	System.IO.File.WriteAllText(MasterJsonReportFileName, JsonConvert.SerializeObject(MasterPartGeomSets))
+End Sub
+
+Public AssyDoc As AssemblyDocument
+Public AssyDef As AssemblyComponentDefinition
