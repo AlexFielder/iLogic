@@ -1,0 +1,111 @@
+﻿AddReference "System.XML"
+AddReference "System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+AddReference "System.IO.Compression.FileSystem"
+
+Option Explicit On
+AddVbFile "Classes\ClassHelperClasses"
+
+Imports Microsoft.VisualBasic.FileIO
+Imports System.IO
+Imports System.IO.Compression
+Imports System.Linq
+
+'''
+''' assumes a building outline is drawn using polylines in an anti-clockwise direction
+'''
+Sub Main()
+	Dim NamedGeomHelper As NamedGeometryHelper = New NamedGeometryHelper(ThisApplication, ThisDoc.Document)
+	Dim Keepgoing As DialogResult = MessageBox.Show("Select an AutoCAD DWG Underlay line", "Select OK to Continue!", MessageBoxButtons.OKCancel)
+	
+	Dim startPoint As Point
+	Dim endPoint As Point
+	
+	Dim ThisLine As SketchLine
+	Dim ThisLineStartSketchPoint As SketchPoint
+	Dim ThisLineEndSketchPoint As SketchPoint
+	
+	Dim NewLineAttSet As AttributeSet
+	Dim NewLineAttr As Attribute
+	Dim NewLineStartPointAttSet As AttributeSet
+	Dim NewLineEndPointAttSet As AttributeSet
+	Dim NewLineStartPointAttr As Attribute
+	Dim NewLineEndPointAttr As Attribute
+	
+	Do While Keepgoing = DialogResult.OK
+		ThisLine = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kSketchCurveLinearFilter, "Select an Inventor Sketch Line")
+		Dim ObjTitle As String = InputBox("What is the object's name?", "For the purposes of automated testing?", "DefaultEntry")
+		If ObjTitle IsNot "" Then
+			If ObjTitle IsNot "DefaultEntry" Then
+				If ThisLine IsNot Nothing Then
+					NewLineAttSet = ThisLine.Attributesets.Add("iLogicEntityNameSet")
+					NewLineAttr = NewLineAttSet.add("iLogicEntityName", ValueTypeEnum.kStringType, ObjTitle)
+					ThisLineStartSketchPoint = ThisLine.startsketchpoint
+					ThisLineEndSketchPoint = ThisLine.endsketchpoint
+					Try
+						NewLineStartPointAttSet = ThisLineStartSketchPoint.attributesets.add("iLogicEntityNameSet")
+						NewLineStartPointAttr = NewLineStartPointAttSet.add("iLogicEntityName", ValueTypeEnum.kStringType, ObjTitle & "EndPoint")
+					Catch
+						NewLineStartPointAttSet = ThisLineStartSketchPoint.attributesets("iLogicEntityNameSet")
+						NewLineStartPointAttr = NewLineStartPointAttSet("iLogicEntityName")
+						NewLineStartPointAttr.value = NewLineStartPointAttr.value & "|" & ObjTitle & "EndPoint"
+					End Try
+					Try
+						NewLineEndPointAttSet = ThisLineEndSketchPoint.attributesets.add("iLogicEntityNameSet")
+						NewLineEndPointAttr = NewLineEndPointAttSet.add("iLogicEntityName",  ValueTypeEnum.kStringType, ObjTitle & "StartPoint")
+					Catch
+						NewLineEndPointAttSet = ThisLineEndSketchPoint.attributesets("iLogicEntityNameSet")
+						NewLineEndPointAttr = NewLineEndPointAttSet("iLogicEntityName")
+						NewLineEndPointAttr.value = NewLineEndPointAttr.value & "|" & ObjTitle & "StartPoint"
+					End Try
+					
+					
+				End If
+			End If
+		End If
+		
+		Keepgoing = MessageBox.Show("Select an AutoCAD DWG Underlay line","Select Cancel to stop!", MessageBoxButtons.OKCancel)
+	Loop
+End Sub
+
+Sub DWGUnderlayLines()
+	Dim NamedGeomHelper As NamedGeometryHelper = New NamedGeometryHelper(ThisApplication, ThisDoc.Document)
+	Dim Keepgoing As DialogResult = MessageBox.Show("Select an AutoCAD DWG Underlay line", "Select OK to Continue!", MessageBoxButtons.OKCancel)
+	
+	Dim startPoint As Point
+	Dim endPoint As Point
+	Dim ThisLineSegment As DWGEntityLineSegment
+	Dim ThisLine As DWGLine
+	Dim NewLineAttSet As AttributeSet
+	Dim NewLineAttr As Attribute
+	Dim NewLineStartPointAttSet As AttributeSet
+	Dim NewLineEndPointAttSet As AttributeSet
+	
+	Do While Keepgoing = DialogResult.OK
+		Dim LineObj As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kDWGEntitySegmentFilter, "Select an AutoCAD (brick/block) line")
+		Dim ObjTitle As String = InputBox("What is the object's name?", "For the purposes of automated testing?", "DefaultEntry")
+		If ObjTitle IsNot "" Then
+			If ObjTitle IsNot "DefaultEntry" Then
+				If TypeOf LineObj Is DWGEntityLineSegment Then ThisLineSegment = LineObj
+				If TypeOf LineObj Is DWGLine Then ThisLine = LineObj
+				If ThisLineSegment IsNot Nothing Then
+					NewLineAttSet = ThisLineSegment.Attributesets.Add("iLogicEntityNameSet")
+					NewLineAttr = NewLineAttSet.add("iLogicEntityName", ValueTypeEnum.kStringType, ObjTitle)
+					startPoint = ThisLineSegment.Geometry.StartPoint
+					endPoint = ThisLineSegment.Geometry.EndPoint
+				Else If ThisLine IsNot Nothing Then
+					NewLineAttSet = ThisLine.Attributesets.Add("iLogicEntityNameSet")
+					NewLineAttr = NewLineAttSet.add("iLogicEntityName", ValueTypeEnum.kStringType, ObjTitle)
+					startPoint = ThisLine.StartPoint
+					endPoint = ThisLine.EndPoint
+				Else ' how did we get here? Maybe the user selected an arc..?
+					NewLineAttSet = LineObj.Attributesets.Add("iLogicEntityNameSet")
+					NewLineAttr = NewLineAttSet.add("iLogicEntityName", ValueTypeEnum.kStringType, ObjTitle)
+					startPoint = LineObj.StartPoint
+					endPoint = LineObj.EndPoint
+				End If
+				
+			End If
+		End If
+		Keepgoing = MessageBox.Show("Select an AutoCAD DWG Underlay line","Select Cancel to stop!", MessageBoxButtons.OKCancel)
+	Loop
+End Sub
