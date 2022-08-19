@@ -1,0 +1,134 @@
+﻿Option explicit on
+
+Imports Inventor
+Imports Autodesk.iLogic.Automation
+Imports Autodesk.iLogic.Interfaces
+Imports System.IO
+Imports Microsoft.VisualBasic.FileIO
+Imports Microsoft.Win32
+'dumps internal iLogic rules to External Folder of a users' choice
+Sub Main
+	oDesignProjectMgr = ThisApplication.DesignProjectManager
+	oProject = oDesignProjectMgr.DesignProjects.ItemByName(oDesignProjectMgr.ActiveDesignProject.FullFileName)
+	
+	Dim folderbrowser As New System.Windows.Forms.FolderBrowserDialog()
+	Dim OneDrive As String = getOneDriveFolderPath()
+	Logger.Info(OneDrive)
+	Dim ManAndMachineiLogicFolder As String = OneDrive + "\Documents\GitHub\ManAndMachine\MandM-iLogic\"
+	folderbrowser.SelectedPath = ManAndMachineiLogicFolder
+	folderbrowser.Description = "Select Folder to output iLogic Rules to."
+	folderbrowser.ShowDialog()
+	Dim SelectedProjectFolder As String = folderbrowser.SelectedPath
+	Dim SelectedOutputFolderForRules As DirectoryInfo = New DirectoryInfo(SelectedProjectFolder)
+	Logger.Info(SelectedOutputFolderForRules.FullName)
+	
+	iLogicObject = GetiLogicAddin(ThisApplication)
+	Dim activedoc As Document = ThisApplication.ActiveDocument
+	Dim rules As System.Collections.IEnumerable = iLogicObject.Rules(activedoc)
+	For Each rule As iLogicRule In rules
+		Logger.Info("Rule name: " + rule.Name)
+		Dim NewRuleOutputFilename As String = SelectedOutputFolderForRules.FullName + "\" + rule.Name + ".iLogicVb"
+		Dim NewRuleOutput As StreamWriter = Nothing
+		If (System.IO.File.Exists(NewRuleOutputFilename)) Then
+			Dim OldVersionsFolder As String = SelectedOutputFolderForRules.FullName + "\OldVersions\"
+			Dim OldVersions As List(Of FileInfo) = Nothing
+			Dim oldversionInt As Integer = 1
+			Dim ext As String = System.IO.Path.GetExtension(NewRuleOutputFilename)
+			Dim OldVersionsFilenameWithoutExt As String = System.IO.Path.GetFileNameWithoutExtension(NewRuleOutputFilename) & "." & oldversionInt.ToString("000")
+			If Not System.IO.Directory.Exists(OldVersionsFolder) Then
+	            'if not, create it
+	            System.IO.Directory.CreateDirectory(OldVersionsFolder)
+	        Else
+	            'if there is, get a list of all the files in it
+	            OldVersions = (New DirectoryInfo(OldVersionsFolder)).GetFiles().ToList().OrderBy(Function(f) System.IO.Path.GetFileNameWithoutExtension(f.FullName)).ToList()
+				OldVersions.RemoveAll(Function(x) Not System.Text.RegularExpressions.Regex.Replace(System.IO.Path.GetFileNameWithoutExtension(x.FullName), "\..*", "") = _
+									System.Text.RegularExpressions.Regex.Replace(System.IO.Path.GetFileNameWithoutExtension(NewRuleOutputFilename), "\..*", "")) '.StartsWith(System.IO.Path.GetFileNameWithoutExtension(SystemFilename)))
+        	End If
+			If Not OldVersions Is Nothing Then 'there exist files already
+				If Not OldVersions.Count = 0 Then 'there are files that match the file we are trying to save.
+			        Try
+			            'if there's more than 10 files in the OldVersions subfolder, delete the oldest one
+			            If OldVersions.Count > oProject.OldVersionsToKeep And Not oProject.OldVersionsToKeep = -1 Then '< this could be the project's number of versions to keep setting..?
+							FileSystem.DeleteFile(OldVersions.First().FullName,UIOption.OnlyErrorDialogs,RecycleOption.SendToRecycleBin)
+			            End If
+			            Dim NewestOldVersion As FileInfo = OldVersions.Last()
+			            Dim NewestOldVersionFilename As String = System.IO.Path.GetFileNameWithoutExtension(NewestOldVersion.FullName)
+			            Dim NewestOldVersionNumber As Integer = 0
+			            NewestOldVersionNumber = System.Text.RegularExpressions.Regex.Replace(NewestOldVersionFilename, ".*\.", "")
+			            NewestOldVersionNumber = Convert.ToInt32(NewestOldVersionNumber)
+			            NewestOldVersionNumber = NewestOldVersionNumber + 1
+			            'create a new filename for the old version
+			            Dim OldVersionFilename As String = OldVersionsFolder & System.IO.Path.GetFileNameWithoutExtension(NewRuleOutputFilename) & "." & NewestOldVersionNumber.ToString("000") & ext
+			            'copy the old version to the old versions subfolder
+			            System.IO.File.Copy(NewRuleOutputFilename, OldVersionFilename)
+			        Catch ex As Exception
+			            'if there was an error, log it
+			            Logger.Error("Error while trying to copy the old version of the system: " & ex.Message)
+			        End Try
+				Else
+					'move the current SystemFilename to OldVersions and rename it with an incrementing integer
+		        	System.IO.File.Move(NewRuleOutputFilename, OldVersionsFolder & OldVersionsFilenameWithoutExt & ext)	
+				End If
+				NewRuleOutput = System.IO.File.CreateText(NewRuleOutputFilename)
+				NewRuleOutput.Write(rule.Text)
+'				iLogicVb.Automation.ParametersXmlSave(ThisDoc.Document, SystemFilename, XmlSaveOption.KeysOnly)
+			Else
+				'move the current SystemFilename to OldVersions and rename it with an incrementing integer
+		        System.IO.File.Move(NewRuleOutputFilename, OldVersionsFolder & OldVersionsFilenameWithoutExt & ext)
+				NewRuleOutput.Write(rule.Text)
+'				iLogicVb.Automation.ParametersXmlSave(ThisDoc.Document, SystemFilename, XmlSaveOption.KeysOnly)
+'				Logger.Info("Parameters exported to: " & SystemFilename.Replace(WorkspaceFolderName, "$Workspace"))
+'				Parameter.Value("FormStatusBarLabel") = "Parameters exported to: " & SystemFilename.Replace(WorkspaceFolderName, "$Workspace")
+			End If
+		Else
+			NewRuleOutput = System.IO.File.CreateText(NewRuleOutputFilename)
+			NewRuleOutput.Write(rule.Text)
+		End If
+		NewRuleOutput.Close
+	Next
+End Sub
+
+Public iLogicObject As IiLogicAutomation
+Public oDesignProjectMgr As DesignProjectManager = Nothing
+Public oProject As DesignProject = Nothing
+
+''' <summary>
+''' Borrowed from my own iLogic ;-)
+''' </summary>
+''' <returns></returns>
+Private Function getOneDriveFolderPath() As String
+    Dim value1 = Registry.GetValue("HKEY_CURRENT_USER\Software\Microsoft\SkyDrive", "UserFolder", Nothing)
+    Dim path1 = TryCast(value1, String)
+    If path1 IsNot Nothing AndAlso System.IO.Directory.Exists(path1) Then Return path1
+    Dim value2 = Registry.GetValue("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\SkyDrive", "UserFolder", Nothing)
+    Dim path2 = TryCast(value2, String)
+    If path2 IsNot Nothing AndAlso System.IO.Directory.Exists(path2) Then Return path2
+    Dim value3 = Registry.GetValue("HKEY_CURRENT_USER\Software\Microsoft\OneDrive", "UserFolder", Nothing)
+    Dim path3 = TryCast(value3, String)
+    If path3 IsNot Nothing AndAlso System.IO.Directory.Exists(path3) Then Return path3
+    Return Nothing
+End Function
+
+''' <summary>
+''' copied from here: https://github.com/MegaJerk/iLogicCodeInjector/blob/76971218286ff2a859fd02f8b67dc39547c034d4/Code%20Injector%20Project/Code%20Injector/RuleFromFileForm.vb#L49
+''' </summary>
+''' <param name="oApplication"></param>
+''' <returns></returns>
+Function GetiLogicAddin(ByVal oApplication As Inventor.Application) As IiLogicAutomation 
+        Dim addIns As ApplicationAddIns
+        addIns = oApplication.ApplicationAddIns
+
+        Dim addIn As ApplicationAddIn
+        On Error GoTo NotFound
+        addIn = oApplication.ApplicationAddIns.ItemById("{3bdd8d79-2179-4b11-8a5a-257b1c0263ac}")
+
+        If (addIn Is Nothing) Then
+            Return Nothing
+            Exit Function
+        End If
+
+        addIn.Activate()
+        GetiLogicAddin = addIn.Automation
+        Exit Function
+NotFound:
+    End Function
