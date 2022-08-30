@@ -1,0 +1,119 @@
+
+'requires: a rectangular hole pattern and a sketch called Boundary containing a closed 
+'spline path or polygon shape
+
+Sub Main()
+
+	Dim oDoc As PartDocument = TryCast(ThisDoc.Document, PartDocument)
+	If oDoc Is Nothing Then
+      MessageBox.Show("This rule works with part documents only.", "iLogic Rule", _
+        MessageBoxButtons.OK, MessageBoxIcon.Warning)
+      Exit Sub
+    End If
+	Dim oDef As PartComponentDefinition = oDoc.ComponentDefinition
+	
+	'this rule works with only one rect. pattern only
+	'provided directly by item number
+	Dim oPattern As RectangularPatternFeature _
+		= oDef.Features.RectangularPatternFeatures.Item(1)
+	
+	'restore all pattern elements in order to get access to their faces
+	For Each oElt As FeaturePatternElement In oPattern.PatternElements
+		If oElt.Suppressed Then oElt.Suppressed = False
+	Next
+	oDoc.Update()
+	ThisApplication.ActiveView.Update
+	Beep
+	
+	Dim oBoundarySketch As PlanarSketch = oDef.Sketches.Item("Boundary")
+	
+	'temporary sketch for profile
+	Dim oSketch As PlanarSketch = oDef.Sketches.Add(oBoundarySketch.PlanarEntity,False)
+	oSketch.Visible = False
+	
+	'project boundary
+	For Each oE As SketchEntity In oBoundarySketch.SketchEntities
+		Call oSketch.AddByProjectingEntity(oE)
+	Next
+	
+	'project parent hole
+	Dim oHole As HoleFeature = TryCast(oPattern.ParentFeatures.Item(1), HoleFeature)
+	If oHole Is Nothing Then
+		MessageBox.Show("This rule works with hole feature pattern only.", "iLogic Rule", _
+			MessageBoxButtons.OK, MessageBoxIcon.Warning)
+		Exit Sub
+	End If
+	Dim oEdge As Edge = oHole.SideFaces.Item(1).Edges.Item(1)
+	Call oSketch.AddByProjectingEntity(oEdge)
+	
+	'project holes pattern
+	For Each oElt As FeaturePatternElement In oPattern.PatternElements
+		If oElt.Faces.Count > 0 Then
+			oEdge = oElt.Faces.Item(1).Edges.Item(1)
+			Call oSketch.AddByProjectingEntity(oEdge)
+		End If
+	Next
+	
+	' Create a profile.
+	Dim oProfile As Profile = oSketch.Profiles.AddForSolid(True)
+	
+	For Each oPath As ProfilePath In oProfile
+		If oPath.Count = 1 Then
+			Dim oPE As ProfileEntity = oPath.Item(1)
+			If oPE.CurveType = Curve2dTypeEnum.kCircleCurve2d Then
+				Dim oSkE As SketchEntity = oPE.SketchEntity
+				Dim oGreenCircle As SketchCircle = CType(oSkE, SketchCircle)
+				Dim oFPE As FeaturePatternElement = GetEltByGreenCircle(oGreenCircle)
+				If oFPE IsNot Nothing Then
+					If oPath.AddsMaterial = True Then
+					oFPE.Suppressed = True 'should be suppressed
+					End If
+				End If
+			End If
+		End If
+	Next
+	'delete temporary sketch
+	oSketch.Delete()
+	oDoc.Update()
+	Beep()
+End Sub
+
+
+Function GetEltByGreenCircle( _
+  ByRef oGreenCircle As SketchCircle) As FeaturePatternElement
+	'returns FPE corresponding to the given SketchCircle object
+	
+	If oGreenCircle Is Nothing Then Return Nothing	
+	Dim oEdge As Edge
+	Try
+		oEdge = CType(oGreenCircle.ReferencedEntity, Edges).Item(1)
+	Catch ex As Exception
+		Return Nothing
+	End Try
+	
+	Dim oFace As Face
+	If oEdge.Faces.Item(1).SurfaceType = SurfaceTypeEnum.kCylinderSurface Then
+		oFace = oEdge.Faces.Item(1)
+	Else
+		oFace = oEdge.Faces.Item(2)
+	End If
+	
+	If oFace.CreatedByFeature.Type = ObjectTypeEnum.kHoleFeatureObject Then
+		Return Nothing
+	End If
+	
+	Dim lKey As Long = oFace.TransientKey
+	
+	Dim oPattern As RectangularPatternFeature _
+		= CType(oFace.CreatedByFeature, RectangularPatternFeature)
+	
+	For Each oElt As FeaturePatternElement In oPattern.PatternElements
+		If oElt.Faces.Count > 0 Then
+			If lKey = oElt.Faces.Item(1).TransientKey Then
+				Return oElt
+			End If
+		End If
+	Next
+	Return Nothing
+End Function 'GetEltByGreenCircle
+
