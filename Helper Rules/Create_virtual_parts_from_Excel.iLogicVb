@@ -73,7 +73,7 @@ Private Sub insertdummyfiles
 			Dim PosnMatrix As Matrix
 			PosnMatrix = ThisApplication.TransientGeometry.CreateMatrix
 			linereached = 66
-			Dim basefilename = ProjectRootFolder & "\Graitec\DT-PINK_DISC-000.ipt"
+			Dim basefilename = ProjectRootFolder & "\DT-PINK_DISC-000.ipt"
 			Dim newfilename As String = SelectedProjectFolder & "\" & PartNum & ".ipt"
 			'		MessageBox.Show(newfilename, "Title") 'for debuggering!
 			'		Exit Sub

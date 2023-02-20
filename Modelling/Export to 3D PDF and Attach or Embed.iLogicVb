@@ -87,11 +87,11 @@ Sub Main
         'STEPFileOptions.Value("ApplicationProtocolType") = 3 '(AP214IS)
         'STEPFileOptions.Value("ApplicationProtocolType") = 4 '(AP242)
         STEPFileOptions.Value("Author") = ThisApplication.UserName
-        STEPFileOptions.Value("Authorization") = "Graitec"
+        STEPFileOptions.Value("Authorization") = "My"
         STEPFileOptions.Value("Description") = iProperties.Value("Project", "Description")
         STEPFileOptions.Value("ExportFitTolerance") = 0.001
         STEPFileOptions.Value("IncludeSketches") = False
-        STEPFileOptions.Value("Organization") = "Graitec"
+        STEPFileOptions.Value("Organization") = "My"
         oOptions.Value("STEPFileOptions") = STEPFileOptions
     End If
     ' End of Step file options =======================================
@@ -104,9 +104,9 @@ Sub Main
     If AttachFileAsOLE(oDocument, oOptions.Value("FileOutputLocation"), Embed) = True Then ' Operation succeeded...
         Select Case Embed
             Case True
-                MsgBox("3D PDF successfully embedded", 64, "Graitec")    
+                MsgBox("3D PDF successfully embedded", 64, "My")    
             Case False
-                MsgBox("3D PDF successfully attached as a link", 64, "Graitec")
+                MsgBox("3D PDF successfully attached as a link", 64, "My")
         End Select
     Else ' Operation failed...user has already been notified...
     End If

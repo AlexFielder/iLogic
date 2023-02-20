@@ -1,0 +1,4 @@
+﻿'Loads the My part creator
+Sub Main()
+	iLogicForm.ShowGlobal("My Creator")
+End Sub
