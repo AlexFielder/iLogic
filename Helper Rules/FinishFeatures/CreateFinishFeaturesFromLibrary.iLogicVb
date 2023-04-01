@@ -1,0 +1,42 @@
+﻿Sub Main
+	
+	' Get a feature selection from the user
+    Dim oObject As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartFaceFilter, "Pick a face")
+	Dim oGeometries As FaceCollection = ThisApplication.TransientObjects.CreateFaceCollection
+    
+	oGeometries.Add(oObject)
+	
+	Dim AssetLibraryList As List(Of String) = (From AL As AssetLibrary In ThisApplication.AssetLibraries
+											Select AL.DisplayName).ToList()
+	
+	Dim SelectedLibrary As String = InputListBox("Select an existing, connected Asset Library:", AssetLibraryList, Nothing, Title := "Inventor Asset Libraries", ListName := "Library List")
+	
+	If SelectedLibrary = "" Then Throw New Exception("You didn't pick anything!")
+		
+	CreateFinishFeaturesForLibrary(SelectedLibrary, oGeometries)
+	
+End Sub
+
+Public Sub CreateFinishFeaturesForLibrary(ByVal libraryName As String, ByVal oGeometries As FaceCollection, Optional ProcessName As String = "")
+    If Not TypeOf ThisApplication.ActiveDocument Is PartDocument Then Throw New Exception("NOt a part file!")
+	
+	Dim oPartDoc As PartDocument = ThisApplication.ActiveDocument
+	
+    Dim oCompDef As PartComponentDefinition = oPartDoc.ComponentDefinition
+    Dim oFinishFeatures As FinishFeatures = oCompDef.Features.FinishFeatures
+
+    Dim oAppearanceLibrary As AssetLibrary = ThisApplication.AssetLibraries(libraryName)
+	
+	Dim i As Integer = 0
+	
+    For Each oAppearanceAsset As Asset In oAppearanceLibrary.AppearanceAssets
+		if i = 10 then exit for
+        Dim oAppearanceName As String = oAppearanceAsset.DisplayName
+        Dim oAppearance As Asset = oAppearanceAsset.CopyTo(oPartDoc)
+        Dim oFinishDef As FinishDefinition = oFinishFeatures.CreateFinishDefinition(oGeometries, FinishTypeEnum.kAppearanceFinishType, ProcessName, oAppearance)
+        Dim myFinishFeature As FinishFeature = oFinishFeatures.Add(oFinishDef)
+		myFinishFeature.Name = oAppearance.DisplayName
+		i += 1
+    Next
+
+End Sub

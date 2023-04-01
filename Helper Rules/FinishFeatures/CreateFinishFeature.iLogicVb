@@ -1,0 +1,50 @@
+﻿Sub Main
+	
+	' Get a feature selection from the user
+    Dim oObject As Object = ThisApplication.CommandManager.Pick(SelectionFilterEnum.kPartFaceFilter, "Pick a face")
+	Dim oGeometries As FaceCollection = ThisApplication.TransientObjects.CreateFaceCollection
+    
+	oGeometries.Add(oObject)
+	
+	Dim AssetLibraryList As List(Of String) = (From AL As AssetLibrary In ThisApplication.AssetLibraries
+											Select AL.DisplayName).ToList()
+	
+	Dim SelectedLibrary As String = InputListBox("Select an existing, connected Asset Library:", AssetLibraryList, Nothing, Title := "Inventor Asset Libraries", ListName := "Library List")
+	
+	If SelectedLibrary = "" Then Throw New Exception("You didn't pick anything!")
+		
+	Dim AssetList As List(Of String) = (From APP As Asset In ThisApplication.AssetLibraries(SelectedLibrary).AppearanceAssets
+												Select APP.DisplayName).ToList()
+	
+	Dim SelectedAsset = InputListBox("Select an Appearance:", AssetList, Nothing, Title := SelectedLibrary & " Assets", ListName := "AssetList")
+
+	If SelectedAsset = "" Then Throw New Exception("You didn't pick anything!")
+	
+	Dim myFinishFeature As FinishFeature = CreateFinishFeature(SelectedLibrary, SelectedAsset, oGeometries, "Powder Coating")
+
+	'Or
+
+'	myFinishFeature = CreateFinishFeature("RAL Library", "Red", oGeometries)
+End Sub
+
+Public Function CreateFinishFeature(ByVal AppearanceLibraryName As String, ByVal AppearanceName As String, ByVal oGeometries As FaceCollection, Optional ProcessName As String = "") As FinishFeature
+    If Not TypeOf ThisApplication.ActiveDocument Is PartDocument Then Throw New Exception("NOt a part file!")
+	
+	Dim oPartDoc As PartDocument = ThisApplication.ActiveDocument
+    Dim oCompDef As PartComponentDefinition = oPartDoc.ComponentDefinition
+    
+    ' Get an appearance asset from the specified library
+    Dim oAppearance As Asset = ThisApplication.AssetLibraries(AppearanceLibraryName).AppearanceAssets(AppearanceName).CopyTo(oPartDoc)
+    Dim oFinishFeatures As FinishFeatures = oCompDef.Features.FinishFeatures
+    Dim oFinishDef As FinishDefinition 
+    If ProcessName IsNot Nothing Then
+        oFinishDef = oFinishFeatures.CreateFinishDefinition(oGeometries, FinishTypeEnum.kAppearanceFinishType, ProcessName, oAppearance)
+    Else
+        oFinishDef = oFinishFeatures.CreateFinishDefinition(oGeometries, FinishTypeEnum.kAppearanceFinishType, , oAppearance)
+    End If
+    Dim myFinishFeature As FinishFeature = oFinishFeatures.Add(oFinishDef)
+	
+	myFinishFeature.Name = IIf(ProcessNAme = "", AppearanceName, AppearanceName & " - " & ProcessName)
+    
+    Return myFinishFeature
+End Function
