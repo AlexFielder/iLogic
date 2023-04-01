@@ -10,7 +10,7 @@ Sub main()
 		
 		Dim ListOfStatesToCreate As List(Of String) = (From node As BrowserNode In oTopNode.BrowserNodes
 														Let NodeDef As BrowserNodeDefinition = node.BrowserNodeDefinition
-														Where NodeDef.Label.Contains("Cleat:1") And Not NodeDef.Label.Contains(": ")
+														Where NodeDef.Label.Contains("channel") And Not NodeDef.Label.Contains(": ")
 														Select System.Text.RegularExpressions.Regex.Replace(nodedef.Label,":.*","")).ToList()
 		'debugging ^
 		For Each Str As String In ListOfStatesToCreate

@@ -3,12 +3,12 @@ Imports System.Linq
 Imports System.Collections.Generic
 Public Sub Main()
 If ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
-	Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Auto Extrude")
+	'Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(ThisApplication.ActiveDocument, "Auto Extrude")
 	Try
 	ExtrudeFeature(ThisApplication.ActiveDocument)
-	trans.End()
+'	trans.End()
 	Catch ex As Exception
-		trans.Abort
+'		trans.Abort
 		MessageBox.Show("the error was: " & ex.Message)
 	End Try
 	'Draw_Rectangle()
@@ -172,7 +172,7 @@ Public Sub ExtrudeFeature(ByVal ActiveDoc As Document)
 	Dim objColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
 	objColl.Add(oExtrude2)
 
-	Dim oRotation As String = PatternRotation '360 * 0.0174533
+	Dim oRotation As String = Parameter("PatternRotation") '360 * 0.0174533
 	'MessageBox.Show(oRotation)
 	Dim circularPatternDef As CircularPatternFeatureDefinition = oCompDef.Features.CircularPatternFeatures.CreateDefinition( _
 																objColl, oCompDef.WorkAxes("Z Axis"), False, 4, "PatternRotation") 'oRotation)
@@ -205,7 +205,7 @@ Public Sub ExtrudeFeature(ByVal ActiveDoc As Document)
 	
 'Centre Hole
 	Dim holeDef As HolePlacementDefinition = oCompDef.Features.HoleFeatures.CreatePointPlacementDefinition(oOriginWP, oCompDef.WorkAxes(3))
-	Dim ThruHole As HoleFeature = oCompDef.Features.HoleFeatures.AddDrilledByThroughAllExtent(holeDef, HoleDia / 10, PartFeatureExtentDirectionEnum.kPositiveExtentDirection)
+	Dim ThruHole As HoleFeature = oCompDef.Features.HoleFeatures.AddDrilledByThroughAllExtent(holeDef, Parameter("HoleDia"), PartFeatureExtentDirectionEnum.kPositiveExtentDirection)
 	Dim bodiesColl As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection
 	bodiesColl.Add(oCompDef.SurfaceBodies(1))
 	ThruHole.SetAffectedBodies(bodiesColl)
@@ -230,9 +230,9 @@ Public Sub ExtrudeFeature(ByVal ActiveDoc As Document)
 '    ' Hence, no need to move the end of part.
 '    Call oExtrude2.Definition.SetDistanceExtent(0.25, kNegativeExtentDirection)
 
-iProperties.Value("Custom", "Vault Category") = Parameter("VaultCategory")
-iProperties.Value("Custom", "MFG Code") = Parameter("MFGCode")
-iProperties.Value("Custom", "Customer Name") = Parameter("CustomerName")
+'iProperties.Value("Custom", "Vault Category") = Parameter("VaultCategory")
+'iProperties.Value("Custom", "MFG Code") = Parameter("MFGCode")
+'iProperties.Value("Custom", "Customer Name") = Parameter("CustomerName")
 
 
 ThisApplication.ActiveView.Fit
