@@ -1,5 +1,6 @@
 ﻿'''
 ''' ChatGPT-modified 2023-05-11 using GPT-4 based on this rule:
+''' https://raw.githubusercontent.com/AlexFielder/iLogic/master/Modelling/Turn%20On-Off%20all%20Workfeatures%20in%20an%20Assembly.iLogicVb
 ''' 
 Sub Main()
     'user feedback tools start
