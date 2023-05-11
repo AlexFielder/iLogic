@@ -1,0 +1,128 @@
+﻿'''
+''' ChatGPT-modified 2023-05-11 using GPT-4 based on this rule:
+''' 
+Sub Main()
+    'user feedback tools start
+    Dim sw As New Stopwatch()
+    sw.Start()
+    'get user input as True or False
+    Dim Assyboolean As Boolean = InputRadioBox("Turn all Work Features On/Off", "On", "Off", False, "iLogic")
+
+    If ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
+        ToggleParts(ThisApplication.ActiveDocument, Assyboolean)
+    ElseIf ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kAssemblyDocumentObject Then
+        Dim oAssyDoc As AssemblyDocument = ThisApplication.ActiveDocument
+        Dim oSelectSet As SelectSet = oAssyDoc.SelectSet
+        ToggleSelectedComponents(oAssyDoc, oSelectSet, Assyboolean)
+    End If
+    sw.Stop()
+    Dim timeElapsed As TimeSpan = sw.Elapsed
+    MessageBox.Show("Processing took: " & String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                                                        timeElapsed.Hours,
+                                                        timeElapsed.Minutes,
+                                                        timeElapsed.Seconds,
+                                                        timeElapsed.Milliseconds / 10))
+End Sub
+
+
+''' <summary>
+''' ChatGPT-generated 2023-05-11 using GPT-4
+''' </summary>
+''' <param name="oAssyDoc"></param>
+''' <param name="oSelectSet"></param>
+''' <param name="wfBoolean"></param>
+Sub ToggleSelectedComponents(ByVal oAssyDoc As AssemblyDocument, ByVal oSelectSet As SelectSet, ByVal wfBoolean As Boolean)
+    Dim oSelectedComponent As ComponentOccurrence
+    For Each oSelectedComponent In oSelectSet
+        Dim oReferencedDoc As Document = oSelectedComponent.Definition.Document
+        If TypeOf oReferencedDoc Is PartDocument Then
+            ToggleParts(oReferencedDoc, wfBoolean)
+        ElseIf TypeOf oReferencedDoc Is AssemblyDocument Then
+            ToggleAssemblies(oReferencedDoc, wfBoolean)
+        End If
+    Next
+    InventorVb.DocumentUpdate()
+End Sub
+
+
+Sub ToggleAssemblies(ByVal oAssyDoc As AssemblyDocument, ByVal wfBoolean As Boolean)
+    'Toggle this document
+    'set work plane visibility
+    For Each oWorkPlane In oAssyDoc.ComponentDefinition.WorkPlanes
+        oWorkPlane.Visible = wfBoolean
+    Next
+
+    'set work axis visibility
+    For Each oWorkAxis In oAssyDoc.ComponentDefinition.WorkAxes
+        oWorkAxis.Visible = wfBoolean
+    Next
+
+    'set work point visibility
+    For Each oWorkPoint In oAssyDoc.ComponentDefinition.WorkPoints
+        oWorkPoint.Visible = wfBoolean
+    Next
+    'Check all referenced docs
+    Dim oDoc As Inventor.Document
+    For Each oDoc In oAssyDoc.AllReferencedDocuments
+        If TypeOf oDoc Is PartDocument Then
+            ToggleParts(oDoc, wfBoolean)
+        Else
+            'set work plane visibility
+            For Each oWorkPlane In oDoc.ComponentDefinition.WorkPlanes
+                oWorkPlane.Visible = wfBoolean
+            Next
+
+            'set work axis visibility
+            For Each oWorkAxis In oDoc.ComponentDefinition.WorkAxes
+                oWorkAxis.Visible = wfBoolean
+            Next
+
+            'set work point visibility
+            For Each oWorkPoint In oDoc.ComponentDefinition.WorkPoints
+                oWorkPoint.Visible = wfBoolean
+            Next
+            ToggleAssemblies(oDoc, wfBoolean)
+        End If
+    Next
+    'update the files
+    InventorVb.DocumentUpdate()
+End Sub
+
+Sub ToggleParts(ByVal oDoc As Document, ByVal wfBoolean As Boolean)
+    Dim PartDoc As PartDocument = oDoc
+    ''get user input as True or False
+    '    Dim partboolean As Boolean = Nothing
+    '    If wfBoolean = Nothing Then
+    '        partboolean = InputRadioBox("Turn all Work Features On/Off", "On", "Off", False, "iLogic")
+    '    Else
+    '        partboolean = wfBoolean
+    '    End If
+    For Each oWorkPlane In PartDoc.ComponentDefinition.WorkPlanes
+        oWorkPlane.Visible = wfBoolean
+    Next
+    'set work axis visibility
+    For Each oWorkAxis In PartDoc.ComponentDefinition.WorkAxes
+        oWorkAxis.Visible = wfBoolean
+    Next
+    'set work point visibility
+    For Each oWorkPoint In PartDoc.ComponentDefinition.WorkPoints
+        oWorkPoint.Visible = wfBoolean
+    Next
+    togglePartSketches(oDoc, wfBoolean)
+    InventorVb.DocumentUpdate()
+End Sub
+
+Sub togglePartSketches(ByVal doc As Document, ByVal wfBoolean As Boolean)
+    For Each o2DSketch As Sketch In doc.ComponentDefinition.Sketches
+        o2DSketch.Visible = wfBoolean
+    Next
+
+    For Each o3DSketch As Sketch3D In doc.ComponentDefinition.Sketches3D
+        o3DSketch.Visible = wfBoolean
+    Next
+
+    'wfBoolean = InputRadioBox("Toggle Sketch Dimension display On/Off", "On", "Off", False, "iLogic")
+    For Each o2DSketch As Sketch In doc.ComponentDefinition.Sketches
+        o2DSketch.DimensionsVisible = wfBoolean
+    Next
+End Sub
