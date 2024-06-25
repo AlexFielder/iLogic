@@ -17,7 +17,6 @@ Private Sub BeginExportFileStagesToStep()
 		Dim oPartDef As SheetMetalComponentDefinition = Nothing
 		Dim oSheetMetalFeatures As SheetMetalFeatures = Nothing
 
-		'get the Model browser
 		Dim TopNode As BrowserNode = Nothing
 		
 		If TypeOf oPartDoc.ComponentDefinition Is SheetMetalComponentDefinition Then
@@ -26,9 +25,7 @@ Private Sub BeginExportFileStagesToStep()
 			Break
 			TopNode = oPartDoc.BrowserPanes("Model").TopNode
 			TopNode = TopNode.BrowserNodes("Folded Model")
-'						(From no As BrowserNode In TopNode.BrowserNodes
-'						Where no.BrowserNodeDefinition.Label = "Folded Model"
-'						Select no).FirstOrDefault()
+
 			If TopNode Is Nothing Then
 				Throw New Exception("Unable to locate Folded Model Browser Node, exiting...")
 			End If
@@ -45,27 +42,10 @@ Private Sub BeginExportFileStagesToStep()
 				Dim oNativeObject As Object = obrowsernode.BrowserNodeDefinition.NativeObject
 
 				If TypeOf oNativeObject Is PartFeature Then
-					'uncomment the following line for debugging purposes. Do NOT leave it uncommented if you run this on a complex part file.
-					'MessageBox.Show("Feature name is: " + obrowsernode.BrowserNodeDefinition.Label, "Featurenode Names")
 					Dim oFeature As PartFeature = oNativeObject
 					oFeature.SetEndOfPart(False)
-					'insert export to step code here!
+
 					ExportToStep(oFeature.Name)
-'				Else 'If TypeOf oNativeObject Is oSheetMetalFeatures.Item Then
-'					Try
-'						Break
-'						Dim oSMFeature As PartFeature = (From b In oSheetMetalFeatures
-'													Where b = oNativeObject
-'													Select b)
-'						If oSMFeature IsNot Nothing Then
-'							Break
-'							oSMFeature.SetEndOfPart(False)
-'							ExportToStep(oSMFeature.Name)
-'						End If
-'					Catch ex As Exception
-'						Logger.Error(ex.Message)
-'						Continue For
-'					End Try
 				End If
 			End If
 		Next
