@@ -1,4 +1,5 @@
-﻿Private Sub Main()
+﻿Imports System.Linq
+Private Sub Main()
 Call BeginExportFileStagesToStep
 End Sub
 
@@ -12,12 +13,37 @@ Private Sub BeginExportFileStagesToStep()
 		& vbCrLf & "Click 'No' to expand" _ 
 		, vbYesNo, "EOP Move and Step export")
 	If EOPQuery = vbYes Then
-		oPartDoc.ComponentDefinition.SetEndOfPartToTopOrBottom (True) ' Set to top
+		oPartDoc.ComponentDefinition.SetEndOfPartToTopOrBottom(True) ' Set to top
+		Dim oPartDef As SheetMetalComponentDefinition = Nothing
+		Dim oSheetMetalFeatures As SheetMetalFeatures = Nothing
+
 		'get the Model browser
-		Dim TopNode As BrowserNode = oPartDoc.BrowserPanes("Model").TopNode
+		Dim TopNode As BrowserNode = Nothing
+		
+		If TypeOf oPartDoc.ComponentDefinition Is SheetMetalComponentDefinition Then
+			oPartDef = oPartDoc.ComponentDefinition
+			oSheetMetalFeatures = oPartDef.Features
+			Break
+			TopNode = oPartDoc.BrowserPanes("Model").TopNode
+			TopNode = TopNode.BrowserNodes("Folded Model")
+'						(From no As BrowserNode In TopNode.BrowserNodes
+'						Where no.BrowserNodeDefinition.Label = "Folded Model"
+'						Select no).FirstOrDefault()
+			If TopNode Is Nothing Then
+				Throw New Exception("Unable to locate Folded Model Browser Node, exiting...")
+			End If
+		Else
+			TopNode = oPartDoc.BrowserPanes("Model").TopNode
+		End If
+		
 		For Each obrowsernode As BrowserNode In TopNode.BrowserNodes
-			If Not obrowsernode.BrowserNodeDefinition.Label.Contains("View") And Not obrowsernode.BrowserNodeDefinition.Label.Contains("Origin") And Not obrowsernode.BrowserNodeDefinition.Label.Contains("Table") And Not 		obrowsernode.BrowserNodeDefinition.Label.Contains("iMates") And Not obrowsernode.BrowserNodeDefinition.Label.Contains("Solid Bodies") Then
+			Break
+			Logger.Debug(obrowsernode.BrowserNodeDefinition.Label)
+			If Not obrowsernode.BrowserNodeDefinition.Label.Contains("View") And Not obrowsernode.BrowserNodeDefinition.Label.Contains("Origin") _
+				And Not obrowsernode.BrowserNodeDefinition.Label.Contains("Table") And Not obrowsernode.BrowserNodeDefinition.Label.Contains("iMates") _
+				And Not obrowsernode.BrowserNodeDefinition.Label.Contains("Bodies") And Not obrowsernode.BrowserNodeDefinition.Label.Contains("Blocks") Then
 				Dim oNativeObject As Object = obrowsernode.BrowserNodeDefinition.NativeObject
+
 				If TypeOf oNativeObject Is PartFeature Then
 					'uncomment the following line for debugging purposes. Do NOT leave it uncommented if you run this on a complex part file.
 					'MessageBox.Show("Feature name is: " + obrowsernode.BrowserNodeDefinition.Label, "Featurenode Names")
@@ -25,6 +51,21 @@ Private Sub BeginExportFileStagesToStep()
 					oFeature.SetEndOfPart(False)
 					'insert export to step code here!
 					ExportToStep(oFeature.Name)
+'				Else 'If TypeOf oNativeObject Is oSheetMetalFeatures.Item Then
+'					Try
+'						Break
+'						Dim oSMFeature As PartFeature = (From b In oSheetMetalFeatures
+'													Where b = oNativeObject
+'													Select b)
+'						If oSMFeature IsNot Nothing Then
+'							Break
+'							oSMFeature.SetEndOfPart(False)
+'							ExportToStep(oSMFeature.Name)
+'						End If
+'					Catch ex As Exception
+'						Logger.Error(ex.Message)
+'						Continue For
+'					End Try
 				End If
 			End If
 		Next
@@ -60,8 +101,8 @@ Private Sub ExportToStep(LastActiveFeatureName As String)
 End Sub
 
 Private Sub OpenAndSaveExportedStep(FileToOpenAndSave as string)
-Dim PartDocToSave as PartDocument = ThisApplication.Documents.Open(FileToOpenAndSave)
-ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
-PartDocToSave.SaveAs(System.IO.Path.Getfilenamewithoutextension(FileToOpenAndSave) & ".ipt",false)
-PartDocToSave.Close()
+	Dim PartDocToSave As PartDocument = ThisApplication.Documents.Open(FileToOpenAndSave)
+	ThisApplication.CommandManager.ControlDefinitions.Item("AppZoomallCmd").Execute
+	PartDocToSave.SaveAs(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(FileToOpenAndSave), System.IO.Path.GetFileNameWithoutExtension(FileToOpenAndSave) & ".ipt"),False)
+	PartDocToSave.Close()
 end sub
