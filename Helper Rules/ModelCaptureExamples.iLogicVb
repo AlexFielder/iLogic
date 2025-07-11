@@ -1,0 +1,207 @@
+﻿''' <summary>
+''' Example usage of the Model-Independent Capture system
+''' Demonstrates how to access captured model information programmatically
+''' without knowing specific parameter names in advance
+''' Author: AI Assistant for Issue #8
+''' </summary>
+
+AddVbFile "ModelIndependentCapture"
+
+Option Explicit On
+
+Sub Main()
+    Try
+        ' Example 1: Get all model information as array
+        ExampleArrayAccess()
+        
+        ' Example 2: Search for specific parameters
+        ExampleParameterSearch()
+        
+        ' Example 3: Process all parameters without knowing names
+        ExampleGenericParameterProcessing()
+        
+    Catch ex As Exception
+        MessageBox.Show("Error in demonstration: " & ex.Message, "Demo Error")
+    End Try
+End Sub
+
+''' <summary>
+''' Example 1: Basic array access as requested by the user
+''' </summary>
+Private Sub ExampleArrayAccess()
+    MessageBox.Show("Running Example 1: Basic Array Access", "Example 1")
+    
+    ' Get the model information array
+    Dim modelArray(,) As String = GetModelInfoArray()
+    
+    ' The array has the structure requested:
+    ' Column 0: Operation/Feature type
+    ' Column 1: Name of parameter/feature
+    ' Column 2: Value of parameter/feature
+    
+    Dim report As New System.Text.StringBuilder()
+    report.AppendLine("Example 1: Accessing Model Data Array")
+    report.AppendLine("=====================================")
+    report.AppendLine()
+    
+    ' Loop through all rows (skip header row)
+    For i As Integer = 1 To modelArray.GetLength(0) - 1
+        Dim operation As String = modelArray(i, 0)
+        Dim paramName As String = modelArray(i, 1)
+        Dim paramValue As String = modelArray(i, 2)
+        
+        ' This is the pattern the user wanted:
+        ' "going through all the rows of the array I can access each parameter 
+        ' without having to use the name given by the user"
+        
+        If operation = "Parameter" Then
+            report.AppendLine($"Found Parameter: {paramName} = {paramValue}")
+        End If
+    Next
+    
+    MessageBox.Show(report.ToString(), "Example 1 Results")
+End Sub
+
+''' <summary>
+''' Example 2: Search for parameters containing specific text
+''' </summary>
+Private Sub ExampleParameterSearch()
+    MessageBox.Show("Running Example 2: Parameter Search", "Example 2")
+    
+    Dim searchTerm As String = InputBox("Enter text to search for in parameter names:", "Search Parameters", "length")
+    If String.IsNullOrEmpty(searchTerm) Then Return
+    
+    Dim modelArray(,) As String = GetModelInfoArray()
+    Dim foundParams As New List(Of String)
+    
+    ' Search through the array without knowing parameter names in advance
+    For i As Integer = 1 To modelArray.GetLength(0) - 1
+        Dim operation As String = modelArray(i, 0)
+        Dim paramName As String = modelArray(i, 1)
+        Dim paramValue As String = modelArray(i, 2)
+        
+        If operation = "Parameter" AndAlso paramName.ToLower().Contains(searchTerm.ToLower()) Then
+            foundParams.Add($"{paramName} = {paramValue}")
+        End If
+    Next
+    
+    If foundParams.Count > 0 Then
+        Dim results As String = "Found parameters containing '" & searchTerm & "':" & vbCrLf & vbCrLf
+        results &= String.Join(vbCrLf, foundParams)
+        MessageBox.Show(results, "Search Results")
+    Else
+        MessageBox.Show($"No parameters found containing '{searchTerm}'", "Search Results")
+    End If
+End Sub
+
+''' <summary>
+''' Example 3: Generic parameter processing without hardcoded names
+''' </summary>
+Private Sub ExampleGenericParameterProcessing()
+    MessageBox.Show("Running Example 3: Generic Parameter Processing", "Example 3")
+    
+    Dim modelArray(,) As String = GetModelInfoArray()
+    
+    ' Statistics about the model
+    Dim parameterCount As Integer = 0
+    Dim featureCount As Integer = 0
+    Dim sketchCount As Integer = 0
+    Dim componentCount As Integer = 0
+    
+    Dim numericParams As New List(Of String)
+    Dim stringParams As New List(Of String)
+    
+    ' Process all entries without knowing specific names
+    For i As Integer = 1 To modelArray.GetLength(0) - 1
+        Dim operation As String = modelArray(i, 0)
+        Dim itemName As String = modelArray(i, 1)
+        Dim itemValue As String = modelArray(i, 2)
+        
+        Select Case operation
+            Case "Parameter"
+                parameterCount += 1
+                
+                ' Try to classify parameter type
+                Dim numValue As Double
+                If Double.TryParse(itemValue, numValue) Then
+                    numericParams.Add($"{itemName} = {itemValue}")
+                Else
+                    stringParams.Add($"{itemName} = {itemValue}")
+                End If
+                
+            Case "Feature"
+                featureCount += 1
+                
+            Case "Sketch"
+                sketchCount += 1
+                
+            Case "Component"
+                componentCount += 1
+        End Select
+    Next
+    
+    ' Generate report
+    Dim report As New System.Text.StringBuilder()
+    report.AppendLine("Model Analysis Report")
+    report.AppendLine("====================")
+    report.AppendLine()
+    report.AppendLine($"Total Parameters: {parameterCount}")
+    report.AppendLine($"- Numeric Parameters: {numericParams.Count}")
+    report.AppendLine($"- String Parameters: {stringParams.Count}")
+    report.AppendLine($"Total Features: {featureCount}")
+    report.AppendLine($"Total Sketches: {sketchCount}")
+    report.AppendLine($"Total Components: {componentCount}")
+    report.AppendLine()
+    
+    If numericParams.Count > 0 Then
+        report.AppendLine("Numeric Parameters Found:")
+        For Each param In numericParams.Take(5) ' Show first 5
+            report.AppendLine($"  {param}")
+        Next
+        If numericParams.Count > 5 Then
+            report.AppendLine($"  ... and {numericParams.Count - 5} more")
+        End If
+        report.AppendLine()
+    End If
+    
+    MessageBox.Show(report.ToString(), "Model Analysis")
+End Sub
+
+''' <summary>
+''' Example function showing how to find and modify parameters programmatically
+''' This demonstrates the user's goal of accessing parameters "without having to use the name given by the user"
+''' </summary>
+Public Sub ModifyParametersBasedOnPattern()
+    Try
+        Dim modelArray(,) As String = GetModelInfoArray()
+        Dim modifiedCount As Integer = 0
+        
+        ' Example: Find all length-related parameters and apply a scale factor
+        For i As Integer = 1 To modelArray.GetLength(0) - 1
+            Dim operation As String = modelArray(i, 0)
+            Dim paramName As String = modelArray(i, 1)
+            Dim paramValue As String = modelArray(i, 2)
+            
+            If operation = "Parameter" Then
+                ' Check if this looks like a length parameter
+                If paramName.ToLower().Contains("length") OrElse 
+                   paramName.ToLower().Contains("width") OrElse 
+                   paramName.ToLower().Contains("height") Then
+                    
+                    ' Try to parse as numeric value
+                    Dim numValue As Double
+                    If Double.TryParse(paramValue, numValue) Then
+                        ' This is where you could modify the parameter
+                        ' Parameter(paramName) = numValue * 1.1 ' Scale by 10%
+                        modifiedCount += 1
+                    End If
+                End If
+            End If
+        Next
+        
+        MessageBox.Show($"Found {modifiedCount} dimensional parameters that could be modified", "Parameter Modification Example")
+        
+    Catch ex As Exception
+        MessageBox.Show("Error in parameter modification example: " & ex.Message, "Error")
+    End Try
+End Sub

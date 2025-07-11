@@ -1,0 +1,419 @@
+﻿''' <summary>
+''' Model-independent information capture system for iLogic
+''' Automatically captures all parameters, features, and model information
+''' without requiring knowledge of specific parameter names
+''' Author: AI Assistant
+''' </summary>
+
+#Region "Data Structures"
+
+''' <summary>
+''' Represents a single model information entry with operation, name, and value
+''' </summary>
+Public Class ModelInfoEntry
+    Public Property Operation As String      ' Feature/Operation type
+    Public Property Name As String          ' Parameter/Feature name  
+    Public Property Value As String         ' Parameter/Feature value
+    Public Property DataType As String      ' Type of the data (String, Number, Boolean, etc.)
+    Public Property Category As String      ' Category (Parameter, Feature, iProperty, etc.)
+    
+    Public Sub New()
+    End Sub
+    
+    Public Sub New(op As String, nm As String, val As String, Optional dt As String = "String", Optional cat As String = "Unknown")
+        Operation = op
+        Name = nm
+        Value = val
+        DataType = dt
+        Category = cat
+    End Sub
+    
+    Public Overrides Function ToString() As String
+        Return String.Format("{0} | {1} | {2} | {3} | {4}", Category, Operation, Name, Value, DataType)
+    End Function
+End Class
+
+''' <summary>
+''' Main class for capturing and organizing model information
+''' </summary>
+Public Class ModelInfoCapture
+    Public Property ModelData As List(Of ModelInfoEntry)
+    Public Property DocumentType As String
+    Public Property DocumentName As String
+    Public Property CaptureTimestamp As DateTime
+    
+    Public Sub New()
+        ModelData = New List(Of ModelInfoEntry)()
+        CaptureTimestamp = DateTime.Now
+    End Sub
+    
+    ''' <summary>
+    ''' Captures all information from the currently active document
+    ''' </summary>
+    Public Sub CaptureModelInfo(Optional doc As Inventor.Document = Nothing)
+        If doc Is Nothing Then
+            doc = ThisApplication.ActiveDocument
+        End If
+        
+        DocumentName = System.IO.Path.GetFileNameWithoutExtension(doc.FullFileName)
+        DocumentType = doc.DocumentType.ToString()
+        
+        ' Clear existing data
+        ModelData.Clear()
+        
+        Try
+            ' Capture basic document info
+            CaptureDocumentInfo(doc)
+            
+            ' Capture based on document type
+            If TypeOf doc Is PartDocument Then
+                CapturePartInfo(CType(doc, PartDocument))
+            ElseIf TypeOf doc Is AssemblyDocument Then
+                CaptureAssemblyInfo(CType(doc, AssemblyDocument))
+            ElseIf TypeOf doc Is DrawingDocument Then
+                CaptureDrawingInfo(CType(doc, DrawingDocument))
+            End If
+            
+        Catch ex As Exception
+            AddEntry("ERROR", "CaptureModelInfo", ex.Message, "Error", "System")
+        End Try
+    End Sub
+    
+    ''' <summary>
+    ''' Captures basic document information common to all document types
+    ''' </summary>
+    Private Sub CaptureDocumentInfo(doc As Inventor.Document)
+        Try
+            AddEntry("Document", "FileName", doc.FullFileName, "String", "Document")
+            AddEntry("Document", "DocumentType", doc.DocumentType.ToString(), "String", "Document")
+            AddEntry("Document", "CreationTime", doc.CreationTime.ToString(), "DateTime", "Document")
+            AddEntry("Document", "ModifiedTime", doc.ModifiedTime.ToString(), "DateTime", "Document")
+            
+            ' Capture iProperties
+            CaptureiProperties(doc)
+            
+        Catch ex As Exception
+            AddEntry("ERROR", "CaptureDocumentInfo", ex.Message, "Error", "System")
+        End Try
+    End Sub
+    
+    ''' <summary>
+    ''' Captures iProperties from the document
+    ''' </summary>
+    Private Sub CaptureiProperties(doc As Inventor.Document)
+        Try
+            For Each propSet As PropertySet In doc.PropertySets
+                For Each prop As Property In propSet
+                    Try
+                        Dim propValue As String = If(prop.Value IsNot Nothing, prop.Value.ToString(), "")
+                        AddEntry("iProperty", prop.DisplayName, propValue, GetDataType(prop.Value), "iProperty")
+                    Catch propEx As Exception
+                        AddEntry("iProperty", prop.DisplayName, "Error reading value", "Error", "iProperty")
+                    End Try
+                Next
+            Next
+        Catch ex As Exception
+            AddEntry("ERROR", "CaptureiProperties", ex.Message, "Error", "System")
+        End Try
+    End Sub
+    
+    ''' <summary>
+    ''' Captures information specific to Part documents
+    ''' </summary>
+    Private Sub CapturePartInfo(partDoc As PartDocument)
+        Try
+            Dim compDef As PartComponentDefinition = partDoc.ComponentDefinition
+            
+            ' Capture parameters
+            CaptureParameters(compDef.Parameters)
+            
+            ' Capture features
+            For Each feat As PartFeature In compDef.Features
+                Try
+                    AddEntry("Feature", feat.Name, feat.Type.ToString(), "Feature", "Feature")
+                    
+                    ' Capture feature parameters if available
+                    If feat.Definition IsNot Nothing Then
+                        CaptureFeatureParameters(feat)
+                    End If
+                Catch featEx As Exception
+                    AddEntry("Feature", feat.Name, "Error reading feature", "Error", "Feature")
+                End Try
+            Next
+            
+            ' Capture sketches
+            For Each sketch As PlanarSketch In compDef.Sketches
+                Try
+                    AddEntry("Sketch", sketch.Name, "Sketch", "Sketch", "Sketch")
+                Catch sketchEx As Exception
+                    AddEntry("Sketch", "Unknown", "Error reading sketch", "Error", "Sketch")
+                End Try
+            Next
+            
+        Catch ex As Exception
+            AddEntry("ERROR", "CapturePartInfo", ex.Message, "Error", "System")
+        End Try
+    End Sub
+    
+    ''' <summary>
+    ''' Captures information specific to Assembly documents
+    ''' </summary>
+    Private Sub CaptureAssemblyInfo(assyDoc As AssemblyDocument)
+        Try
+            Dim compDef As AssemblyComponentDefinition = assyDoc.ComponentDefinition
+            
+            ' Capture parameters
+            CaptureParameters(compDef.Parameters)
+            
+            ' Capture occurrences
+            For Each occ As ComponentOccurrence In compDef.Occurrences
+                Try
+                    AddEntry("Occurrence", occ.Name, occ.ReferencedDocumentDescriptor.FullDocumentName, "Occurrence", "Occurrence")
+                Catch occEx As Exception
+                    AddEntry("Occurrence", "Unknown", "Error reading occurrence", "Error", "Occurrence")
+                End Try
+            Next
+            
+            ' Capture constraints
+            For Each constraint As AssemblyConstraint In compDef.Constraints
+                Try
+                    AddEntry("Constraint", constraint.Name, constraint.Type.ToString(), "Constraint", "Constraint")
+                Catch constEx As Exception
+                    AddEntry("Constraint", "Unknown", "Error reading constraint", "Error", "Constraint")
+                End Try
+            Next
+            
+        Catch ex As Exception
+            AddEntry("ERROR", "CaptureAssemblyInfo", ex.Message, "Error", "System")
+        End Try
+    End Sub
+    
+    ''' <summary>
+    ''' Captures information specific to Drawing documents
+    ''' </summary>
+    Private Sub CaptureDrawingInfo(dwgDoc As DrawingDocument)
+        Try
+            ' Capture parameters
+            If dwgDoc.ComponentDefinition IsNot Nothing Then
+                CaptureParameters(dwgDoc.ComponentDefinition.Parameters)
+            End If
+            
+            ' Capture sheets
+            For Each sheet As Sheet In dwgDoc.Sheets
+                Try
+                    AddEntry("Sheet", sheet.Name, sheet.Size.ToString(), "Sheet", "Sheet")
+                Catch sheetEx As Exception
+                    AddEntry("Sheet", "Unknown", "Error reading sheet", "Error", "Sheet")
+                End Try
+            Next
+            
+        Catch ex As Exception
+            AddEntry("ERROR", "CaptureDrawingInfo", ex.Message, "Error", "System")
+        End Try
+    End Sub
+    
+    ''' <summary>
+    ''' Captures all parameters from the parameters collection
+    ''' </summary>
+    Private Sub CaptureParameters(params As Parameters)
+        Try
+            For Each param As Parameter In params
+                Try
+                    Dim paramValue As String = ""
+                    Dim paramType As String = param.ParameterType.ToString()
+                    
+                    ' Get parameter value based on type
+                    Select Case param.ParameterType
+                        Case ParameterTypeEnum.kUserParameter
+                            Dim userParam As UserParameter = CType(param, UserParameter)
+                            paramValue = userParam.Expression
+                        Case ParameterTypeEnum.kModelParameter
+                            Dim modelParam As ModelParameter = CType(param, ModelParameter)
+                            paramValue = modelParam.Expression
+                        Case ParameterTypeEnum.kReferenceParameter
+                            Dim refParam As ReferenceParameter = CType(param, ReferenceParameter)
+                            paramValue = refParam.Expression
+                        Case ParameterTypeEnum.kDerivedParameter
+                            Dim derivedParam As DerivedParameter = CType(param, DerivedParameter)
+                            paramValue = derivedParam.Expression
+                        Case Else
+                            paramValue = "Unsupported parameter type"
+                    End Select
+                    
+                    AddEntry("Parameter", param.Name, paramValue, paramType, "Parameter")
+                    
+                Catch paramEx As Exception
+                    AddEntry("Parameter", param.Name, "Error reading parameter", "Error", "Parameter")
+                End Try
+            Next
+        Catch ex As Exception
+            AddEntry("ERROR", "CaptureParameters", ex.Message, "Error", "System")
+        End Try
+    End Sub
+    
+    ''' <summary>
+    ''' Captures parameters from feature definitions
+    ''' </summary>
+    Private Sub CaptureFeatureParameters(feat As PartFeature)
+        Try
+            ' This is a simplified approach - each feature type has different parameter access
+            ' For a complete implementation, you would need to handle each feature type specifically
+            AddEntry("FeatureInfo", feat.Name & "_Type", feat.Type.ToString(), "String", "Feature")
+            
+        Catch ex As Exception
+            AddEntry("ERROR", "CaptureFeatureParameters", ex.Message, "Error", "System")
+        End Try
+    End Sub
+    
+    ''' <summary>
+    ''' Helper method to add an entry to the model data
+    ''' </summary>
+    Private Sub AddEntry(operation As String, name As String, value As String, dataType As String, category As String)
+        ModelData.Add(New ModelInfoEntry(operation, name, value, dataType, category))
+    End Sub
+    
+    ''' <summary>
+    ''' Determines the data type of a value
+    ''' </summary>
+    Private Function GetDataType(value As Object) As String
+        If value Is Nothing Then Return "Null"
+        
+        Dim valueType As Type = value.GetType()
+        If valueType Is GetType(String) Then Return "String"
+        If valueType Is GetType(Integer) OrElse valueType Is GetType(Double) OrElse valueType Is GetType(Single) Then Return "Number"
+        If valueType Is GetType(Boolean) Then Return "Boolean"
+        If valueType Is GetType(DateTime) Then Return "DateTime"
+        
+        Return valueType.Name
+    End Function
+    
+    ''' <summary>
+    ''' Returns data as a 2D array (for Excel-like access)
+    ''' Columns: Category, Operation, Name, Value, DataType
+    ''' </summary>
+    Public Function GetDataAsArray() As String(,)
+        Dim rowCount As Integer = ModelData.Count
+        Dim colCount As Integer = 5
+        Dim result(rowCount, colCount - 1) As String
+        
+        ' Header row
+        result(0, 0) = "Category"
+        result(0, 1) = "Operation" 
+        result(0, 2) = "Name"
+        result(0, 3) = "Value"
+        result(0, 4) = "DataType"
+        
+        ' Data rows
+        For i As Integer = 0 To ModelData.Count - 1
+            result(i + 1, 0) = ModelData(i).Category
+            result(i + 1, 1) = ModelData(i).Operation
+            result(i + 1, 2) = ModelData(i).Name
+            result(i + 1, 3) = ModelData(i).Value
+            result(i + 1, 4) = ModelData(i).DataType
+        Next
+        
+        Return result
+    End Function
+    
+    ''' <summary>
+    ''' Filters data by category
+    ''' </summary>
+    Public Function GetDataByCategory(category As String) As List(Of ModelInfoEntry)
+        Return ModelData.Where(Function(entry) entry.Category.Equals(category, StringComparison.OrdinalIgnoreCase)).ToList()
+    End Function
+    
+    ''' <summary>
+    ''' Finds entries by name (case-insensitive)
+    ''' </summary>
+    Public Function FindByName(name As String) As List(Of ModelInfoEntry)
+        Return ModelData.Where(Function(entry) entry.Name.ToLower().Contains(name.ToLower())).ToList()
+    End Function
+    
+    ''' <summary>
+    ''' Gets a summary report of captured data
+    ''' </summary>
+    Public Function GetSummaryReport() As String
+        Dim report As New System.Text.StringBuilder()
+        report.AppendLine("Model Information Capture Report")
+        report.AppendLine("=====================================")
+        report.AppendLine($"Document: {DocumentName}")
+        report.AppendLine($"Type: {DocumentType}")
+        report.AppendLine($"Captured: {CaptureTimestamp}")
+        report.AppendLine($"Total Entries: {ModelData.Count}")
+        report.AppendLine()
+        
+        ' Summary by category
+        Dim categories = ModelData.GroupBy(Function(x) x.Category).OrderBy(Function(x) x.Key)
+        report.AppendLine("Summary by Category:")
+        For Each cat In categories
+            report.AppendLine($"  {cat.Key}: {cat.Count()} entries")
+        Next
+        
+        return report.ToString()
+    End Function
+    
+    ''' <summary>
+    ''' Exports data to CSV format
+    ''' </summary>
+    Public Function ExportToCSV() As String
+        Dim csv As New System.Text.StringBuilder()
+        csv.AppendLine("Category,Operation,Name,Value,DataType")
+        
+        For Each entry In ModelData
+            Dim values() As String = {
+                entry.Category,
+                entry.Operation,
+                entry.Name,
+                entry.Value.Replace(",", ";"), ' Replace commas to avoid CSV issues
+                entry.DataType
+            }
+            csv.AppendLine(String.Join(",", values))
+        Next
+        
+        Return csv.ToString()
+    End Function
+End Class
+
+#End Region
+
+Sub Main()
+    Try
+        ' Create the model info capture instance
+        Dim modelCapture As New ModelInfoCapture()
+        
+        ' Capture all information from the current model
+        modelCapture.CaptureModelInfo()
+        
+        ' Display summary
+        MessageBox.Show(modelCapture.GetSummaryReport(), "Model Information Captured")
+        
+        ' Example: Access data programmatically
+        ' Get all parameters
+        Dim parameters = modelCapture.GetDataByCategory("Parameter")
+        If parameters.Count > 0 Then
+            MessageBox.Show($"Found {parameters.Count} parameters. First parameter: {parameters(0).Name} = {parameters(0).Value}", "Parameters Example")
+        End If
+        
+        ' Example: Find specific entries by name
+        Dim lengthParams = modelCapture.FindByName("length")
+        If lengthParams.Count > 0 Then
+            Dim foundParams As String = String.Join(vbCrLf, lengthParams.Select(Function(p) $"{p.Name}: {p.Value}"))
+            MessageBox.Show($"Found {lengthParams.Count} entries containing 'length':" & vbCrLf & foundParams, "Search Example")
+        End If
+        
+        ' Example: Get data as array (like the user requested)
+        Dim dataArray = modelCapture.GetDataAsArray()
+        MessageBox.Show($"Data captured in array format: {dataArray.GetLength(0)} rows x {dataArray.GetLength(1)} columns", "Array Format")
+        
+        ' Store the capture instance in a global variable for access from other rules
+        iProperties.Value("Custom", "LastCaptureTimestamp") = modelCapture.CaptureTimestamp.ToString()
+        iProperties.Value("Custom", "LastCaptureEntryCount") = modelCapture.ModelData.Count.ToString()
+        
+        ' Optional: Export to file
+        ' Dim csvData = modelCapture.ExportToCSV()
+        ' System.IO.File.WriteAllText("C:\temp\ModelInfo.csv", csvData)
+        
+    Catch ex As Exception
+        MessageBox.Show("Error capturing model information: " & ex.Message, "Error")
+    End Try
+End Sub
