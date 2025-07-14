@@ -1,4 +1,5 @@
-﻿''' <summary>
+﻿Option Explicit On
+''' <summary>
 ''' Model-independent information capture system for iLogic
 ''' Automatically captures all parameters, features, and model information
 ''' without requiring knowledge of specific parameter names
@@ -37,12 +38,14 @@ End Class
 ''' Main class for capturing and organizing model information
 ''' </summary>
 Public Class ModelInfoCapture
-    Public Property ModelData As List(Of ModelInfoEntry)
+    Public ThisApp As Inventor.Application = Nothing
+	Public Property ModelData As List(Of ModelInfoEntry)
     Public Property DocumentType As String
     Public Property DocumentName As String
     Public Property CaptureTimestamp As DateTime
     
-    Public Sub New()
+    Public Sub New(InvApp As Inventor.Application)
+		ThisApp = InvApp
         ModelData = New List(Of ModelInfoEntry)()
         CaptureTimestamp = DateTime.Now
     End Sub
@@ -52,7 +55,7 @@ Public Class ModelInfoCapture
     ''' </summary>
     Public Sub CaptureModelInfo(Optional doc As Inventor.Document = Nothing)
         If doc Is Nothing Then
-            doc = ThisApplication.ActiveDocument
+            doc = ThisApp.ActiveDocument
         End If
         
         DocumentName = System.IO.Path.GetFileNameWithoutExtension(doc.FullFileName)
@@ -103,7 +106,7 @@ Public Class ModelInfoCapture
     Private Sub CaptureiProperties(doc As Inventor.Document)
         Try
             For Each propSet As PropertySet In doc.PropertySets
-                For Each prop As Property In propSet
+                For Each prop As Inventor.Property In propSet
                     Try
                         Dim propValue As String = If(prop.Value IsNot Nothing, prop.Value.ToString(), "")
                         AddEntry("iProperty", prop.DisplayName, propValue, GetDataType(prop.Value), "iProperty")
@@ -379,7 +382,7 @@ End Class
 Sub Main()
     Try
         ' Create the model info capture instance
-        Dim modelCapture As New ModelInfoCapture()
+        Dim modelCapture As New ModelInfoCapture(ThisApplication)
         
         ' Capture all information from the current model
         modelCapture.CaptureModelInfo()
@@ -409,9 +412,9 @@ Sub Main()
         iProperties.Value("Custom", "LastCaptureTimestamp") = modelCapture.CaptureTimestamp.ToString()
         iProperties.Value("Custom", "LastCaptureEntryCount") = modelCapture.ModelData.Count.ToString()
         
-        ' Optional: Export to file
-        ' Dim csvData = modelCapture.ExportToCSV()
-        ' System.IO.File.WriteAllText("C:\temp\ModelInfo.csv", csvData)
+         'Optional: Export To File
+         Dim csvData = modelCapture.ExportToCSV()
+         System.IO.File.WriteAllText("C:\temp\ModelInfo.csv", csvData)
         
     Catch ex As Exception
         MessageBox.Show("Error capturing model information: " & ex.Message, "Error")
