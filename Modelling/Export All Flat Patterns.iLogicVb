@@ -1,0 +1,178 @@
+﻿' ============================================================
+' Export All Flat Patterns
+' DA4I-compatible version.
+'
+' - No UI calls (no MessageBox, InputBox, dialogs)
+' - Uses ThisDoc.Document instead of ThisApplication.ActiveDocument
+' - All output via Logger (captured in DA4I job manifest)
+' - Runs from assembly level
+' - Traverses all unique sheet metal parts in the assembly
+' - Generates flat pattern if one does not already exist
+' - Exports a DXF per model state (skipping [Primary])
+' - Exits flat pattern edit and cleans up generated patterns
+'
+' Desktop use: run from the iLogic browser as normal.
+' DA4I use:    invoke via Design Automation workitem; check
+'              the job report for Logger output.
+' ============================================================
+
+Sub Main()
+
+    ' Use ThisDoc.Document — works on both desktop and DA4I server.
+    ' ThisApplication.ActiveDocument is not supported on DA4I.
+    Dim oDoc As Document = ThisDoc.Document
+
+    If oDoc.DocumentType <> kAssemblyDocumentObject Then
+        Logger.Error("Export All Flat Patterns: must be run from an assembly document. Aborting.")
+        Return
+    End If
+
+    Logger.Info("Export All Flat Patterns: starting on assembly: " & oDoc.DisplayName)
+
+    Dim oAsmDoc As AssemblyDocument = CType(oDoc, AssemblyDocument)
+    Dim oAsmDef As AssemblyComponentDefinition = oAsmDoc.ComponentDefinition
+
+    ' --- Traverse all occurrences, collect unique sheet metal part documents ---
+    Dim visited As New Dictionary(Of String, PartDocument)
+    Dim stack As New Stack(Of ComponentOccurrence)
+
+    For Each oOcc As ComponentOccurrence In oAsmDef.Occurrences
+        stack.Push(oOcc)
+    Next
+
+    Do While stack.Count > 0
+        Dim oOcc As ComponentOccurrence = stack.Pop()
+        If oOcc.Suppressed Then Continue Do
+
+        If oOcc.DefinitionDocumentType = kAssemblyDocumentObject Then
+            For Each subOcc As ComponentOccurrence In oOcc.SubOccurrences
+                stack.Push(subOcc)
+            Next
+            Continue Do
+        End If
+
+        If oOcc.DefinitionDocumentType <> kPartDocumentObject Then Continue Do
+
+        Dim defDoc As Document = oOcc.Definition.Document
+        Dim defKey As String = defDoc.FullDocumentName
+        If String.IsNullOrEmpty(defKey) Then defKey = defDoc.FullDisplayName
+
+        If visited.ContainsKey(defKey) Then Continue Do
+
+        ' Check if this part is a sheet metal part
+        Dim oPart As PartDocument = CType(defDoc, PartDocument)
+        If Not TypeOf oPart.ComponentDefinition Is SheetMetalComponentDefinition Then
+            visited(defKey) = Nothing   ' mark as visited, not sheet metal
+            Continue Do
+        End If
+
+        visited(defKey) = oPart
+    Loop
+
+    ' --- Process each unique sheet metal part ---
+    Dim exportedFiles As New List(Of String)
+    Dim errorParts As New List(Of String)
+
+    Dim sOut As String = "FLAT PATTERN DXF?AcadVersion=2000&OuterProfileLayer=IV_INTERIOR_PROFILES"
+
+    For Each kvp As KeyValuePair(Of String, PartDocument) In visited
+        Dim oPart As PartDocument = kvp.Value
+        If oPart Is Nothing Then Continue For   ' not a sheet metal part
+
+        Dim oSMDef As SheetMetalComponentDefinition = CType(oPart.ComponentDefinition, SheetMetalComponentDefinition)
+        Dim partDisplayName As String = oPart.DisplayName
+
+        ' Determine which model states to process
+        Dim statesToProcess As New List(Of String)
+
+        Try
+            If oSMDef.ModelStates.Count > 1 Then
+                For Each ms As ModelState In oSMDef.ModelStates
+                    If ms.Name <> "[Primary]" Then
+                        statesToProcess.Add(ms.Name)
+                    End If
+                Next
+            Else
+                statesToProcess.Add("[Primary]")
+            End If
+        Catch ex As Exception
+            statesToProcess.Add("[Primary]")
+        End Try
+
+        For Each stateName As String In statesToProcess
+            Try
+                If stateName <> "[Primary]" Then
+                    oSMDef.ModelStates.Item(stateName).Activate()
+                End If
+
+                ' Generate flat pattern if it doesn't already exist
+                Dim flatPatternCreatedHere As Boolean = False
+                If Not oSMDef.HasFlatPattern Then
+                    oSMDef.Unfold()
+                    flatPatternCreatedHere = True
+                Else
+                    oSMDef.FlatPattern.Edit()
+                End If
+
+                ' Build output file name
+                Dim sFname As String
+                If stateName <> "[Primary]" Then
+                    sFname = oPart.FullFileName.Replace(".ipt", "") & "(" & stateName & ").dxf"
+                Else
+                    sFname = oPart.FullFileName.Replace(".ipt", "") & ".dxf"
+                End If
+
+                ' Export DXF
+                oSMDef.DataIO.WriteDataToFile(sOut, sFname)
+                exportedFiles.Add(sFname)
+                Logger.Info("Exported: " & sFname)
+
+                ' Exit flat pattern edit
+                oSMDef.FlatPattern.ExitEdit()
+
+                ' Delete the flat pattern only if we generated it here
+                If flatPatternCreatedHere Then
+                    oSMDef.FlatPattern.Delete()
+                End If
+
+            Catch ex As Exception
+                Dim errEntry As String = partDisplayName & " [" & stateName & "]: " & ex.Message
+                errorParts.Add(errEntry)
+                Logger.Error("Error processing " & errEntry)
+
+                ' Attempt to clean up flat pattern edit state on error
+                Try
+                    If oSMDef.HasFlatPattern Then
+                        oSMDef.FlatPattern.ExitEdit()
+                    End If
+                Catch
+                    ' Ignore cleanup errors
+                End Try
+            End Try
+        Next
+
+        ' Restore Primary model state if we changed it
+        Try
+            If oSMDef.ModelStates.Count > 1 Then
+                oSMDef.ModelStates.Item("[Primary]").Activate()
+            End If
+        Catch
+            ' Ignore if no model states
+        End Try
+    Next
+
+    ' --- Summary to Logger (DA4I job report) ---
+    Logger.Info("----------------------------------------")
+    Logger.Info("Export All Flat Patterns: complete.")
+    Logger.Info("Exported: " & exportedFiles.Count & " DXF file(s).")
+
+    If errorParts.Count > 0 Then
+        Logger.Warn("Errors encountered: " & errorParts.Count)
+        For Each e As String In errorParts
+            Logger.Error("  " & e)
+        Next
+    End If
+
+    Logger.Info("----------------------------------------")
+
+End Sub
