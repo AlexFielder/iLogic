@@ -1,0 +1,84 @@
+﻿' PushAssyParamsToSkeleton
+' Run from the assembly. Pushes every "Assy*" user parameter to the parameter of the
+' same name (without the "Assy" prefix) in the skeleton part occurrence, then updates.
+' e.g. AssyPlatformWidth (assembly) -> PlatformWidth (part)
+'
+' DA4I-compatible version:
+' - No MessageBox/UI calls — all output via Logger
+' - ThisDoc.Document already used (no ThisApplication.ActiveDocument)
+
+IlogicVb.UpdateWhenDone = True
+Dim occName As String = "cassette-2026-07-16"
+Dim prefix As String = "Assy"
+
+Dim asmDoc As AssemblyDocument = TryCast(ThisDoc.Document, AssemblyDocument)
+If asmDoc Is Nothing Then
+	Logger.Error("PushAssyParamsToSkeleton: must be run from the assembly document. Aborting.")
+	Return
+End If
+
+' Find the skeleton occurrence
+Dim occ As ComponentOccurrence = Nothing
+Try
+	occ = asmDoc.ComponentDefinition.Occurrences.ItemByName(occName)
+Catch
+End Try
+If occ Is Nothing Then
+	Logger.Error("PushAssyParamsToSkeleton: occurrence '" & occName & "' not found in " & asmDoc.DisplayName & ". Aborting.")
+	Return
+End If
+
+Dim partDef As PartComponentDefinition = TryCast(occ.Definition, PartComponentDefinition)
+If partDef Is Nothing Then
+	Logger.Error("PushAssyParamsToSkeleton: '" & occName & "' is not a part occurrence. Aborting.")
+	Return
+End If
+
+Dim partParams As Inventor.Parameters = partDef.Parameters
+
+Dim changedCount As Integer = 0
+Dim missing As New List(Of String)
+
+For Each asmParam As Inventor.Parameter In asmDoc.ComponentDefinition.Parameters.UserParameters
+	If Not asmParam.Name.StartsWith(prefix) Then Continue For
+	Dim targetName As String = asmParam.Name.Substring(prefix.Length)
+
+	Dim partParam As Inventor.Parameter = Nothing
+	Try
+		partParam = partParams.Item(targetName)
+	Catch
+	End Try
+	If partParam Is Nothing Then
+		missing.Add(targetName)
+		Continue For
+	End If
+
+	' Numeric parameters: compare evaluated values (database units) and only push real changes
+	If TypeOf asmParam.Value Is Double AndAlso TypeOf partParam.Value Is Double Then
+		If Math.Abs(CDbl(partParam.Value) - CDbl(asmParam.Value)) > 0.0000001 Then
+			partParam.Value = asmParam.Value
+			changedCount += 1
+		End If
+	Else
+		' Text / boolean / multivalue: push the expression instead
+		If partParam.Expression <> asmParam.Expression Then
+			partParam.Expression = asmParam.Expression
+			changedCount += 1
+		End If
+	End If
+Next
+
+If changedCount > 0 Then
+	Logger.Info("PushAssyParamsToSkeleton: pushed " & changedCount & " parameter(s) to '" & occName & "'.")
+	Dim partDoc As PartDocument = partDef.Document
+	partDoc.Update()
+	iProperties.MaterialOfComponent("Glass_Panel:1") = "Glass"
+	iProperties.MaterialOfComponent("SideGlassPanel:1") = "Glass"
+	InventorVb.DocumentUpdate() ' recompute the assembly with the new skeleton geometry
+Else
+	Logger.Info("PushAssyParamsToSkeleton: no parameter changes detected — skeleton not updated.")
+End If
+
+If missing.Count > 0 Then
+	Logger.Warn("PushAssyParamsToSkeleton: no matching parameter found in skeleton for: " & String.Join(", ", missing))
+End If
