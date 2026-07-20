@@ -1,0 +1,792 @@
+﻿Option Explicit On
+Imports System.Linq
+Imports System.Collections.Generic
+
+
+
+' ==========================================================
+' ENTRY POINT
+' ==========================================================
+Public Sub Main()
+    If ThisApplication.ActiveDocument.DocumentType = DocumentTypeEnum.kPartDocumentObject Then
+        Dim trans As Transaction = ThisApplication.TransactionManager.StartTransaction(
+            ThisApplication.ActiveDocument, "TFI Dome Thingy")
+        Try
+            Dim config As New DomeConfig()
+            CreateDome(ThisApplication.ActiveDocument, config)
+            trans.End()
+        Catch ex As Exception
+            trans.Abort()
+            MessageBox.Show(
+                "The error was: " & ex.Message & vbCrLf &
+                "Check the geometry logic or DomeConfig settings.",
+                "Dome Generation Error")
+        End Try
+    Else
+        MsgBox("This rule does not work in an Assembly!")
+    End If
+End Sub
+
+''' <summary>
+''' Inspired by this video by TFICADTips: https://www.youtube.com/watch?v=aq8rRc9H_TI
+'''
+''' REFACTORED: Configuration abstracted into DomeConfig class.
+''' Pass DomeConfig to CreateDome; all helpers receive tolerance/debugging
+''' explicitly rather than reading global state.
+''' </summary>
+
+' ==========================================================
+' CONFIGURATION — edit values here, nowhere else.
+' ==========================================================
+Public Class DomeConfig
+    ' Number of sides for the base polygon (must be even).
+    Public DomeSides As Integer = 6
+    ' Dome diameter expressed as a string the Inventor parameter engine can parse (e.g. "4m", "3000mm").
+    Public DomeDiameterString As String = "3m"
+    ' Height offset factor: multiplied by (diameter / 10) to give the inter-plane offset.
+    ' Lower values = flatter dome.
+    Public HeightOffsetFactor As Double = 10
+    ' When True, the second sculpt operation joins to the first body; when False a new body is created.
+    Public JoinSculptsOnAssembly As Boolean = True
+    ' Draw transient debugging graphics.
+    Public EnableDebuggingGraphics As Boolean = True
+    ' Floating-point equality tolerance (cm, Inventor internal units).
+    Public ToleranceValue As Double = 1E-12
+End Class
+
+' ==========================================================
+' MODULE-LEVEL OBJECTS — initialised once, shared across helpers.
+' ==========================================================
+Public OriginSketchPoint As SketchPoint = Nothing
+Public transObjs As TransientObjects = Nothing
+Public transGeom As TransientGeometry = Nothing
+Public debuggingGraphics As ClientGraphics = Nothing
+Public workplaneCollection As ObjectCollection = Nothing
+Public sculptSurfaceCollection As ObjectCollection = Nothing
+
+' ==========================================================
+' MAIN DOME CREATION ROUTINE
+' All configuration consumed via the 'config' parameter —
+' no reads of global Tolerance or debugging flags inside here.
+' ==========================================================
+Public Sub CreateDome(ByVal PartDoc As Document, ByVal config As DomeConfig)
+
+    Dim NumSides As Integer = config.DomeSides
+    Dim partCompDef As PartComponentDefinition = PartDoc.ComponentDefinition
+
+    ' Initialise shared transient-object helpers.
+    transObjs = ThisApplication.TransientObjects
+    transGeom = ThisApplication.TransientGeometry
+    debuggingGraphics = DrawingDebuggingGraphics(partCompDef, config.EnableDebuggingGraphics)
+
+    ' --- Sketch 1 (base polygon on XY plane) ---
+    Dim Sketch1 As PlanarSketch = CreateSketch(partCompDef, partCompDef.WorkPlanes(3))
+
+    ' Resolve or create the "diameter" user parameter.
+    Dim userParams As UserParameters = partCompDef.Parameters.UserParameters
+    Dim diamParam As Parameter = Nothing
+    Try
+        diamParam = Parameter.Param("diameter")
+    Catch
+        diamParam = userParams.AddByExpression("diameter", config.DomeDiameterString, UnitsTypeEnum.kMillimeterLengthUnits)
+    End Try
+    If diamParam Is Nothing Then
+        If Not diamParam.Param.InUse Then
+            userParams.Item("diameter").Delete()
+            diamParam = userParams.AddByExpression("diameter", config.DomeDiameterString, UnitsTypeEnum.kMillimeterLengthUnits)
+        End If
+    End If
+
+    Sketch1.SketchLines.AddAsPolygon(NumSides, OriginSketchPoint, transGeom.CreatePoint2d(diamParam.Value() / 2), True)
+
+    Dim PolygonCentrePoint As SketchPoint = Sketch1.SketchPoints(2)
+    Sketch1.GeometricConstraints.AddCoincident(PolygonCentrePoint, OriginSketchPoint)
+    Dim PolygonVerticalPoint As SketchPoint = Sketch1.SketchLines(2).EndSketchPoint
+    Sketch1.GeometricConstraints.AddVerticalAlign(PolygonVerticalPoint, OriginSketchPoint)
+
+    Dim oConstraint As TwoPointDistanceDimConstraint
+    Dim TextPoint As Point2d = transGeom.CreatePoint2d(0, ((Parameter("diameter") / 10) + 10) / 2)
+    oConstraint = Sketch1.DimensionConstraints.AddTwoPointDistance(
+        Sketch1.SketchLines(1).StartSketchPoint,
+        Sketch1.SketchLines(4).EndSketchPoint,
+        DimensionOrientationEnum.kHorizontalDim,
+        TextPoint, False)
+    oConstraint.Parameter.Expression = "diameter"
+
+    Sketch1.SetEndOfPart(True)
+    Sketch1.Visible = False
+    partCompDef.SetEndOfPartToTopOrBottom(False)
+    OriginSketchPoint = Nothing
+
+    ' --- Offset workplane (height driven by HeightOffsetFactor) ---
+    Dim offsetDistance As Double = (diamParam.Value() / 10) * config.HeightOffsetFactor
+    Dim OffsetWorkPlane As WorkPlane = partCompDef.WorkPlanes.AddByPlaneAndOffset(
+        partCompDef.WorkPlanes(3), offsetDistance)
+    OffsetWorkPlane.Visible = False
+
+    Dim latestParam As ModelParameter = GetLatestModelParameter(partCompDef)
+    latestParam.Name = "height"
+
+    workplaneCollection = transObjs.CreateObjectCollection()
+    sculptSurfaceCollection = transObjs.CreateObjectCollection()
+
+    sculptSurfaceCollection.Add(createSculptSurfaceForCollection(
+        partCompDef, partCompDef.WorkPlanes(3), PartFeatureExtentDirectionEnum.kPositiveExtentDirection))
+    sculptSurfaceCollection.Add(createSculptSurfaceForCollection(
+        partCompDef, OffsetWorkPlane, PartFeatureExtentDirectionEnum.kNegativeExtentDirection))
+
+    workplaneCollection.Add(OffsetWorkPlane)
+    partCompDef.WorkPlanes(3).Visible = True
+    OffsetWorkPlane.Visible = True
+
+    ' --- Sketch 2 (polygon on offset plane) ---
+    Dim Sketch2 As PlanarSketch = CreateSketch(partCompDef, OffsetWorkPlane)
+    Sketch2.SketchLines.AddAsPolygon(NumSides, OriginSketchPoint, transGeom.CreatePoint2d(diamParam.Value() / 2), True)
+
+    PolygonCentrePoint = Sketch2.SketchPoints(2)
+    Sketch2.GeometricConstraints.AddCoincident(PolygonCentrePoint, OriginSketchPoint)
+    Dim PolygonHorizontalPoint As SketchPoint = Sketch2.SketchLines(1).EndSketchPoint
+    Sketch2.GeometricConstraints.AddHorizontalAlign(PolygonHorizontalPoint, OriginSketchPoint)
+
+    TextPoint = transGeom.CreatePoint2d(((Parameter("diameter") / 10) + 10) / 2, 0)
+    oConstraint = Sketch2.DimensionConstraints.AddTwoPointDistance(
+        Sketch2.SketchLines(1).StartSketchPoint,
+        Sketch2.SketchLines(3).StartSketchPoint,
+        DimensionOrientationEnum.kVerticalDim,
+        TextPoint, False)
+    Sketch2.Visible = False
+    oConstraint.Parameter.Expression = "diameter"
+
+    Sketch2.SetEndOfPart(True)
+    partCompDef.SetEndOfPartToTopOrBottom(False)
+
+    ' --- Derive corner / mid-point lists from both sketches ---
+    Dim Sketch1CornerPoints As List(Of SketchPoint) = (
+        From skline As SketchLine In Sketch1.SketchLines
+        Select skline.StartSketchPoint).ToList()
+
+    Dim Sketch1MidPoints As List(Of SketchPoint) = (
+        From skline As SketchLine In Sketch1.SketchLines
+        Let midpoint As SketchPoint = GetSketchLineMidPoint(skline)
+        Select midpoint).ToList()
+
+    Dim Sketch2CornerPoints As List(Of SketchPoint) = (
+        From skline As SketchLine In Sketch2.SketchLines
+        Select skline.StartSketchPoint).ToList()
+
+    Dim Sketch2MidPoints As List(Of SketchPoint) = (
+        From skline As SketchLine In Sketch2.SketchLines
+        Let midpoint As SketchPoint = GetSketchLineMidPoint(skline)
+        Select midpoint).ToList()
+
+    ' --- Build first set of bridging workplanes ---
+    Create3PointWorkplaneFromList(partCompDef,
+        CalculateGroupsOfPointsForWorkplanes(Sketch1, Sketch2CornerPoints, Sketch1CornerPoints, config.ToleranceValue),
+        False, config.EnableDebuggingGraphics)
+
+    Create3PointWorkplaneFromList(partCompDef,
+        CalculateGroupsOfPointsForWorkplanes(Sketch2, Sketch1CornerPoints, Sketch2CornerPoints, config.ToleranceValue),
+        True, config.EnableDebuggingGraphics)
+
+    ' --- First sculpt pass ---
+    Dim sculpt1 As SculptFeature = partCompDef.Features.SculptFeatures.Add(
+        sculptSurfaceCollection, PartFeatureOperationEnum.kNewBodyOperation)
+    Dim body As SurfaceBody = sculpt1.SurfaceBodies(1)
+    sculptSurfaceCollection.Clear()
+
+    ' --- Refinement workplanes using mid-point groups ---
+    Dim specificPointGroups As List(Of PointsForSolidPlanes) =
+        GetSpecificPointGroups(Sketch2, Sketch2MidPoints, NumSides, config.ToleranceValue)
+    Dim matchingPoints As List(Of PointsForSolidPlanes) =
+        GetMatchingSketchPointForMid(Sketch1, specificPointGroups, Sketch1CornerPoints, config.ToleranceValue)
+
+    workplaneCollection.Clear()
+    Create3PointWorkplaneFromList(partCompDef, matchingPoints, True, config.EnableDebuggingGraphics, True, True)
+
+    ' --- Derive top apex point from the intersection of two work axes ---
+    Dim topAxis1 As WorkAxis = Nothing
+    Dim topAxis2 As WorkAxis = Nothing
+    Dim Zaxis As WorkAxis = partCompDef.WorkAxes.Item(3)
+
+    For Each ws As WorkPlane In workplaneCollection
+        If topAxis1 Is Nothing Then
+            topAxis1 = partCompDef.WorkAxes.AddByLineAndPlane(Zaxis, ws)
+        Else
+            topAxis2 = partCompDef.WorkAxes.AddByLineAndPlane(Zaxis, ws)
+        End If
+        ws.Visible = False
+    Next
+
+    Dim topPoint As WorkPoint = partCompDef.WorkPoints.AddByTwoLines(topAxis1, topAxis2)
+    topAxis1.Visible = False
+    topAxis2.Visible = False
+    topPoint.Visible = False
+
+    ' --- Second sculpt pass (apex panels) ---
+    sculptSurfaceCollection.Clear()
+    Create3PointWorkplaneFromList(partCompDef,
+        CalculateGroupsOfPointsForWorkplanes(Sketch2, Sketch2CornerPoints, topPoint, config.ToleranceValue),
+        False, config.EnableDebuggingGraphics)
+
+    Dim sculpt2Operation As PartFeatureOperationEnum =
+        If(config.JoinSculptsOnAssembly,
+           PartFeatureOperationEnum.kJoinOperation,
+           PartFeatureOperationEnum.kNewBodyOperation)
+
+    Dim sculpt2 As SculptFeature = partCompDef.Features.SculptFeatures.Add(
+        sculptSurfaceCollection, sculpt2Operation)
+
+End Sub
+
+' ==========================================================
+' GEOMETRIC HELPERS
+' All tolerance-sensitive functions accept tolerance explicitly.
+' ==========================================================
+
+''' <summary>
+''' Matches each PointsForSolidPlanes group in pointGroups to the correct midpoint
+''' SketchPoint from the supplied sketch, using explicit tolerance.
+''' </summary>
+Public Function GetMatchingSketchPointForMid(
+        ByVal thissketch As PlanarSketch,
+        ByVal pointGroups As List(Of PointsForSolidPlanes),
+        ByVal cornerpoints As List(Of SketchPoint),
+        ByVal tolerance As Double) As List(Of PointsForSolidPlanes)
+
+    For Each pointgrp As PointsForSolidPlanes In pointGroups
+        pointgrp.startPointLines = New List(Of LineSegment)
+        pointgrp.EndPointLines = New List(Of LineSegment)
+
+        For Each skline As SketchLine In thissketch.SketchLines
+            Dim startPoint As Point = skline.Geometry3d.StartPoint
+            pointgrp.startPointLines.Add(transGeom.CreateLineSegment(startPoint, pointgrp.StartPoint.Geometry3d))
+            pointgrp.EndPointLines.Add(transGeom.CreateLineSegment(startPoint, pointgrp.EndPoint.Geometry3d))
+        Next
+
+        Dim lineswithsameendpointsandlengths As List(Of LineSegment) = (
+            From startln As LineSegment In pointgrp.startPointLines
+            From endln As LineSegment In pointgrp.EndPointLines
+            Where startln.StartPoint.IsEqualTo(endln.StartPoint, tolerance) AndAlso
+                  IsEqual(getLineSegmentLength(startln), getLineSegmentLength(endln), tolerance)
+            Select startln).ToList()
+
+        lineswithsameendpointsandlengths = GetShortestLines(lineswithsameendpointsandlengths, tolerance)
+
+        Dim midpointline As LineSegment = lineswithsameendpointsandlengths.Item(0)
+        Dim midpointsketchpoint As SketchPoint = (
+            From skp As SketchPoint In cornerpoints
+            Where skp.Geometry3d.IsEqualTo(midpointline.StartPoint, tolerance)
+            Select skp).FirstOrDefault()
+
+        If Not midpointsketchpoint Is Nothing Then
+            pointgrp.MidPoint = midpointsketchpoint
+        Else
+            MessageBox.Show("No midpoint found for a point group.")
+        End If
+    Next
+
+    Return pointGroups
+End Function
+
+''' <summary>
+''' Groups specific sketch mid-points into pairs suitable for workplane creation,
+''' keyed by the number of polygon sides.
+''' </summary>
+Public Function GetSpecificPointGroups(
+        ByVal thisSketch As PlanarSketch,
+        ByVal sketchpoints As List(Of SketchPoint),
+        ByVal sides As Integer,
+        ByVal tolerance As Double) As List(Of PointsForSolidPlanes)
+
+    Dim group1 As New PointsForSolidPlanes
+    Dim group2 As New PointsForSolidPlanes
+
+    For i As Integer = 1 To thisSketch.SketchLines.Count
+        Dim skline As SketchLine = thisSketch.SketchLines(i)
+        Dim skpoint As SketchPoint = (
+            From sk As SketchPoint In sketchpoints
+            Where sk.Geometry3d.IsEqualTo(skline.Geometry3d.MidPoint, tolerance)
+            Select sk).FirstOrDefault()
+
+        Select Case sides
+            Case 6
+                If i = 1 Then
+                    If Not skpoint Is Nothing Then group1.StartPoint = skpoint
+                ElseIf i = 3 Then
+                    If Not skpoint Is Nothing Then group1.EndPoint = skpoint
+                ElseIf i = 4 Then
+                    If Not skpoint Is Nothing Then group2.StartPoint = skpoint
+                ElseIf i = 6 Then
+                    If Not skpoint Is Nothing Then group2.EndPoint = skpoint
+                End If
+            Case 8
+                ' TODO: define groups for 8-sided polygon
+            Case 10
+                ' TODO: define groups for 10-sided polygon
+            Case Else
+                ' Unsupported side count — extend Select Case to add support.
+        End Select
+    Next
+
+    Dim points As New List(Of PointsForSolidPlanes)
+    points.Add(group1)
+    points.Add(group2)
+    Return points
+End Function
+
+''' <summary>
+''' Returns only those sketch mid-points that fall on the geometry-relevant lines
+''' for the given number of sides. Passes tolerance and debugging flag explicitly.
+''' </summary>
+Public Function GetSpecificSketchLineMidPoints(
+        ByVal thisSketch As PlanarSketch,
+        ByVal sketchmidpoints As List(Of SketchPoint),
+        ByVal sides As Integer,
+        ByVal tolerance As Double,
+        ByVal enableDebugging As Boolean) As List(Of SketchPoint)
+
+    Dim sketchpoints As New List(Of SketchPoint)
+
+    For i As Integer = 1 To thisSketch.SketchLines.Count
+        Dim skline As SketchLine = thisSketch.SketchLines(i)
+        Select Case sides
+            Case 6
+                If i = 1 OrElse i = 3 OrElse i = 4 OrElse i = 6 Then
+                    Dim skpoint As SketchPoint = (
+                        From sk As SketchPoint In sketchmidpoints
+                        Where sk.Geometry3d.IsEqualTo(skline.Geometry3d.MidPoint, tolerance)
+                        Select sk).FirstOrDefault()
+                    If Not skpoint Is Nothing Then sketchpoints.Add(skpoint)
+                End If
+            Case 8
+                ' TODO
+            Case 10
+                ' TODO
+        End Select
+    Next
+
+    If enableDebugging Then
+        DebugSketchPointsEtc(thisSketch, True, sketchpoints)
+    End If
+
+    Return sketchpoints
+End Function
+
+' ==========================================================
+' WORKPLANE / SCULPT SURFACE HELPERS
+' ==========================================================
+
+Public Function createSculptSurfaceForCollection(
+        ByVal partCompDef As PartComponentDefinition,
+        ByVal surfaceToAdd As Object,
+        ByVal direction As PartFeatureExtentDirectionEnum) As SculptSurface
+
+    Return partCompDef.Features.SculptFeatures.CreateSculptSurface(surfaceToAdd, direction)
+End Function
+
+''' <summary>
+''' Creates workplanes from a list of PointsForSolidPlanes groups and optionally
+''' adds each resulting surface to the sculpt or workplane collections.
+''' enableDebugging now passed explicitly — no global read.
+''' </summary>
+Public Sub Create3PointWorkplaneFromList(
+        ByVal partCompDef As PartComponentDefinition,
+        ByVal pointlist As List(Of PointsForSolidPlanes),
+        ByVal FlipNormals As Boolean,
+        ByVal enableDebugging As Boolean,
+        Optional addToSculptCollection As Boolean = True,
+        Optional addToWorksurfaceCollection As Boolean = False)
+
+    For Each pointset As PointsForSolidPlanes In pointlist
+        Dim workplaneToAdd As WorkPlane = Nothing
+
+        If pointset.MidPoint Is Nothing AndAlso Not pointset.MidWorkPoint Is Nothing Then
+            workplaneToAdd = partCompDef.WorkPlanes.AddByThreePoints(
+                pointset.StartPoint, pointset.MidWorkPoint, pointset.EndPoint)
+        Else
+            workplaneToAdd = partCompDef.WorkPlanes.AddByThreePoints(
+                pointset.StartPoint, pointset.MidPoint, pointset.EndPoint)
+        End If
+
+        If FlipNormals Then workplaneToAdd.FlipNormal()
+        workplaneToAdd.AutoResize = True
+
+        If addToSculptCollection Then
+            sculptSurfaceCollection.Add(createSculptSurfaceForCollection(
+                partCompDef, workplaneToAdd, PartFeatureExtentDirectionEnum.kNegativeExtentDirection))
+        End If
+        If addToWorksurfaceCollection Then
+            workplaneCollection.Add(workplaneToAdd)
+        End If
+    Next
+End Sub
+
+''' <summary>
+''' Overload: computes point groups using a WorkPoint as the mid-point.
+''' </summary>
+Public Function CalculateGroupsOfPointsForWorkplanes(
+        ByVal Sketch As PlanarSketch,
+        ByVal cornerpoints As List(Of SketchPoint),
+        ByVal point As WorkPoint,
+        ByVal tolerance As Double) As List(Of PointsForSolidPlanes)
+
+    Dim listOfPoints As New List(Of PointsForSolidPlanes)
+    For Each Line As SketchLine In Sketch.SketchLines
+        Dim pointgrp As New PointsForSolidPlanes
+        pointgrp.StartPoint = Line.StartSketchPoint
+        pointgrp.EndPoint = Line.EndSketchPoint
+        pointgrp.MidWorkPoint = point
+        listOfPoints.Add(pointgrp)
+    Next
+    Return listOfPoints
+End Function
+
+''' <summary>
+''' Overload: computes point groups by finding the best-matching mid sketch-point
+''' between two polygon layers. Tolerance passed explicitly.
+''' </summary>
+Public Function CalculateGroupsOfPointsForWorkplanes(
+        ByVal Sketch As PlanarSketch,
+        ByVal cornerpoints As List(Of SketchPoint),
+        ByVal endpoints As List(Of SketchPoint),
+        ByVal tolerance As Double) As List(Of PointsForSolidPlanes)
+
+    Dim listOfPoints As New List(Of PointsForSolidPlanes)
+    Dim lineGroupList As New List(Of LineGroup)
+
+    For Each skLine As SketchLine In Sketch.SketchLines
+        Dim thisLineGroup As New LineGroup
+        thisLineGroup.parentLine = skLine
+        thisLineGroup.startPointLines = New List(Of LineSegment)
+        thisLineGroup.EndPointLines = New List(Of LineSegment)
+
+        Dim startPoint As Point = skLine.Geometry3d.StartPoint
+        Dim endPoint As Point = skLine.Geometry3d.EndPoint
+
+        For Each secondCornerPoint As SketchPoint In cornerpoints
+            thisLineGroup.startPointLines.Add(transGeom.CreateLineSegment(startPoint, secondCornerPoint.Geometry3d))
+            thisLineGroup.EndPointLines.Add(transGeom.CreateLineSegment(endPoint, secondCornerPoint.Geometry3d))
+        Next
+
+        thisLineGroup.startPointLines = GetShortestLines(thisLineGroup.startPointLines, tolerance)
+        thisLineGroup.EndPointLines = GetShortestLines(thisLineGroup.EndPointLines, tolerance)
+
+        lineGroupList.Add(thisLineGroup)
+    Next
+
+    For Each lineGrp As LineGroup In lineGroupList
+        Dim thesePoints As New PointsForSolidPlanes
+        thesePoints.StartPoint = lineGrp.parentLine.StartSketchPoint
+        thesePoints.EndPoint = lineGrp.parentLine.EndSketchPoint
+
+        Dim startPointPoints As List(Of Point) = (
+            From startline As LineSegment In lineGrp.startPointLines
+            Select startline.EndPoint).ToList()
+
+        Dim endPointPoints As List(Of Point) = (
+            From endline As LineSegment In lineGrp.EndPointLines
+            Select endline.EndPoint).ToList()
+
+        If Not startPointPoints Is Nothing AndAlso Not endPointPoints Is Nothing Then
+            For Each startPointPoint As Point In startPointPoints
+                For Each endPointPoint As Point In endPointPoints
+                    If startPointPoint.IsEqualTo(endPointPoint) Then
+                        For Each endpoint As SketchPoint In cornerpoints
+                            If endpoint.Geometry3d.IsEqualTo(startPointPoint, tolerance) Then
+                                thesePoints.MidPoint = endpoint
+                            End If
+                        Next
+                        If Not thesePoints.MidPoint Is Nothing Then
+                            listOfPoints.Add(thesePoints)
+                        End If
+                    End If
+                Next
+            Next
+        End If
+    Next
+
+    Return listOfPoints
+End Function
+
+''' <summary>
+''' Returns only the shortest line(s) from the list within the given tolerance.
+''' Uses the passed tolerance parameter — not a global.
+''' </summary>
+Public Function GetShortestLines(
+        ByVal listofLines As List(Of LineSegment),
+        ByVal tolerance As Double) As List(Of LineSegment)
+
+    Dim min As Double = listofLines.Min(Function(entry As LineSegment) getLineSegmentLength(entry))
+    If min <> Nothing Then
+        listofLines = listofLines.Where(
+            Function(entry As LineSegment) IsEqual(getLineSegmentLength(entry), min, tolerance)).ToList()
+    End If
+    Return listofLines
+End Function
+
+Public Function getLineSegmentLength(ByVal lineToMeasure As LineSegment) As Double
+    Return ThisApplication.MeasureTools.GetMinimumDistance(
+        lineToMeasure.StartPoint, lineToMeasure.EndPoint)
+End Function
+
+''' <summary>
+''' Floating-point equality check within a given tolerance.
+''' Default tolerance matches DomeConfig default for standalone use.
+''' </summary>
+Public Function IsEqual(
+        ByVal Value1 As Double,
+        ByVal Value2 As Double,
+        Optional ByVal Tolerance As Double = 1E-12) As Boolean
+
+    Return Math.Abs(Value1 - Value2) < Tolerance
+End Function
+
+' ==========================================================
+' DEBUGGING / GRAPHICS HELPERS
+' ==========================================================
+
+''' <summary>
+''' Initialises (or resets) the ClientGraphics collection used for debug drawing.
+''' enableDebugging passed explicitly — callers no longer read a global flag.
+''' </summary>
+Public Function DrawingDebuggingGraphics(
+        ByVal partCompDef As PartComponentDefinition,
+        ByVal enableDebugging As Boolean) As ClientGraphics
+
+    If Not enableDebugging Then Return Nothing
+
+    Dim newGraphics As ClientGraphics = Nothing
+    Try
+        newGraphics = partCompDef.ClientGraphicsCollection("debuggingGraphics")
+        If newGraphics IsNot Nothing Then
+            newGraphics.Delete()
+            newGraphics = partCompDef.ClientGraphicsCollection.Add("debuggingGraphics")
+        End If
+    Catch
+        newGraphics = partCompDef.ClientGraphicsCollection.Add("debuggingGraphics")
+    End Try
+    Return newGraphics
+End Function
+
+Public Sub DrawDebugGraphicsLineList(ByVal list As List(Of LineSegment), ByVal color As Color)
+    For Each lineSeg As LineSegment In list
+        DrawDebugLineGraphics(lineSeg, color)
+    Next
+End Sub
+
+Public Sub DrawDebugGraphicsList(ByVal list As Object)
+    For Each obj As Object In list
+        DrawDebugGraphics(obj)
+    Next
+End Sub
+
+Public Sub DrawDebugGraphics(ByVal obj As Object)
+    Dim graphicsNode As GraphicsNode = debuggingGraphics.AddNode(1)
+    graphicsNode.AddCurveGraphics(obj)
+End Sub
+
+Public Sub DrawDebugLineGraphics(ByVal lineSeg As LineSegment, ByVal lineColor As Color)
+    Dim graphicsNode As GraphicsNode = debuggingGraphics.AddNode(1)
+    Dim lineGraphics As CurveGraphics = graphicsNode.AddCurveGraphics(lineSeg)
+    lineGraphics.Color = lineColor
+End Sub
+
+' ==========================================================
+' SKETCH HELPERS
+' ==========================================================
+
+Public Function CreateSketch(
+        ByVal compDef As ComponentDefinition,
+        ByVal plane As WorkPlane) As PlanarSketch
+
+    Dim newSketch As PlanarSketch = compDef.Sketches.Add(plane)
+    CorrectForMissingOriginPoint(compDef, newSketch)
+    Return newSketch
+End Function
+
+Public Sub CorrectForMissingOriginPoint(
+        ByVal compDef As ComponentDefinition,
+        ByRef thisSketch As PlanarSketch)
+
+    Dim oOriginWP As WorkPoint = compDef.WorkPoints.Item(1)
+    For Each oSketchPoint As SketchPoint In thisSketch.SketchPoints
+        If oSketchPoint.ReferencedEntity Is oOriginWP Then
+            OriginSketchPoint = oSketchPoint
+            Exit For
+        End If
+    Next
+    If OriginSketchPoint Is Nothing Then
+        OriginSketchPoint = thisSketch.AddByProjectingEntity(compDef.WorkPoints.Item(1))
+    End If
+End Sub
+
+Public Function GetSketchLineMidPoint(ByVal skLineToQuery As SketchLine) As SketchPoint
+    Dim parentSketch As PlanarSketch = skLineToQuery.Parent
+    Dim newpoint As Point2d = transGeom.CreatePoint2d(
+        skLineToQuery.Geometry.MidPoint.X, skLineToQuery.Geometry.MidPoint.Y)
+    Dim lineMidPoint As SketchPoint = parentSketch.SketchPoints.Add(newpoint)
+    parentSketch.GeometricConstraints.AddMidpoint(lineMidPoint, skLineToQuery)
+    Return lineMidPoint
+End Function
+
+Public Function GetSketchLineMidPoint2d(ByVal skLine As SketchLine) As Point2d
+    Return skLine.Geometry.MidPoint
+End Function
+
+' ==========================================================
+' PARAMETER HELPERS
+' ==========================================================
+
+Public Function GetLatestModelParameter(ByVal compDef As ComponentDefinition) As Parameter
+    Dim modelParamList As New List(Of ModelParameter)
+    For Each mp As ModelParameter In compDef.Parameters.ModelParameters
+        modelParamList.Add(mp)
+    Next
+    If modelParamList.Count = 0 Then Return Nothing
+    modelParamList.Sort(Function(x As ModelParameter, y As ModelParameter) x.Name.CompareTo(y.Name))
+    Return modelParamList.Last()
+End Function
+
+' ==========================================================
+' ANNOTATION / DEBUG SKETCH HELPERS
+' ==========================================================
+
+Public Sub DebugSketchPointsEtc(
+        ByVal SketchToDebug As PlanarSketch,
+        ByVal ignoreSketchLines As Boolean,
+        Optional sketchpoints As List(Of SketchPoint) = Nothing)
+
+    Dim objColl As ObjectCollection = transObjs.CreateObjectCollection()
+
+    If Not ignoreSketchLines Then
+        For Each skline As SketchLine In SketchToDebug.SketchLines
+            objColl.Add(skline)
+        Next
+        AnnotateSketchObjectsForDebug(SketchToDebug, objColl, 10)
+        objColl.Clear()
+    End If
+
+    If sketchpoints Is Nothing Then
+        For Each skPoint As SketchPoint In SketchToDebug.SketchPoints
+            objColl.Add(skPoint)
+        Next
+    Else
+        For Each skPoint As SketchPoint In sketchpoints
+            objColl.Add(skPoint)
+        Next
+    End If
+
+    AnnotateSketchObjectsForDebug(SketchToDebug, objColl, 10)
+End Sub
+
+Public Sub AnnotateSketchObjectsForDebug(
+        ByVal thisSketch As PlanarSketch,
+        ByVal objcoll As ObjectCollection,
+        ByVal textheight As Double)
+
+    Dim objInt As Integer = 1
+    MessageBox.Show(objcoll.Count)
+    For Each obj In objcoll
+        If TypeOf obj Is SketchLine Then
+            Dim skLine As SketchLine = obj
+            Dim CenterPoint As Point2d = GetSketchLineMidPoint2d(skLine)
+            AddFittedColouredSketchTextAtPoint(thisSketch, "black", CenterPoint, objInt.ToString(), textheight,
+                VerticalTextAlignmentEnum.kAlignTextUpper, HorizontalTextAlignmentEnum.kAlignTextLeft)
+            AddFittedColouredSketchTextAtPoint(thisSketch, "green", skLine.StartSketchPoint.Geometry, objInt.ToString(), textheight,
+                VerticalTextAlignmentEnum.kAlignTextLower, HorizontalTextAlignmentEnum.kAlignTextLeft)
+            AddFittedColouredSketchTextAtPoint(thisSketch, "orange", skLine.EndSketchPoint.Geometry, objInt.ToString(), textheight,
+                VerticalTextAlignmentEnum.kAlignTextUpper, HorizontalTextAlignmentEnum.kAlignTextLeft)
+            objInt += 1
+        ElseIf TypeOf obj Is SketchPoint Then
+            Dim skPoint As SketchPoint = obj
+            AddFittedColouredSketchTextAtPoint(thisSketch, "red", skPoint.Geometry, objInt.ToString(), textheight,
+                VerticalTextAlignmentEnum.kAlignTextLower, HorizontalTextAlignmentEnum.kAlignTextRight)
+            objInt += 1
+        End If
+    Next
+End Sub
+
+Public Function AddFittedColouredSketchTextAtPoint(
+        ByVal sketchToEdit As PlanarSketch,
+        ByVal textcolour As String,
+        ByVal textpoint As Point2d,
+        ByVal textcontent As String,
+        ByVal textHeight As Double,
+        ByVal VerticalAlignment As VerticalTextAlignmentEnum,
+        ByVal HorizontalAlignment As HorizontalTextAlignmentEnum) As Inventor.TextBox
+
+    Dim skTextBox As Inventor.TextBox = sketchToEdit.TextBoxes.AddFitted(textpoint, textcontent)
+    Dim tstart As Integer = InStr(skTextBox.FormattedText, "'>") + 1
+    Dim curtext As String
+    If tstart <> 1 Then
+        Dim tend As Integer = InStr(skTextBox.FormattedText, "</Style") - 1
+        curtext = Mid(skTextBox.FormattedText, tstart + 1, tend - tstart)
+    Else
+        curtext = skTextBox.FormattedText
+    End If
+    skTextBox.FormattedText = "<StyleOverride FontSize='" & textHeight & "'>" & curtext & "</StyleOverride>"
+    skTextBox.VerticalJustification = VerticalAlignment
+    skTextBox.HorizontalJustification = HorizontalAlignment
+    skTextBox.Color = GetColourFromString(textcolour)
+    Return skTextBox
+End Function
+
+Public Function GetColourFromString(ByVal colourname As String) As Color
+    Select Case colourname.ToLower()
+        Case "black"  : Return transObjs.CreateColor(255, 255, 255)
+        Case "red"    : Return transObjs.CreateColor(255, 0, 0)
+        Case "green"  : Return transObjs.CreateColor(0, 255, 0)
+        Case "orange" : Return transObjs.CreateColor(255, 165, 0)
+        Case "blue"   : Return transObjs.CreateColor(0, 0, 255)
+    End Select
+    Return transObjs.CreateColor(128, 128, 128) ' fallback grey
+End Function
+
+' ==========================================================
+' DATA CLASSES
+' ==========================================================
+
+Public Class PointsForSolidPlanes
+    Public StartPoint As SketchPoint
+    Public MidPoint As SketchPoint
+    Public MidWorkPoint As WorkPoint
+    Public EndPoint As SketchPoint
+    Public startPointLines As List(Of LineSegment)
+    Public EndPointLines As List(Of LineSegment)
+
+    Public Sub New()
+    End Sub
+
+    Public Sub New(
+            m_startPoint As SketchPoint,
+            m_midPoint As SketchPoint,
+            m_midWorkPoint As WorkPoint,
+            m_endPoint As SketchPoint,
+            m_startPointLines As List(Of LineSegment),
+            m_endPointLines As List(Of LineSegment))
+        StartPoint = m_startPoint
+        MidPoint = m_midPoint
+        MidWorkPoint = m_midWorkPoint
+        EndPoint = m_endPoint
+        startPointLines = m_startPointLines
+        EndPointLines = m_endPointLines
+    End Sub
+End Class
+
+Public Class LineGroup
+    Public parentLine As SketchLine
+    Public startPointLines As List(Of LineSegment)
+    Public EndPointLines As List(Of LineSegment)
+
+    Public Sub New()
+    End Sub
+
+    Public Sub New(
+            m_parentLine As SketchLine,
+            m_startPointLines As List(Of LineSegment),
+            m_endPointLines As List(Of LineSegment))
+        parentLine = m_parentLine
+        startPointLines = m_startPointLines
+        EndPointLines = m_endPointLines
+    End Sub
+End Class
