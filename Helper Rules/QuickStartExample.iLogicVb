@@ -1,0 +1,95 @@
+﻿''' <summary>
+''' Quick Start Example - Exactly what the user requested
+''' 
+''' This rule demonstrates the exact scenario described in the issue:
+''' "The idea I have in mind is that the names are stored in an array 
+''' 1st column operations 2nd column name of the parameter and 3rd value of the parameter. 
+''' So going through all the rows of the array I can access each parameter 
+''' without having to use the name given by the user."
+''' 
+''' Author: AI Assistant for Issue #8
+''' </summary>
+
+AddVbFile "ModelIndependentCapture"
+
+Option Explicit On
+
+Sub Main()
+    MessageBox.Show("This example shows exactly how to use the model-independent capture as requested.", "Quick Start")
+    
+    ' Step 1: Get the model information in array format
+    ' This array has exactly what was requested:
+    ' 1st column: operations
+    ' 2nd column: name of the parameter  
+    ' 3rd column: value of the parameter
+    Dim modelArray(,) As String = GetModelInfoArray()
+    
+    ' Step 2: Go through all the rows of the array
+    ' You can access each parameter without having to use the name given by the user
+    Dim parameterCount As Integer = 0
+    Dim parameterList As New System.Text.StringBuilder()
+    
+    parameterList.AppendLine("Parameters found in this model:")
+    parameterList.AppendLine("===============================")
+    
+    For i As Integer = 1 To modelArray.GetLength(0) - 1 ' Skip header row
+        Dim operation As String = modelArray(i, 0)    ' 1st column: operations
+        Dim paramName As String = modelArray(i, 1)    ' 2nd column: name of parameter
+        Dim paramValue As String = modelArray(i, 2)   ' 3rd column: value of parameter
+        
+        ' Now you can access each parameter without using the name given by the user!
+        If operation = "Parameter" Then
+            parameterCount += 1
+            parameterList.AppendLine($"{parameterCount}. {paramName} = {paramValue}")
+            
+            ' Example: You can now modify parameters programmatically without hardcoding names
+            ' If paramName.ToLower().Contains("length") Then
+            '     Parameter(paramName) = CDbl(paramValue) * 1.1  ' Scale length by 10%
+            ' End If
+        End If
+    Next
+    
+    ' Step 3: Show the results
+    If parameterCount > 0 Then
+        MessageBox.Show(parameterList.ToString(), $"Found {parameterCount} Parameters")
+    Else
+        MessageBox.Show("No parameters found in this model.", "Results")
+    End If
+    
+    ' Step 4: Demonstrate accessing other information types
+    DemonstrateOtherInformation(modelArray)
+End Sub
+
+Private Sub DemonstrateOtherInformation(modelArray(,) As String)
+    Dim report As New System.Text.StringBuilder()
+    report.AppendLine("Complete Model Information:")
+    report.AppendLine("==========================")
+    
+    Dim featureCount As Integer = 0
+    Dim componentCount As Integer = 0
+    Dim sketchCount As Integer = 0
+    
+    For i As Integer = 1 To modelArray.GetLength(0) - 1
+        Dim operation As String = modelArray(i, 0)
+        Dim itemName As String = modelArray(i, 1)
+        Dim itemValue As String = modelArray(i, 2)
+        
+        Select Case operation
+            Case "Feature"
+                featureCount += 1
+            Case "Component"
+                componentCount += 1
+            Case "Sketch"
+                sketchCount += 1
+        End Select
+    Next
+    
+    report.AppendLine($"Features: {featureCount}")
+    report.AppendLine($"Components: {componentCount}")
+    report.AppendLine($"Sketches: {sketchCount}")
+    report.AppendLine()
+    report.AppendLine("This demonstrates that the rule is truly model-independent")
+    report.AppendLine("and captures ALL information automatically!")
+    
+    MessageBox.Show(report.ToString(), "Model Analysis")
+End Sub

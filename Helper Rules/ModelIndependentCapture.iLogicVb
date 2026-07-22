@@ -1,0 +1,219 @@
+﻿''' <summary>
+''' Simple Model-Independent Parameter and Feature Capture
+''' Automatically reads all operations and parameters from any model
+''' Stores in array format as requested: [Operation, Name, Value]
+''' Author: AI Assistant for Issue #8
+''' </summary>
+
+Option Explicit On
+
+Sub Main()
+    Try
+        ' Call the main capture function
+        CaptureModelInformation()
+        
+    Catch ex As Exception
+        MessageBox.Show("Error: " & ex.Message, "Model Capture Error")
+    End Try
+End Sub
+
+Public Sub CaptureModelInformation()
+    ' Initialize the array to store model information
+    ' Using List for dynamic sizing, will convert to array later
+    Dim modelInfoList As New List(Of String())
+    
+    ' Add header row
+    modelInfoList.Add({"Operation", "Name", "Value"})
+    
+    Dim doc As Inventor.Document = ThisApplication.ActiveDocument
+    Dim docName As String = System.IO.Path.GetFileNameWithoutExtension(doc.FullFileName)
+    
+    ' Add document info
+    modelInfoList.Add({"Document", "FileName", docName})
+    modelInfoList.Add({"Document", "DocumentType", doc.DocumentType.ToString()})
+    
+    ' Process based on document type
+    If TypeOf doc Is PartDocument Then
+        CapturePartInformation(CType(doc, PartDocument), modelInfoList)
+    ElseIf TypeOf doc Is AssemblyDocument Then
+        CaptureAssemblyInformation(CType(doc, AssemblyDocument), modelInfoList)
+    End If
+    
+    ' Convert to 2D array as requested
+    Dim infoArray(modelInfoList.Count - 1, 2) As String
+    For i As Integer = 0 To modelInfoList.Count - 1
+        infoArray(i, 0) = modelInfoList(i)(0) ' Operation
+        infoArray(i, 1) = modelInfoList(i)(1) ' Name  
+        infoArray(i, 2) = modelInfoList(i)(2) ' Value
+    Next
+    
+    ' Demonstrate array access
+    DemonstrateArrayAccess(infoArray)
+    
+    ' Store summary in iProperties for later access
+    iProperties.Value("Custom", "CapturedParameterCount") = (modelInfoList.Count - 1).ToString() ' -1 for header
+    iProperties.Value("Custom", "LastCaptureTime") = DateTime.Now.ToString()
+    
+    ' Show completion message
+    MessageBox.Show($"Captured {modelInfoList.Count - 1} entries from {docName}" & vbCrLf & 
+                    "Data stored in array format [Operation, Name, Value]" & vbCrLf &
+                    "Check iProperties for summary information.", "Capture Complete")
+End Sub
+
+Private Sub CapturePartInformation(partDoc As PartDocument, ByRef infoList As List(Of String()))
+    Try
+        Dim compDef As PartComponentDefinition = partDoc.ComponentDefinition
+        
+        ' Capture all parameters
+        For Each param As Parameter In compDef.Parameters
+            Try
+                Dim paramValue As String = GetParameterValue(param)
+                infoList.Add({"Parameter", param.Name, paramValue})
+            Catch ex As Exception
+                infoList.Add({"Parameter", param.Name, "Error reading value"})
+            End Try
+        Next
+        
+        ' Capture all features
+        For Each feature As PartFeature In compDef.Features
+            Try
+                infoList.Add({"Feature", feature.Name, feature.Type.ToString()})
+            Catch ex As Exception
+                infoList.Add({"Feature", "Unknown Feature", "Error reading feature"})
+            End Try
+        Next
+        
+        ' Capture sketches
+        For Each sketch As PlanarSketch In compDef.Sketches
+            Try
+                infoList.Add({"Sketch", sketch.Name, $"Sketch with {sketch.SketchEntities.Count} entities"})
+            Catch ex As Exception
+                infoList.Add({"Sketch", "Unknown Sketch", "Error reading sketch"})
+            End Try
+        Next
+        
+    Catch ex As Exception
+        infoList.Add({"Error", "CapturePartInformation", ex.Message})
+    End Try
+End Sub
+
+Private Sub CaptureAssemblyInformation(assyDoc As AssemblyDocument, ByRef infoList As List(Of String()))
+    Try
+        Dim compDef As AssemblyComponentDefinition = assyDoc.ComponentDefinition
+        
+        ' Capture all parameters
+        For Each param As Parameter In compDef.Parameters
+            Try
+                Dim paramValue As String = GetParameterValue(param)
+                infoList.Add({"Parameter", param.Name, paramValue})
+            Catch ex As Exception
+                infoList.Add({"Parameter", param.Name, "Error reading value"})
+            End Try
+        Next
+        
+        ' Capture occurrences (components)
+        For Each occ As ComponentOccurrence In compDef.Occurrences
+            Try
+                Dim occName As String = occ.Name
+                Dim refDoc As String = System.IO.Path.GetFileNameWithoutExtension(occ.ReferencedDocumentDescriptor.FullDocumentName)
+                infoList.Add({"Component", occName, refDoc})
+            Catch ex As Exception
+                infoList.Add({"Component", "Unknown Component", "Error reading component"})
+            End Try
+        Next
+        
+        ' Capture constraints
+        For Each constraint As AssemblyConstraint In compDef.Constraints
+            Try
+                infoList.Add({"Constraint", constraint.Name, constraint.Type.ToString()})
+            Catch ex As Exception
+                infoList.Add({"Constraint", "Unknown Constraint", "Error reading constraint"})
+            End Try
+        Next
+        
+    Catch ex As Exception
+        infoList.Add({"Error", "CaptureAssemblyInformation", ex.Message})
+    End Try
+End Sub
+
+Private Function GetParameterValue(param As Parameter) As String
+    Try
+        Select Case param.ParameterType
+            Case ParameterTypeEnum.kUserParameter
+                Return CType(param, UserParameter).Expression
+            Case ParameterTypeEnum.kModelParameter
+                Return CType(param, ModelParameter).Expression  
+            Case ParameterTypeEnum.kReferenceParameter
+                Return CType(param, ReferenceParameter).Expression
+            Case ParameterTypeEnum.kDerivedParameter
+                Return CType(param, DerivedParameter).Expression
+            Case Else
+                Return param.ParameterType.ToString()
+        End Select
+    Catch ex As Exception
+        Return "Error reading parameter value"
+    End Try
+End Function
+
+Private Sub DemonstrateArrayAccess(infoArray(,) As String)
+    ' Demonstrate how to access the array data as requested by the user
+    Dim report As New System.Text.StringBuilder()
+    report.AppendLine("Model Information Array Access Example:")
+    report.AppendLine("=====================================")
+    report.AppendLine()
+    
+    ' Show first few rows as example
+    Dim maxRows As Integer = Math.Min(10, infoArray.GetLength(0))
+    For i As Integer = 0 To maxRows - 1
+        Dim operation As String = infoArray(i, 0)  ' 1st column: operations
+        Dim name As String = infoArray(i, 1)       ' 2nd column: name of parameter
+        Dim value As String = infoArray(i, 2)      ' 3rd column: value of parameter
+        
+        report.AppendLine($"Row {i}: {operation} | {name} | {value}")
+    Next
+    
+    If infoArray.GetLength(0) > 10 Then
+        report.AppendLine($"... and {infoArray.GetLength(0) - 10} more rows")
+    End If
+    
+    report.AppendLine()
+    report.AppendLine("Array Structure:")
+    report.AppendLine($"Total Rows: {infoArray.GetLength(0)}")
+    report.AppendLine($"Columns: {infoArray.GetLength(1)} (Operation, Name, Value)")
+    report.AppendLine()
+    report.AppendLine("Access Pattern:")
+    report.AppendLine("For i = 0 To arrayRows - 1")
+    report.AppendLine("  operation = infoArray(i, 0)")
+    report.AppendLine("  name = infoArray(i, 1)")
+    report.AppendLine("  value = infoArray(i, 2)")
+    report.AppendLine("Next")
+    
+    MessageBox.Show(report.ToString(), "Array Access Demonstration")
+End Sub
+
+''' <summary>
+''' Helper function that can be called from other rules to get the captured data
+''' Returns the model information array for programmatic access
+''' </summary>
+Public Function GetModelInfoArray() As String(,)
+    Dim infoList As New List(Of String())
+    infoList.Add({"Operation", "Name", "Value"})
+    
+    Dim doc As Inventor.Document = ThisApplication.ActiveDocument
+    
+    If TypeOf doc Is PartDocument Then
+        CapturePartInformation(CType(doc, PartDocument), infoList)
+    ElseIf TypeOf doc Is AssemblyDocument Then
+        CaptureAssemblyInformation(CType(doc, AssemblyDocument), infoList)
+    End If
+    
+    ' Convert to array
+    Dim result(infoList.Count - 1, 2) As String
+    For i As Integer = 0 To infoList.Count - 1
+        result(i, 0) = infoList(i)(0)
+        result(i, 1) = infoList(i)(1)
+        result(i, 2) = infoList(i)(2)
+    Next
+    
+    Return result
+End Function
